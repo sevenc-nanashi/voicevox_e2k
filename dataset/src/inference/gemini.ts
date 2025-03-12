@@ -3,19 +3,15 @@ import {
   GoogleGenerativeAI,
 } from "@google/generative-ai";
 import type { InferenceProvider } from "./index.ts";
+import { config } from "../config.ts";
 
 export class Gemini implements InferenceProvider {
   genAI: GoogleGenerativeAI;
   model: GenerativeModel;
   constructor() {
-    const apiKey = process.env.GOOGLE_API_KEY;
-    if (!apiKey) {
-      throw new Error("Missing GOOGLE_API_KEY environment variable");
-    }
-
-    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.genAI = new GoogleGenerativeAI(config.gemini.apiKey);
     this.model = this.genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: config.gemini.modelName,
     });
   }
 

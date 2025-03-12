@@ -26,3 +26,15 @@ export const shuffle = <T>(array: T[]) => {
     .sort((a, b) => a.key - b.key)
     .map(({ value }) => value);
 };
+
+// 半角カタカナ、ひらがなを全角カタカナに変換し、長音っぽい文字を長音に変換する
+export const normalizeKana = (text: string) => {
+  return text
+    .replace(/[\uFF65-\uFF9F]/g, (s) =>
+      String.fromCharCode(s.charCodeAt(0) - 0x60),
+    )
+    .replace(/[\u3041-\u3096]/g, (s) =>
+      String.fromCharCode(s.charCodeAt(0) + 0x60),
+    )
+    .replace(/[ｰ－ー]/g, "ー");
+};

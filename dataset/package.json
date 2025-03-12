@@ -7,17 +7,21 @@
   "scripts": {
     "start": "node --experimental-strip-types ./src/main.ts",
     "lint": "biome check",
-    "fmt": "biome check --write"
+    "fmt": "biome check --write",
+    "typecheck": "tsc"
   },
   "packageManager": "pnpm@10.6.2",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@google/generative-ai": "^0.24.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.13.10",
     "typescript": "^5.8.2"
   },
   "private": true,
   "dependencies": {
-    "@core/asyncutil": "npm:@jsr/core__asyncutil@^1.2.0"
+    "@core/asyncutil": "npm:@jsr/core__asyncutil@^1.2.0",
+    "@google/generative-ai": "^0.24.0",
+    "js-yaml": "^4.1.0",
+    "zod": "^3.24.2"
   }
 }

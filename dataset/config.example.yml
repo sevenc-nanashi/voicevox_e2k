@@ -1,0 +1,7 @@
+# Geminiの設定。
+gemini:
+  # Google AI Studioから取得したAPIキー。
+  apiKey: ""
+
+  # 使うモデルの名前。
+  modelName: "gemini-2.0-flash"
