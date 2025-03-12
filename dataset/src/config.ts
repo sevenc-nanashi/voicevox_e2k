@@ -3,6 +3,8 @@ import * as z from "zod";
 import { load as loadYaml } from "js-yaml";
 
 const configSchema = z.object({
+  sourceProvider: z.enum(["cmudict"]),
+  inferenceProvider: z.enum(["gemini"]),
   gemini: z.object({
     apiKey: z.string(),
     modelName: z.string(),

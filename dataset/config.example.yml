@@ -1,3 +1,8 @@
+# 英単語の取得方法を指定します。
+sourceProvider: cmudict
+# 読みの取得方法を指定します。
+inferenceProvider: gemini
+
 # Geminiの設定。
 gemini:
   # Google AI Studioから取得したAPIキー。

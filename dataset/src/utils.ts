@@ -38,3 +38,9 @@ export const normalizeKana = (text: string) => {
     )
     .replace(/[ｰ－ー]/g, "ー");
 };
+
+export class ExhaustiveError extends Error {
+  constructor(value: never, message?: string) {
+    super(message ?? `Unexpected value: ${JSON.stringify(value, null, 2)}`);
+  }
+}

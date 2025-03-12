@@ -2,11 +2,26 @@ import * as fs from "node:fs/promises";
 import { Semaphore } from "@core/asyncutil/semaphore";
 import * as inference from "./inference/index.ts";
 import * as source from "./source/index.ts";
-import { bisectMax, normalizeKana, shuffle } from "./utils.ts";
+import { ExhaustiveError, bisectMax, normalizeKana, shuffle } from "./utils.ts";
+import { config } from "./config.ts";
 
 async function main() {
-  const sourceProvider = new source.CmuDict();
-  const inferenceProvider = new inference.Gemini();
+  let sourceProvider: source.SourceProvider;
+  switch (config.sourceProvider) {
+    case "cmudict":
+      sourceProvider = new source.CmuDict();
+      break;
+    default:
+      throw new ExhaustiveError(config.sourceProvider);
+  }
+  let inferenceProvider: inference.InferenceProvider;
+  switch (config.inferenceProvider) {
+    case "gemini":
+      inferenceProvider = new inference.Gemini();
+      break;
+    default:
+      throw new ExhaustiveError(config.inferenceProvider);
+  }
 
   console.log("1: Loading words...");
   const words = await sourceProvider.getWords();
