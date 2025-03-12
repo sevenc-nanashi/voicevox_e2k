@@ -1,3 +1,0 @@
-packages:
-  - ./crates/e2k-js/js
-  - ./crates/e2k-js/example
