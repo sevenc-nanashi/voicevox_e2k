@@ -2,12 +2,7 @@
 name = "e2k"
 version = "0.2.3"
 edition = "2021"
-
 license = "MIT"
-description = "英単語から読みを推論するライブラリ（Patchethium/e2kのRust実装）"
-documentation = "https://docs.rs/e2k"
-repository = "https://github.com/sevenc-nanashi/e2k-rs"
-
 include = ["!*", "/README.md", "/LICENSE", "/src/**/*.rs"]
 
 [lib]
@@ -18,7 +13,7 @@ name = "benchmark"
 harness = false
 
 [features]
-default = ["embed_model", "compress_model"]
+default = ["compress_model"]
 
 getrandom_on_wasm32_unknown = ["dep:rand", "getrandom/wasm_js"]
 embed_model = []

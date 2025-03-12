@@ -337,36 +337,9 @@ impl C2k {
     ///
     /// # Arguments
     ///
-    /// - `max_len`: 読みの最大長。
-    #[cfg(feature = "embed_model")]
-    pub fn new(max_len: usize) -> Self {
-        static MODEL: std::sync::LazyLock<Vec<u8>> = std::sync::LazyLock::new(|| {
-            cfg_elif::expr::cfg!(if (docsrs) {
-                Vec::new()
-            } else if (feature == "compress_model") {
-                {
-                    use std::io::Read;
-                    let model = include_bytes!("./models/model-c2k.safetensors.br");
-                    let mut input = brotli_decompressor::Decompressor::new(model.as_slice(), 4096);
-                    let mut buf = Vec::new();
-                    input.read_to_end(&mut buf).expect("Model is corrupted");
-                    buf
-                }
-            } else {
-                include_bytes!("./models/model-c2k.safetensors").to_vec()
-            })
-        });
-
-        Self::with_model(&MODEL, max_len)
-    }
-
-    /// モデルを指定して新しいインスタンスを生成する。
-    ///
-    /// # Arguments
-    ///
     /// - `model`: モデルのバイト列。
     /// - `max_len`: 読みの最大長。
-    pub fn with_model(model: &[u8], max_len: usize) -> Self {
+    pub fn new(model: &[u8], max_len: usize) -> Self {
         let weights = safetensors::SafeTensors::deserialize(model).expect("Model is corrupted");
         let inner = BaseE2k::new(
             weights,
@@ -420,36 +393,9 @@ impl P2k {
     ///
     /// # Arguments
     ///
-    /// - `max_len`: 読みの最大長。
-    #[cfg(feature = "embed_model")]
-    pub fn new(max_len: usize) -> Self {
-        static MODEL: std::sync::LazyLock<Vec<u8>> = std::sync::LazyLock::new(|| {
-            cfg_elif::expr::cfg!(if (docsrs) {
-                Vec::new()
-            } else if (feature == "compress_model") {
-                {
-                    use std::io::Read;
-                    let model = include_bytes!("./models/model-p2k.safetensors.br");
-                    let mut input = brotli_decompressor::Decompressor::new(model.as_slice(), 4096);
-                    let mut buf = Vec::new();
-                    input.read_to_end(&mut buf).expect("Model is corrupted");
-                    buf
-                }
-            } else {
-                include_bytes!("./models/model-p2k.safetensors").to_vec()
-            })
-        });
-
-        Self::with_model(&MODEL, max_len)
-    }
-
-    /// モデルを指定して新しいインスタンスを生成する。
-    ///
-    /// # Arguments
-    ///
     /// - `model`: モデルのバイト列。
     /// - `max_len`: 読みの最大長。
-    pub fn with_model(model: &[u8], max_len: usize) -> Self {
+    pub fn new(model: &[u8], max_len: usize) -> Self {
         let weights = safetensors::SafeTensors::deserialize(model).expect("Model is corrupted");
         let inner = BaseE2k::new(
             weights,

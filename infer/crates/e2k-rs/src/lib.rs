@@ -7,7 +7,7 @@
 //! ```rust
 //! // 文字列をカタカナに変換する例
 //! let src = "constants";
-//! let c2k = e2k::C2k::new(32);
+//! let c2k = e2k::C2k::new(e2k::models::C2K_MODEL, 32);
 //! let dst = c2k.infer(src);
 //!
 //! dbg!(dst); // "コンスタンツ"
@@ -16,7 +16,7 @@
 //! ```rust
 //! // CMUDictの発音記号をカタカナに変換する例
 //! let pronunciation = ["K", "AA1", "N", "S", "T", "AH0", "N", "T", "S"];
-//! let p2k = e2k::P2k::new(32);
+//! let p2k = e2k::P2k::new(e2k::models::P2K_MODEL, 32);
 //! let dst = p2k.infer(&pronunciation);
 //! dbg!(dst); // "コンスタンツ"
 //! ```
@@ -24,8 +24,6 @@
 //! ## Features
 //! ### `embed_model`
 //! モデルを埋め込みます。
-//! このfeatureはデフォルトで有効です。
-//! このfeatureを無効にした場合は、モデルを手動で指定する必要があります。
 //!
 //! ### `compress_model`
 //! brotliを使用してモデルを圧縮します。
@@ -43,3 +41,5 @@ mod layers;
 
 pub use constants::{ASCII_ENTRIES, EN_PHONES, KANAS};
 pub use inference::*;
+#[cfg(feature = "embed_model")]
+pub mod models;
