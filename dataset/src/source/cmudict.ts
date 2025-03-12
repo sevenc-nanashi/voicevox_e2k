@@ -1,10 +1,11 @@
+import fs from "node:fs/promises";
 import type { SourceProvider } from "./index.ts";
 
 export class CmuDict implements SourceProvider {
   async getWords() {
     const dictPath = `${import.meta.dirname}/../../deps/cmudict/cmudict-0.7b`;
-    const dictContent = await Bun.file(dictPath).text();
-    const dictPattern = /^([A-Z]{3,})  .+$/gm;
+    const dictContent = await fs.readFile(dictPath, "utf-8");
+    const dictPattern = /^([A-Z]{3,}) {2}.+$/gm;
 
     const words = dictContent.matchAll(dictPattern);
 

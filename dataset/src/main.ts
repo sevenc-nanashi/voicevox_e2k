@@ -1,8 +1,7 @@
-import * as source from "./source/index.ts";
-import * as inference from "./inference/index.ts";
 import { Semaphore } from "@core/asyncutil/semaphore";
+import * as inference from "./inference/index.ts";
+import * as source from "./source/index.ts";
 import { bisectMax, shuffle } from "./utils.ts";
-import { Mutex } from "@core/asyncutil";
 
 const sourceProvider = new source.CmuDict();
 const inferenceProvider = new inference.Gemini();

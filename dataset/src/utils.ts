@@ -3,17 +3,19 @@ export const bisectMax = async (
   max: number,
   predicate: (mid: number) => boolean | Promise<boolean>,
 ) => {
-  while (min < max) {
-    const mid = Math.floor((min + max) / 2);
+  let currentMin = min;
+  let currentMax = max;
+  while (currentMin < currentMax) {
+    const mid = Math.floor((currentMin + currentMax) / 2);
 
     if (await predicate(mid)) {
-      min = mid + 1;
+      currentMin = mid + 1;
     } else {
-      max = mid;
+      currentMax = mid;
     }
   }
 
-  return min;
+  return currentMin;
 };
 
 export const shuffle = <T>(array: T[]) => {
