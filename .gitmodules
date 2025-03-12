@@ -1,0 +1,3 @@
+[submodule "dataset/deps/cmudict"]
+	path = dataset/deps/cmudict
+	url = https://github.com/Alexir/CMUdict
