@@ -24,6 +24,7 @@
 //! ## Features
 //! ### `embed_model`
 //! モデルを埋め込みます。
+//! このfeatureはデフォルトで有効です。
 //!
 //! ### `compress_model`
 //! brotliを使用してモデルを圧縮します。
