@@ -8,9 +8,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "bun run ./src/main.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "packageManager": "pnpm@10.4.1",
   "devDependencies": {
     "@google/generative-ai": "^0.24.0",
