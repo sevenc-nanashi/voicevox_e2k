@@ -30,7 +30,8 @@ async function main() {
   const words = await loadWords(sourceProvider, config.source.maxNumWords);
 
   console.log("2: Finding maximum batch size...");
-  const batchSize = await findBatchSize(inferenceProvider, words);
+  const maxBatchSize = await findMaxBatchSize(inferenceProvider, words);
+  const batchSize = maxBatchSize * 0.9;
 
   console.log("3: Inferring pronunciations...");
   const allResults = await inferPronunciations(
@@ -79,7 +80,7 @@ async function loadWords(
   return words;
 }
 
-async function findBatchSize(
+async function findMaxBatchSize(
   inferenceProvider: inference.InferenceProvider,
   words: string[],
 ) {
@@ -92,12 +93,12 @@ async function findBatchSize(
     });
     return Object.keys(results).length === batchSize;
   });
+  console.log(`Found maximum batch size: ${maxBatchSize}`);
 
   if (maxBatchSize < 10) {
     throw new Error(`Batch size too small: ${maxBatchSize}`);
   }
-
-  return maxBatchSize * 0.9;
+  return maxBatchSize;
 }
 
 async function inferPronunciations(
