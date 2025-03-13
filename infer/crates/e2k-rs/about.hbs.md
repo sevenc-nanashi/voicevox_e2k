@@ -13,7 +13,6 @@ e2k-rs が依存しているクレートのライセンス一覧です。
 {{ #each licenses }}
 ## {{ name }}
 
-Used by:
 {{ #each used_by }}
 {{ #if crate.repository }}
 - [{{crate.name}}]({{crate.repository}})
@@ -26,5 +25,3 @@ Used by:
 {{{ text }}}
 ```
 {{ /each }}
-
-<!-- vim: set ft=markdown: -->

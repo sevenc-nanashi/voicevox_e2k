@@ -3,7 +3,7 @@ version: "3"
 tasks:
   generate_about:
     cmds:
-      - cargo about generate about.hbs > ./NOTICE.md
+      - cargo about generate about.hbs.md > ./NOTICE.md
 
   generate_constants:
     cmds:
