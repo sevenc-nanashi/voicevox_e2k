@@ -140,58 +140,45 @@ async function inferPronunciations(
   const semaphore = new Semaphore(concurrency);
   console.log(`Using ${concurrency} concurrency`);
 
-  const promises: Promise<unknown>[] = [];
   const allResults: Record<string, string> = {};
 
   const shuffledWords = shuffle(words, random);
 
   const inferBatch = (words: string[]) =>
     semaphore.lock(async () => {
-      try {
-        const results = await inferenceProvider.infer(words);
+      const results = await inferenceProvider.infer(words);
 
-        console.log(
-          `Inferred ${Object.keys(results).length} pronunciations, ${shuffledWords.length - Object.keys(allResults).length} remaining`,
-        );
-        Object.assign(allResults, results);
+      console.log(
+        `Inferred ${Object.keys(results).length} pronunciations, ${shuffledWords.length - Object.keys(allResults).length} remaining`,
+      );
 
-        const remainingWords = words.filter((word) => !(word in results));
-        if (remainingWords.length === 0) {
-          return;
-        }
-        console.log(`Re-inferring ${remainingWords.length} words...`);
-        promises.push(inferBatch(remainingWords));
-      } catch (err) {
-        if (String(err).includes("429")) {
-          console.error("Rate limited, waiting 1 minute...");
-          await new Promise((resolve) => setTimeout(resolve, 60000));
-
-          console.error("Retrying inference...");
-          promises.push(inferBatch(words));
-          return;
-        }
-        const halfWords = words.slice(0, words.length / 2);
-        const halfWords2 = words.slice(words.length / 2);
-        console.error(err);
-        promises.push(inferBatch(halfWords));
-        promises.push(inferBatch(halfWords2));
-        console.log(
-          `Splitting batch of ${words.length} into two batches of ${halfWords.length} and ${halfWords2.length}`,
-        );
-      }
+      Object.assign(allResults, results);
     });
 
-  for (let i = 0; i < shuffledWords.length; i += batchSize) {
-    const currentWords = shuffledWords.slice(i, i + batchSize);
-
-    promises.push(inferBatch(currentWords));
-  }
-
-  let numRetries = 0;
+  let numTries = 0;
   while (Object.keys(allResults).length < words.length) {
-    await Promise.all(promises);
-    numRetries++;
-    if (numRetries > 10) {
+    const remainingWords = shuffledWords.slice(0);
+    const promises: Promise<unknown>[] = [];
+
+    for (let i = 0; i < shuffledWords.length; i += batchSize) {
+      const currentWords = remainingWords.splice(0, batchSize);
+
+      promises.push(inferBatch(currentWords));
+    }
+
+    try {
+      await Promise.all(promises);
+    } catch (err) {
+      if (String(err).includes("429")) {
+        console.error("Received 429, waiting for 1 minute and retrying...");
+        await new Promise((resolve) => setTimeout(resolve, 60000));
+      } else {
+        throw err;
+      }
+    }
+
+    numTries++;
+    if (numTries > 10) {
       throw new Error("Too many retries");
     }
   }
