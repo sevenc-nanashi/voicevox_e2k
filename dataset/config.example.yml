@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=./config.schema.yml
+
+# 乱数のシード。
+randomSeed: 0
+
+source:
+  # 英単語の取得方法を指定します。
+  provider: cmudict
+
+  # 最大の単語数。"all"で全ての単語を取得します。
+  maxNumWords: "all"
+
+inference:
+  # 読みの取得方法を指定します。
+  provider: gemini
+
+  # 並列実行数。レートリミットとの兼ね合いで調整してください。
+  concurrency: 10
+
+  # Geminiの設定。
+  gemini:
+    # Google AI Studioから取得したAPIキー。
+    apiKey: ""
+
+    # 使うモデルの名前。
+    modelName: "gemini-2.0-flash"
