@@ -159,8 +159,13 @@ async function inferPronunciations(
     promises.push(inferBatch(currentWords));
   }
 
+  let numRetries = 0;
   while (Object.keys(allResults).length < words.length) {
     await Promise.all(promises);
+    numRetries++;
+    if (numRetries > 10) {
+      throw new Error("Too many retries");
+    }
   }
 
   return allResults;
