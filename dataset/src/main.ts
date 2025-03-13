@@ -107,7 +107,7 @@ async function findMaxBatchSize(
     console.log(`Trying batch size ${batchSize}...`);
     const currentWords = shuffle(words, random).slice(0, batchSize);
     const results = await inferenceProvider.infer(currentWords).catch((err) => {
-      console.error(String(err));
+      console.error(err);
       return {};
     });
     return Object.keys(results).length === batchSize;
@@ -162,7 +162,7 @@ async function inferPronunciations(
         }
         const halfWords = words.slice(0, words.length / 2);
         const halfWords2 = words.slice(words.length / 2);
-        console.error(String(err));
+        console.error(err);
         promises.push(inferBatch(halfWords));
         promises.push(inferBatch(halfWords2));
         console.log(
