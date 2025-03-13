@@ -168,10 +168,10 @@ async function inferPronunciations(
     const isAllFulfilled = results.every(
       (result) => result.status === "fulfilled",
     );
-    const errors = results.flatMap((result) =>
-      result.status === "rejected" ? [result.reason] : [],
-    );
     if (!isAllFulfilled) {
+      const errors = results.flatMap((result) =>
+        result.status === "rejected" ? [result.reason] : [],
+      );
       if (errors.some((err) => !String(err).includes("429"))) {
         const error = new AggregateError(errors);
         throw error;
