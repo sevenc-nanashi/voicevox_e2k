@@ -43,7 +43,7 @@ export const normalizeKana = (text: string) => {
     .replace(/[\u3041-\u3096]/g, (s) =>
       String.fromCharCode(s.charCodeAt(0) + 0x60),
     )
-    .replace(/[ｰ－ー]/g, "ー");
+    .replace(/[ｰ―－ー]/g, "ー");
 };
 
 export class ExhaustiveError extends Error {
