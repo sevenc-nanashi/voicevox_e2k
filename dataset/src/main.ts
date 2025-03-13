@@ -103,15 +103,21 @@ async function findMaxBatchSize(
   words: string[],
   random: () => number,
 ) {
-  const maxBatchSize = await bisectMax(1, 1000, async (batchSize) => {
-    console.log(`Trying batch size ${batchSize}...`);
-    const currentWords = shuffle(words, random).slice(0, batchSize);
-    const results = await inferenceProvider.infer(currentWords).catch((err) => {
-      console.error(err);
-      return {};
-    });
-    return Object.keys(results).length === batchSize;
-  });
+  const maxBatchSize = await bisectMax(
+    1,
+    Math.min(words.length, 1000),
+    async (batchSize) => {
+      console.log(`Trying batch size ${batchSize}...`);
+      const currentWords = shuffle(words, random).slice(0, batchSize);
+      const results = await inferenceProvider
+        .infer(currentWords)
+        .catch((err) => {
+          console.error(err);
+          return {};
+        });
+      return Object.keys(results).length === batchSize;
+    },
+  );
   console.log(`Found maximum batch size: ${maxBatchSize}`);
 
   if (maxBatchSize < 10) {
