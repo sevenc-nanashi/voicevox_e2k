@@ -20,19 +20,12 @@ export const bisectMax = async (
   return currentMin;
 };
 
-let rand: Rand | null = null;
-export const setSeed = (seed: string) => {
-  rand = new Rand(seed);
-};
-
-export const random = () => {
-  if (rand == null) {
-    throw new Error("Seed not set");
-  }
-  return rand.next();
+export const createRandom = (seed: number) => {
+  const rand = new Rand(String(seed));
+  return () => rand.next();
 }
 
-export const shuffle = <T>(array: T[]) => {
+export const shuffle = <T>(array: T[], random: () => number) => {
   const keys = Array.from({ length: array.length }, () => random());
 
   return array

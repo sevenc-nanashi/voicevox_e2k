@@ -10,7 +10,7 @@ import {
   ExhaustiveError,
   bisectMax,
   normalizeKana,
-  setSeed,
+  createRandom,
   shuffle,
 } from "./utils.ts";
 
@@ -34,14 +34,18 @@ async function main() {
       throw new ExhaustiveError(config.inference.provider);
   }
 
-  setSeed(config.randomSeed);
+  const random = createRandom(config.randomSeed);
 
   console.log("1: Loading words...");
-  const words = await loadWords(sourceProvider, config.source.maxNumWords);
+  const words = await loadWords(
+    sourceProvider,
+    config.source.maxNumWords,
+    random,
+  );
 
   console.log("2: Finding maximum batch size...");
-  const maxBatchSize = await findMaxBatchSize(inferenceProvider, words);
   // ちょっと余裕を持たせる
+  const maxBatchSize = await findMaxBatchSize(inferenceProvider, words, random);
   const batchSize = maxBatchSize * 0.9;
   console.log(`Batch size: ${batchSize}`);
 
@@ -51,6 +55,7 @@ async function main() {
     config.inference.concurrency,
     words,
     batchSize,
+    random,
   );
 
   console.log("4: Cleaning up results...");
@@ -79,26 +84,28 @@ async function loadConfig() {
 }
 
 async function loadWords(
-  sourceProvider: source.SourceProvider,
+  sourceProvider: SourceProvider,
   maxNumWords: number | "all",
+  random: () => number,
 ) {
   let words = await sourceProvider.getWords();
   console.log(`Loaded ${words.length} words`);
   if (maxNumWords !== "all") {
     console.log(`Shuffling and limiting to ${maxNumWords} words...`);
-    words = shuffle(words).slice(0, maxNumWords);
+    words = shuffle(words, random).slice(0, maxNumWords);
   }
 
   return words;
 }
 
 async function findMaxBatchSize(
-  inferenceProvider: inference.InferenceProvider,
+  inferenceProvider: InferenceProvider,
   words: string[],
+  random: () => number,
 ) {
   const maxBatchSize = await bisectMax(1, 1000, async (batchSize) => {
     console.log(`Trying batch size ${batchSize}...`);
-    const currentWords = shuffle(words).slice(0, batchSize);
+    const currentWords = shuffle(words, random).slice(0, batchSize);
     const results = await inferenceProvider.infer(currentWords).catch((err) => {
       console.error(String(err));
       return {};
@@ -114,10 +121,11 @@ async function findMaxBatchSize(
 }
 
 async function inferPronunciations(
-  inferenceProvider: inference.InferenceProvider,
+  inferenceProvider: InferenceProvider,
   concurrency: number,
   words: string[],
   batchSize: number,
+  random: () => number,
 ) {
   const semaphore = new Semaphore(concurrency);
   console.log(`Using ${concurrency} concurrency`);
@@ -125,7 +133,7 @@ async function inferPronunciations(
   const promises: Promise<unknown>[] = [];
   const allResults: Record<string, string> = {};
 
-  const shuffledWords = shuffle(words);
+  const shuffledWords = shuffle(words, random);
 
   const inferBatch = (words: string[]) =>
     semaphore.lock(async () => {

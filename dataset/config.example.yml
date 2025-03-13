@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=./config.schema.yml
 
 # 乱数のシード。
-randomSeed: e2k
+randomSeed: 0
 
 source:
   # 英単語の取得方法を指定します。
