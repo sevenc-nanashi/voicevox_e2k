@@ -39,7 +39,9 @@ async function main() {
 
   console.log("2: Finding maximum batch size...");
   const maxBatchSize = await findMaxBatchSize(inferenceProvider, words);
+  // ちょっと余裕を持たせる
   const batchSize = maxBatchSize * 0.9;
+  console.log(`Batch size: ${batchSize}`);
 
   console.log("3: Inferring pronunciations...");
   const allResults = await inferPronunciations(
