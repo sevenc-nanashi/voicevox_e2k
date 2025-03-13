@@ -5,19 +5,26 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "bun run ./src/main.ts"
+    "start": "node --experimental-strip-types ./src/main.ts",
+    "lint": "biome check",
+    "fmt": "biome check --write",
+    "tools:generateConfigSchema": "node --experimental-strip-types ./src/tools/generateConfigSchema.ts",
+    "typecheck": "tsc"
   },
-  "packageManager": "pnpm@10.4.1",
+  "packageManager": "pnpm@10.6.2",
   "devDependencies": {
-    "@google/generative-ai": "^0.24.0",
-    "@types/bun": "latest"
+    "@biomejs/biome": "^1.9.4",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2",
+    "zod-to-json-schema": "^3.24.3"
   },
   "private": true,
-  "peerDependencies": {
-    "typescript": "^5"
-  },
   "dependencies": {
-    "@core/asyncutil": "npm:@jsr/core__asyncutil@^1.2.0"
+    "@core/asyncutil": "npm:@jsr/core__asyncutil@^1.2.0",
+    "@google/generative-ai": "^0.24.0",
+    "js-yaml": "^4.1.0",
+    "rand-seed": "^2.1.7",
+    "zod": "^3.24.2"
   }
 }

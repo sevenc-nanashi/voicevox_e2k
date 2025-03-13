@@ -1,17 +1,20 @@
-import { GenerativeModel, GoogleGenerativeAI } from "@google/generative-ai";
-import type { InferenceProvider } from ".";
+import {
+  type GenerativeModel,
+  GoogleGenerativeAI,
+} from "@google/generative-ai";
+import { InferenceProvider } from "./index.ts";
+import type { Config } from "../config.ts";
 
-export class Gemini implements InferenceProvider {
+export class Gemini extends InferenceProvider {
   genAI: GoogleGenerativeAI;
   model: GenerativeModel;
-  constructor() {
-    const apiKey = Bun.env["GOOGLE_API_KEY"];
-    if (!apiKey) {
-      throw new Error("Missing GOOGLE_API_KEY environment variable");
-    }
+  constructor(config: Config) {
+    super(config);
 
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    this.genAI = new GoogleGenerativeAI(config.inference.gemini.apiKey);
+    this.model = this.genAI.getGenerativeModel({
+      model: config.inference.gemini.modelName,
+    });
   }
 
   async infer(words: string[]) {
