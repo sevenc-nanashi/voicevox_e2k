@@ -3,11 +3,19 @@ import * as z from "zod";
 import { load as loadYaml } from "js-yaml";
 
 const configSchema = z.object({
-  sourceProvider: z.enum(["cmudict"]),
-  inferenceProvider: z.enum(["gemini"]),
-  gemini: z.object({
-    apiKey: z.string(),
-    modelName: z.string(),
+  source: z.object({
+    provider: z.enum(["cmudict"]),
+
+    maxNumWords: z.union([z.number(), z.literal("all")]),
+  }),
+  inference: z.object({
+    provider: z.enum(["gemini"]),
+    concurrency: z.number(),
+
+    gemini: z.object({
+      apiKey: z.string(),
+      modelName: z.string(),
+    }),
   }),
 });
 

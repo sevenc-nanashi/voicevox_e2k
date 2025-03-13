@@ -9,9 +9,9 @@ export class Gemini implements InferenceProvider {
   genAI: GoogleGenerativeAI;
   model: GenerativeModel;
   constructor() {
-    this.genAI = new GoogleGenerativeAI(config.gemini.apiKey);
+    this.genAI = new GoogleGenerativeAI(config.inference.gemini.apiKey);
     this.model = this.genAI.getGenerativeModel({
-      model: config.gemini.modelName,
+      model: config.inference.gemini.modelName,
     });
   }
 

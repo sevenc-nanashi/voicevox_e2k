@@ -7,25 +7,24 @@ import { config } from "./config.ts";
 
 async function main() {
   let sourceProvider: source.SourceProvider;
-  switch (config.sourceProvider) {
+  switch (config.source.provider) {
     case "cmudict":
       sourceProvider = new source.CmuDict();
       break;
     default:
-      throw new ExhaustiveError(config.sourceProvider);
+      throw new ExhaustiveError(config.source.provider);
   }
   let inferenceProvider: inference.InferenceProvider;
-  switch (config.inferenceProvider) {
+  switch (config.inference.provider) {
     case "gemini":
       inferenceProvider = new inference.Gemini();
       break;
     default:
-      throw new ExhaustiveError(config.inferenceProvider);
+      throw new ExhaustiveError(config.inference.provider);
   }
 
   console.log("1: Loading words...");
-  const words = await sourceProvider.getWords();
-  console.log(`Loaded ${words.length} words`);
+  const words = await loadWords(sourceProvider, config.source.maxNumWords);
 
   console.log("2: Finding maximum batch size...");
   const batchSize = await findBatchSize(inferenceProvider, words);
@@ -33,7 +32,7 @@ async function main() {
   console.log("3: Inferring pronunciations...");
   const allResults = await inferPronunciations(
     inferenceProvider,
-    10,
+    config.inference.concurrency,
     words,
     batchSize,
   );
@@ -54,6 +53,20 @@ main().catch((err) => {
   console.error(String(err));
   process.exit(1);
 });
+
+async function loadWords(
+  sourceProvider: source.SourceProvider,
+  maxNumWords: number | "all",
+) {
+  let words = await sourceProvider.getWords();
+  console.log(`Loaded ${words.length} words`);
+  if (maxNumWords !== "all") {
+    console.log(`Shuffling and limiting to ${maxNumWords} words...`);
+    words = shuffle(words).slice(0, maxNumWords);
+  }
+
+  return words;
+}
 
 async function findBatchSize(
   inferenceProvider: inference.InferenceProvider,
