@@ -6,13 +6,8 @@ import { Gemini } from "./inference/gemini.ts";
 import type { InferenceProvider } from "./inference/index.ts";
 import { CmuDict } from "./source/cmudict.ts";
 import type { SourceProvider } from "./source/index.ts";
-import {
-  ExhaustiveError,
-  bisectMax,
-  normalizeKana,
-  createRandom,
-  shuffle,
-} from "./utils.ts";
+import { ExhaustiveError, bisectMax, normalizeKana } from "./utils.ts";
+import { Random } from "./random.ts";
 
 async function main() {
   const config = await loadConfig();
@@ -34,7 +29,7 @@ async function main() {
       throw new ExhaustiveError(config.inference.provider);
   }
 
-  const random = createRandom(config.randomSeed);
+  const random = new Random(config.randomSeed);
 
   console.log("1: Loading words...");
   const words = await loadWords(
@@ -90,13 +85,13 @@ async function loadConfig() {
 async function loadWords(
   sourceProvider: SourceProvider,
   maxNumWords: number | "all",
-  random: () => number,
+  random: Random,
 ) {
   let words = await sourceProvider.getWords();
   console.log(`Loaded ${words.length} words`);
   if (maxNumWords !== "all") {
     console.log(`Shuffling and limiting to ${maxNumWords} words...`);
-    words = shuffle(words, random).slice(0, maxNumWords);
+    words = random.shuffle(words).slice(0, maxNumWords);
   }
 
   return words;
@@ -105,14 +100,14 @@ async function loadWords(
 async function findMaxBatchSize(
   inferenceProvider: InferenceProvider,
   words: string[],
-  random: () => number,
+  random: Random,
 ) {
   const maxBatchSize = await bisectMax(
     1,
     Math.min(words.length, 1000),
     async (batchSize) => {
       console.log(`Trying batch size ${batchSize}...`);
-      const currentWords = shuffle(words, random).slice(0, batchSize);
+      const currentWords = random.shuffle(words).slice(0, batchSize);
       const results = await inferenceProvider
         .infer(currentWords)
         .catch((err) => {
@@ -135,14 +130,14 @@ async function inferPronunciations(
   concurrency: number,
   words: string[],
   batchSize: number,
-  random: () => number,
+  random: Random,
 ) {
   const semaphore = new Semaphore(concurrency);
   console.log(`Using ${concurrency} concurrency`);
 
   const allResults: Record<string, string> = {};
 
-  const shuffledWords = shuffle(words, random);
+  const shuffledWords = random.shuffle(words);
 
   const inferBatch = (words: string[]) =>
     semaphore.lock(async () => {
@@ -162,21 +157,28 @@ async function inferPronunciations(
     );
     const promises: Promise<unknown>[] = [];
 
-    for (let i = 0; i < shuffledWords.length; i += batchSize) {
+    while (remainingWords.length > 0) {
       const currentWords = remainingWords.splice(0, batchSize);
 
       promises.push(inferBatch(currentWords));
     }
 
-    try {
-      await Promise.all(promises);
-    } catch (err) {
-      if (String(err).includes("429")) {
-        console.error("Received 429, waiting for 1 minute and retrying...");
-        await new Promise((resolve) => setTimeout(resolve, 60000));
-      } else {
-        throw err;
+    const results = await Promise.allSettled(promises);
+
+    const isAllFulfilled = results.every(
+      (result) => result.status === "fulfilled",
+    );
+    const errors = results.flatMap((result) =>
+      result.status === "rejected" ? [result.reason] : [],
+    );
+    if (!isAllFulfilled) {
+      if (errors.some((err) => !String(err).includes("429"))) {
+        const error = new AggregateError(errors);
+        throw error;
       }
+
+      console.error("Sleeping for 1 minute...");
+      await new Promise((resolve) => setTimeout(resolve, 60000));
     }
 
     numTries++;

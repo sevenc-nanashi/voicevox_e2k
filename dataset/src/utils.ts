@@ -1,5 +1,3 @@
-import Rand from "rand-seed";
-
 export const bisectMax = async (
   min: number,
   max: number,
@@ -18,20 +16,6 @@ export const bisectMax = async (
   }
 
   return currentMin;
-};
-
-export const createRandom = (seed: number) => {
-  const rand = new Rand(String(seed));
-  return () => rand.next();
-}
-
-export const shuffle = <T>(array: T[], random: () => number) => {
-  const keys = Array.from({ length: array.length }, () => random());
-
-  return array
-    .map((value, index) => ({ value, key: keys[index] }))
-    .sort((a, b) => a.key - b.key)
-    .map(({ value }) => value);
 };
 
 // 半角カタカナ、ひらがなを全角カタカナに変換し、長音っぽい文字を長音に変換する
