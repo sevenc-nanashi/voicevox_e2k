@@ -42,6 +42,10 @@ async function main() {
     config.source.maxNumWords,
     random,
   );
+  if (words.length <= 10) {
+    console.error(`Too few words: ${words.length}`);
+    return;
+  }
 
   console.log("2: Finding maximum batch size...");
   // ちょっと余裕を持たせる
