@@ -1,7 +1,11 @@
 import * as fs from "node:fs/promises";
 import { Semaphore } from "@core/asyncutil/semaphore";
-import * as inference from "./inference/index.ts";
-import * as source from "./source/index.ts";
+import { load as loadYaml } from "js-yaml";
+import { configSchema } from "./config.ts";
+import { Gemini } from "./inference/gemini.ts";
+import type { InferenceProvider } from "./inference/index.ts";
+import { CmuDict } from "./source/cmudict.ts";
+import type { SourceProvider } from "./source/index.ts";
 import {
   ExhaustiveError,
   bisectMax,
@@ -9,24 +13,22 @@ import {
   setSeed,
   shuffle,
 } from "./utils.ts";
-import { load as loadYaml } from "js-yaml";
-import { configSchema } from "./config.ts";
 
 async function main() {
   const config = await loadConfig();
 
-  let sourceProvider: source.SourceProvider;
+  let sourceProvider: SourceProvider;
   switch (config.source.provider) {
     case "cmudict":
-      sourceProvider = new source.CmuDict();
+      sourceProvider = new CmuDict();
       break;
     default:
       throw new ExhaustiveError(config.source.provider);
   }
-  let inferenceProvider: inference.InferenceProvider;
+  let inferenceProvider: InferenceProvider;
   switch (config.inference.provider) {
     case "gemini":
-      inferenceProvider = new inference.Gemini(config);
+      inferenceProvider = new Gemini(config);
       break;
     default:
       throw new ExhaustiveError(config.inference.provider);
