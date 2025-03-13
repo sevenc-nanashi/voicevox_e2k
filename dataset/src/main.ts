@@ -157,7 +157,9 @@ async function inferPronunciations(
 
   let numTries = 0;
   while (Object.keys(allResults).length < words.length) {
-    const remainingWords = shuffledWords.slice(0);
+    const remainingWords = shuffledWords.filter(
+      (word) => !(word in allResults),
+    );
     const promises: Promise<unknown>[] = [];
 
     for (let i = 0; i < shuffledWords.length; i += batchSize) {
