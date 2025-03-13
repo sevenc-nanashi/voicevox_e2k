@@ -2,7 +2,13 @@ import * as fs from "node:fs/promises";
 import { Semaphore } from "@core/asyncutil/semaphore";
 import * as inference from "./inference/index.ts";
 import * as source from "./source/index.ts";
-import { ExhaustiveError, bisectMax, normalizeKana, shuffle } from "./utils.ts";
+import {
+  ExhaustiveError,
+  bisectMax,
+  normalizeKana,
+  setSeed,
+  shuffle,
+} from "./utils.ts";
 import { load as loadYaml } from "js-yaml";
 import { configSchema } from "./config.ts";
 
@@ -20,7 +26,7 @@ async function main() {
   let inferenceProvider: inference.InferenceProvider;
   switch (config.inference.provider) {
     case "gemini":
-      inferenceProvider = new inference.Gemini();
+      inferenceProvider = new inference.Gemini(config);
       break;
     default:
       throw new ExhaustiveError(config.inference.provider);
@@ -56,7 +62,7 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(String(err));
+  console.error(err);
   process.exit(1);
 });
 
