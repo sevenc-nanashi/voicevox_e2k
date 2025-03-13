@@ -1,0 +1,49 @@
+# pnpm run tools:generateConfigSchema で生成。手動で編集しないでください。
+type: object
+properties:
+  source:
+    type: object
+    properties:
+      provider:
+        type: string
+        enum:
+          - cmudict
+      maxNumWords:
+        anyOf:
+          - type: number
+          - type: string
+            const: all
+    required:
+      - provider
+      - maxNumWords
+    additionalProperties: false
+  inference:
+    type: object
+    properties:
+      provider:
+        type: string
+        enum:
+          - gemini
+      concurrency:
+        type: number
+      gemini:
+        type: object
+        properties:
+          apiKey:
+            type: string
+          modelName:
+            type: string
+        required:
+          - apiKey
+          - modelName
+        additionalProperties: false
+    required:
+      - provider
+      - concurrency
+      - gemini
+    additionalProperties: false
+required:
+  - source
+  - inference
+additionalProperties: false
+$schema: http://json-schema.org/draft-07/schema#

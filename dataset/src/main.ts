@@ -3,9 +3,12 @@ import { Semaphore } from "@core/asyncutil/semaphore";
 import * as inference from "./inference/index.ts";
 import * as source from "./source/index.ts";
 import { ExhaustiveError, bisectMax, normalizeKana, shuffle } from "./utils.ts";
-import { config } from "./config.ts";
+import { load as loadYaml } from "js-yaml";
+import { configSchema } from "./config.ts";
 
 async function main() {
+  const config = await loadConfig();
+
   let sourceProvider: source.SourceProvider;
   switch (config.source.provider) {
     case "cmudict":
@@ -53,6 +56,14 @@ main().catch((err) => {
   console.error(String(err));
   process.exit(1);
 });
+
+async function loadConfig() {
+  return configSchema.parse(
+    loadYaml(
+      await fs.readFile(`${import.meta.dirname}/../config.yml`, "utf-8"),
+    ),
+  );
+}
 
 async function loadWords(
   sourceProvider: source.SourceProvider,

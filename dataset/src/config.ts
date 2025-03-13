@@ -1,8 +1,6 @@
-import * as fs from "node:fs/promises";
 import * as z from "zod";
-import { load as loadYaml } from "js-yaml";
 
-const configSchema = z.object({
+export const configSchema = z.object({
   source: z.object({
     provider: z.enum(["cmudict"]),
 
@@ -20,7 +18,3 @@ const configSchema = z.object({
 });
 
 export type Config = z.infer<typeof configSchema>;
-
-export const config = configSchema.parse(
-  loadYaml(await fs.readFile(`${import.meta.dirname}/../config.yml`, "utf-8")),
-);
