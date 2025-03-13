@@ -1,9 +1,9 @@
 import * as z from "zod";
 
 export const configSchema = z.object({
+  randomSeed: z.string(),
   source: z.object({
     provider: z.enum(["cmudict"]),
-
     maxNumWords: z.union([z.number(), z.literal("all")]),
   }),
   inference: z.object({

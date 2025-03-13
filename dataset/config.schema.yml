@@ -1,6 +1,8 @@
 # pnpm run tools:generateConfigSchema で生成。手動で編集しないでください。
 type: object
 properties:
+  randomSeed:
+    type: string
   source:
     type: object
     properties:
@@ -43,6 +45,7 @@ properties:
       - gemini
     additionalProperties: false
 required:
+  - randomSeed
   - source
   - inference
 additionalProperties: false

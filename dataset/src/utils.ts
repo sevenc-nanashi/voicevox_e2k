@@ -1,3 +1,5 @@
+import Rand from "rand-seed";
+
 export const bisectMax = async (
   min: number,
   max: number,
@@ -18,8 +20,20 @@ export const bisectMax = async (
   return currentMin;
 };
 
+let rand: Rand | null = null;
+export const setSeed = (seed: string) => {
+  rand = new Rand(seed);
+};
+
+export const random = () => {
+  if (rand == null) {
+    throw new Error("Seed not set");
+  }
+  return rand.next();
+}
+
 export const shuffle = <T>(array: T[]) => {
-  const keys = Array.from({ length: array.length }, () => Math.random());
+  const keys = Array.from({ length: array.length }, () => random());
 
   return array
     .map((value, index) => ({ value, key: keys[index] }))

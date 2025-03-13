@@ -26,6 +26,8 @@ async function main() {
       throw new ExhaustiveError(config.inference.provider);
   }
 
+  setSeed(config.randomSeed);
+
   console.log("1: Loading words...");
   const words = await loadWords(sourceProvider, config.source.maxNumWords);
 
