@@ -27,4 +27,3 @@ export const configSchema = z.object({
 });
 
 export type Config = z.infer<typeof configSchema>;
-export type OpenAIConfig = NonNullable<Config["inference"]["openai"]>;
