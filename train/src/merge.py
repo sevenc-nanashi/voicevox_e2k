@@ -15,10 +15,12 @@ for file in args.files:
                 continue
             line_data = json.loads(line)
             if line_data["word"] in merged:
-                merged[line_data["word"]].extend(line_data["kata"])
+                merged[line_data["word"]].update(line_data["kata"])
             else:
-                merged[line_data["word"]] = line_data["kata"]
+                merged[line_data["word"]] = set(line_data["kata"])
 
 with open(args.output, "w") as f:
     for word, kata in tqdm(merged.items(), desc="Writing"):
-        f.write(json.dumps({"word": word, "kata": kata}, ensure_ascii=False) + "\n")
+        f.write(
+            json.dumps({"word": word, "kata": list(kata)}, ensure_ascii=False) + "\n"
+        )

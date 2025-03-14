@@ -12,7 +12,7 @@
 
 ```bash
 # 学習
-uv run python3 train.py --label [label]
+uv run python3 src/train.py --label [label]
 ```
 
 ```bash
@@ -23,7 +23,7 @@ uv run tensorboard --logdir runs
 ### データセットの結合
 
 ```bash
-uv run python3 merge.py ./vendor/dataset_01.jsonl ./vendor/dataset_02.jsonl --output ./vendor/dataset_merged.jsonl
+uv run python3 src/merge.py ./vendor/dataset_01.jsonl ./vendor/dataset_02.jsonl --output ./vendor/dataset_merged.jsonl
 ```
 
 ### 評価
@@ -34,12 +34,12 @@ uv run python3 merge.py ./vendor/dataset_01.jsonl ./vendor/dataset_02.jsonl --ou
 
 ```bash
 # UniDicをダウンロードし、英単語を抜き出す（初回のみ）
-uv run python3 setup_eval.py
+uv run python3 src/setup_eval.py
 ```
 
 ```bash
 # 評価
-uv run python3 eval.py
+uv run python3 src/eval.py
 ```
 
 ### 書き出し
@@ -47,7 +47,7 @@ uv run python3 eval.py
 safetensors形式で書き出します。
 
 ```bash
-uv run python3 export.py --model ./vendor/model-c2k-e10.pth --output ../infer/crates/e2k-rs/src/models/model-c2k.safetensors
+uv run python3 src/export.py --model ./vendor/model-c2k-e10.pth --output ../infer/crates/e2k-rs/src/models/model-c2k.safetensors
 ```
 
 ### フォーマット
