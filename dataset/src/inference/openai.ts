@@ -1,19 +1,15 @@
-import {
-  type GenerativeModel,
-  GoogleGenerativeAI,
-} from "@google/generative-ai";
+import { OpenAI as OpenAIClient } from "openai";
 import type { Config } from "../config.ts";
 import { InferenceProvider } from "./index.ts";
 
-export class Gemini extends InferenceProvider {
-  genAI: GoogleGenerativeAI;
-  model: GenerativeModel;
+export class OpenAI extends InferenceProvider {
+  client: OpenAIClient;
   constructor(config: Config) {
     super(config);
 
-    this.genAI = new GoogleGenerativeAI(config.inference.gemini.apiKey);
-    this.model = this.genAI.getGenerativeModel({
-      model: config.inference.gemini.modelName,
+    this.client = new OpenAIClient({
+      baseURL: config.inference.openai.apiBaseUrl,
+      apiKey: config.inference.openai.apiKey,
     });
   }
 
@@ -27,9 +23,15 @@ export class Gemini extends InferenceProvider {
       "helmet=ヘルメット",
     ].join("\n");
 
-    const response = await this.model
-      .generateContent(prompt)
-      .then((res) => res.response.text());
+    const completion = await this.client.chat.completions.create({
+      model: this.config.inference.openai.modelName,
+
+      messages: [{ role: "user", content: prompt }],
+    });
+    const response = completion.choices[0].message.content;
+    if (response == null) {
+      throw new Error("No response");
+    }
     const resultPattern = /^([a-z]+)=(.+)$/gm;
     const results = Object.fromEntries(
       [...response.matchAll(resultPattern)].map((match) => [
