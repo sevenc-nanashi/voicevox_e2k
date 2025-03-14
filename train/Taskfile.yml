@@ -20,6 +20,10 @@ tasks:
     cmds:
       - uv run --no-group cpu --group cuda python3 eval.py {{.CLI_ARGS}}
 
+  merge:
+    cmds:
+      - uv run python3 merge.py {{.CLI_ARGS}}
+
   tensorboard:
     cmds:
       - uv run tensorboard --logdir runs {{.CLI_ARGS}}

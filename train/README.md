@@ -21,6 +21,12 @@ task train-cuda -- --label [label]
 task tensorboard
 ```
 
+### データセットの結合
+
+```bash
+task merge -- ./vendor/dataset_01.jsonl ./vendor/dataset_02.jsonl --output ./vendor/dataset_merged.jsonl
+```
+
 ### 評価
 
 評価はデフォルトではUniDicの英単語を使って行います。
