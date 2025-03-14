@@ -3,7 +3,23 @@ version: "3"
 tasks:
   train-cpu:
     cmds:
-      - uv run python3 train.py
+      - uv run python3 train.py {{.CLI_ARGS}}
   train-cuda:
     cmds:
-      - uv run --no-group cpu --group cuda python3 train.py
+      - uv run --no-group cpu --group cuda python3 train.py {{.CLI_ARGS}}
+
+  setup-eval:
+    cmds:
+      - uv run python3 setup_eval.py {{.CLI_ARGS}}
+
+  eval:
+    cmds:
+      - uv run python3 eval.py {{.CLI_ARGS}}
+
+  lint:
+    cmds:
+      - uv run ruff check *.py {{.CLI_ARGS}}
+
+  fmt:
+    cmds:
+      - uv run ruff format *.py {{.CLI_ARGS}}

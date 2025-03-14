@@ -19,6 +19,10 @@ task train-cuda
 ### 評価
 
 ```bash
+# UniDicをダウンロードし、英単語を抜き出す（初回のみ）
+task setup-eval
+
+# 評価
 task eval
 ```
 
