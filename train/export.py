@@ -1,8 +1,7 @@
 """
-Exports the torch weights to numpy npy files.
+Exports the torch weights
 """
 
-import numpy as np
 import torch
 from safetensors.numpy import save_file
 import argparse
