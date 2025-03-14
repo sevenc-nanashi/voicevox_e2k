@@ -12,10 +12,11 @@ from torch.utils.data import random_split, Dataset, DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.tensorboard import SummaryWriter
+from tqdm.auto import tqdm
 
 from g2p_en import G2p
 
-from e2k.constants import kanas, en_phones, ascii_entries, PAD_IDX, SOS_IDX, EOS_IDX
+from constants import kanas, en_phones, ascii_entries, PAD_IDX, SOS_IDX, EOS_IDX
 
 
 SEED = 3407
@@ -202,18 +203,43 @@ def infer(src, model, p2k):
 def train():
     torch.manual_seed(SEED)
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", type=str, default="data.jsonl")
+    parser.add_argument("--data", type=str, default="./vendor/data.jsonl")
     parser.add_argument("--p2k", action="store_true")
+    parser.add_argument("--batch_size", type=int)
     args = parser.parse_args()
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Training {'p2k' if args.p2k else 'c2k'}")
+
+    use_cuda = torch.cuda.is_available()
+    device = torch.device("cuda" if use_cuda else "cpu")
+    print(f"Using device: {device}")
+
+    if use_cuda:
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.set_float32_matmul_precision("high")
+        torch.backends.cudnn.allow_tf32 = True
+        torch.backends.cudnn.benchmark = True
+        torch.backends.cuda.matmul.allow_tf32 = True
 
     model = Model(p2k=args.p2k).to(device)
     dataset = MyDataset(args.data, device, p2k=args.p2k)
     train_ds, val_ds = random_split(dataset, [0.95, 0.05])
 
-    train_dl = DataLoader(train_ds, batch_size=64, shuffle=True, collate_fn=partial(collate_fn, device=device))
-    val_dl = DataLoader(val_ds, batch_size=64, shuffle=True, collate_fn=partial(collate_fn, device=device))
+    batch_size = args.batch_size or (256 if use_cuda else 64)
+    print(f"Batch size: {batch_size}")
+
+    train_dl = DataLoader(
+        train_ds,
+        batch_size=batch_size,
+        shuffle=True,
+        collate_fn=partial(collate_fn, device=device),
+    )
+    val_dl = DataLoader(
+        val_ds,
+        batch_size=batch_size,
+        shuffle=True,
+        collate_fn=partial(collate_fn, device=device),
+    )
 
     criterion = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
@@ -223,7 +249,7 @@ def train():
     steps = 0
     for epoch in range(1, epochs + 1):
         model.train()
-        for eng, kata, e_mask, k_mask in train_dl:
+        for eng, kata, e_mask, k_mask in tqdm(train_dl, desc=f"Epoch {epoch} train"):
             optimizer.zero_grad()
             out = model(eng, kata, e_mask, k_mask)
             loss = criterion(out.transpose(1, 2), kata[:, 1:])
@@ -235,7 +261,7 @@ def train():
         total_loss = 0
         count = 0
         with torch.no_grad():
-            for eng, kata, e_mask, k_mask in val_dl:
+            for eng, kata, e_mask, k_mask in tqdm(val_dl, desc=f"Epoch {epoch} val"):
                 out = model(eng, kata, e_mask, k_mask)
                 loss = criterion(out.transpose(1, 2), kata[:, 1:])
                 total_loss += loss.item()

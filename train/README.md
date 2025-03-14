@@ -2,6 +2,26 @@
 
 学習用コードと推論のPython実装です。
 
+## 実行
+
+[uv](https://docs.astral.sh/uv/)、[Task](https://taskfile.dev/) が必要です。
+
+### 学習
+
+```bash
+# CPUのみで学習する場合
+task train-cpu
+
+# CUDAを使って学習する場合
+task train-cuda
+```
+
+### 評価
+
+```bash
+task eval
+```
+
 ## 謝辞
 
 このディレクトリ下のコードは[Patchethium/e2k](https://github.com/Patchethium/e2k)のコードが元になっています。

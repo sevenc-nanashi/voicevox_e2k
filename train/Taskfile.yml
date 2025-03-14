@@ -1,0 +1,9 @@
+version: "3"
+
+tasks:
+  train-cpu:
+    cmds:
+      - uv run python3 train.py
+  train-cuda:
+    cmds:
+      - uv run --no-group cpu --group cuda python3 train.py
