@@ -22,8 +22,11 @@ task train-cuda
 # UniDicをダウンロードし、英単語を抜き出す（初回のみ）
 task setup-eval
 
-# 評価
-task eval
+# CPUのみで評価する場合
+task eval-cpu
+
+# CUDAを使って評価する場合
+task eval-cuda
 ```
 
 ## 謝辞
