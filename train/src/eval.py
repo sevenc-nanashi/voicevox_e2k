@@ -42,8 +42,6 @@ model.load_state_dict(torch.load(model_path, map_location=device))
 
 model.eval()
 
-torch.manual_seed(3407)
-
 dataset = MyDataset(config.eval_data, device)
 dataset.set_return_full(True)  # bleu score test
 
