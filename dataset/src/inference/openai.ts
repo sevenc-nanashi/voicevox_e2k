@@ -13,8 +13,8 @@ export class OpenAI extends InferenceProvider {
     super(config);
 
     this.client = new OpenAIClient({
-      baseURL: this.config.inference.openai.apiBaseUrl,
-      apiKey: this.config.inference.openai.apiKey,
+      baseURL: config.inference.openai.apiBaseUrl,
+      apiKey: config.inference.openai.apiKey,
     });
   }
 
