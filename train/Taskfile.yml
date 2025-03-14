@@ -20,6 +20,14 @@ tasks:
     cmds:
       - uv run --no-group cpu --group cuda python3 eval.py {{.CLI_ARGS}}
 
+  tensorboard:
+    cmds:
+      - uv run tensorboard --logdir runs {{.CLI_ARGS}}
+
+  export:
+    cmds:
+      - uv run python3 export.py {{.CLI_ARGS}}
+
   lint:
     cmds:
       - uv run ruff check *.py {{.CLI_ARGS}}

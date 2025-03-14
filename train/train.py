@@ -5,6 +5,7 @@ import argparse
 from functools import partial
 from os import path
 from random import randint
+import shutil
 
 import torch
 from torch import nn
@@ -205,6 +206,7 @@ def train():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", type=str, default="./vendor/data.jsonl")
     parser.add_argument("--p2k", action="store_true")
+    parser.add_argument("--label", type=str, required=True)
     parser.add_argument("--batch_size", type=int)
     args = parser.parse_args()
 
@@ -244,7 +246,7 @@ def train():
     criterion = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     scheduler = ExponentialLR(optimizer, 0.8)
-    writer = SummaryWriter()
+    writer = SummaryWriter(comment=f"_{args.label}")
     epochs = 10
     steps = 0
     for epoch in range(1, epochs + 1):
@@ -279,6 +281,10 @@ def train():
         torch.save(
             model.state_dict(),
             path.join("vendor", f"model-{name}-e{epoch}.pth"),
+        )
+        shutil.copyfile(
+            path.join("vendor", f"model-{name}-e{epoch}.pth"),
+            path.join("vendor", f"model-{name}-e{epoch}-{args.label}.pth"),
         )
 
 
