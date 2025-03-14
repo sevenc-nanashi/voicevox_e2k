@@ -4,27 +4,26 @@
 
 ## 実行
 
-[uv](https://docs.astral.sh/uv/)、[Task](https://taskfile.dev/) が必要です。
+[uv](https://docs.astral.sh/uv/) が必要です。
 
 ### 学習
 
 学習結果は `vendor/model-c2k-e10.pth`、`vendor/model-c2k-e10-[label].pth` に保存されます。
 
 ```bash
-# CPUのみで学習する場合
-task train-cpu -- --label [label]
+# 学習
+uv run python3 train.py --label [label]
+```
 
-# CUDAを使って学習する場合
-task train-cuda -- --label [label]
-
-# tensorboardを開く
-task tensorboard
+```bash
+# Tensorboardを開く
+uv run tensorboard --logdir runs
 ```
 
 ### データセットの結合
 
 ```bash
-task merge -- ./vendor/dataset_01.jsonl ./vendor/dataset_02.jsonl --output ./vendor/dataset_merged.jsonl
+uv run python3 merge.py ./vendor/dataset_01.jsonl ./vendor/dataset_02.jsonl --output ./vendor/dataset_merged.jsonl
 ```
 
 ### 評価
@@ -35,13 +34,12 @@ task merge -- ./vendor/dataset_01.jsonl ./vendor/dataset_02.jsonl --output ./ven
 
 ```bash
 # UniDicをダウンロードし、英単語を抜き出す（初回のみ）
-task setup-eval
+uv run python3 setup_eval.py
+```
 
-# CPUのみで評価する場合
-task eval-cpu -- --model ./vendor/model-c2k-e10.pth
-
-# CUDAを使って評価する場合
-task eval-cuda -- --model ./vendor/model-c2k-e10.pth
+```bash
+# 評価
+uv run python3 eval.py
 ```
 
 ### 書き出し
@@ -49,15 +47,15 @@ task eval-cuda -- --model ./vendor/model-c2k-e10.pth
 safetensors形式で書き出します。
 
 ```bash
-task export -- --model ./vendor/model-c2k-e10.pth --output ../infer/crates/e2k-rs/src/models/model-c2k.safetensors
+uv run python3 export.py --model ./vendor/model-c2k-e10.pth --output ../infer/crates/e2k-rs/src/models/model-c2k.safetensors
 ```
 
 ### フォーマット
 
 ```bash
-task lint
+uv run ruff check *.py
 
-task format
+uv run ruff format *.py
 ```
 
 ## 謝辞

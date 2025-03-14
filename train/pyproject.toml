@@ -4,7 +4,7 @@ version = "0.3.0"
 description = "A tool for automatic English to Katakana conversion"
 readme = "README.md"
 authors = [{ name = "Patchethium", email = "asguftuikh@gmail.com" }]
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
   "g2p-en>=2.1.0",
   "numpy>=1.0,<3.0",
@@ -14,28 +14,6 @@ dependencies = [
   "tensorboard>=2.18.0",
   "tqdm>=4.67.1",
   "zipfile-deflate64>=0.2.0",
+  "torch==2.5.0",
+  "torcheval>=0.0.7",
 ]
-
-[dependency-groups]
-cpu = ["torch==2.5.0+cpu", "torcheval>=0.0.7"]
-cuda = ["torch==2.5.0+cu121", "torcheval>=0.0.7"]
-
-[tool.uv]
-default-groups = ["cpu"]
-conflicts = [[{ group = "cpu" }, { group = "cuda" }]]
-
-[tool.uv.sources]
-torch = [
-  { index = "pytorch-cpu", group = "cpu" },
-  { index = "pytorch-cuda", group = "cuda" },
-]
-
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
-
-[[tool.uv.index]]
-name = "pytorch-cuda"
-url = "https://download.pytorch.org/whl/cu121"
-explicit = true
