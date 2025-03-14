@@ -1,19 +1,25 @@
 # Description: Evaluate the model on the full dataset.
 # and calculate the accuracy.
+import os
+import sys
 import torch
-import argparse
 from torcheval.metrics import BLEUScore
 from tqdm.auto import tqdm
+from config import Config
+from evaluator import Evaluator
 from train import Model, MyDataset, random_split
 
-parser = argparse.ArgumentParser()
+if len(sys.argv) < 2:
+    print("Usage: python eval.py output")
+    sys.exit(1)
 
-parser.add_argument("--data", type=str, default="./vendor/unidic_words.jsonl")
-parser.add_argument("--model", type=str, default="./vendor/model-c2k-e10.pth")
-parser.add_argument("--p2k", action="store_true")
-parser.add_argument("--portion", type=float, default=1.0)
 
-args = parser.parse_args()
+output_dir = sys.argv[1]
+
+models = [f for f in os.listdir(output_dir) if f.startswith("model-e")]
+models.sort(key=lambda x: int(x.split("-")[1][1:-4]))
+model = models[-1]
+print(f"Using model: {model}")
 
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
@@ -27,30 +33,20 @@ if use_cuda:
     torch.backends.cuda.matmul.allow_tf32 = True
 
 
-model = Model(p2k=args.p2k).to(device)
+config = Config.load(f"{output_dir}/config.yml")
+model_path = f"{output_dir}/{model}"
 
-model.load_state_dict(torch.load(args.model, map_location=torch.device("cpu")))
+model = Model(config).to(device)
+
+model.load_state_dict(torch.load(model_path, map_location=device))
 
 model.eval()
 
 torch.manual_seed(3407)
 
-dataset = MyDataset(args.data, device, p2k=args.p2k)
+dataset = MyDataset(config.eval_data, device)
 dataset.set_return_full(True)  # bleu score test
-test_ds, _ = random_split(dataset, [args.portion, 1 - args.portion])
 
-bleu = BLEUScore(n_gram=3)
+evaluator = Evaluator(dataset)
 
-
-def tensor2str(t):
-    return " ".join([str(int(x)) for x in t])
-
-
-for (eng, kata) in tqdm(test_ds, desc="Evaluating"):
-    res = model.inference(eng)
-    pred_kana = tensor2str(res)
-    kana = [[tensor2str(k) for k in kata]]
-    bleu.update(pred_kana, kana)
-
-
-print(f"BLEU score: {bleu.compute()}")
+print(f"BLEU score: {evaluator.evaluate(model)}")

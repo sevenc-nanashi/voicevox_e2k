@@ -8,29 +8,20 @@
 
 ### 学習
 
-学習結果は `vendor/model-c2k-e10.pth`、`vendor/model-c2k-e10-[label].pth` に保存されます。
+学習結果は `outputs/2025_03_14_23_43_01_example` のようなディレクトリに保存されます。
+学習時の設定は `config/example.yml` を参照してください。
 
 ```bash
 # 学習
-uv run python3 src/train.py --label [label]
+uv run python3 src/train.py ./config/example.yml
 ```
 
 ```bash
 # Tensorboardを開く
-uv run tensorboard --logdir runs
-```
-
-### データセットの結合
-
-```bash
-uv run python3 src/merge.py ./vendor/dataset_01.jsonl ./vendor/dataset_02.jsonl --output ./vendor/dataset_merged.jsonl
+uv run tensorboard --logdir outputs
 ```
 
 ### 評価
-
-評価はデフォルトではUniDicの英単語を使って行います。
-別の辞書を使いたい場合は、`--data` オプションで指定してください。
-データセットの一部分のみに対して評価を行いたい場合は、`--portion` オプションで割合を指定してください。
 
 ```bash
 # UniDicをダウンロードし、英単語を抜き出す（初回のみ）
@@ -39,7 +30,7 @@ uv run python3 src/setup_eval.py
 
 ```bash
 # 評価
-uv run python3 src/eval.py
+uv run python3 src/eval.py ./outputs/2025_03_14_23_43_01_example
 ```
 
 ### 書き出し
@@ -47,7 +38,7 @@ uv run python3 src/eval.py
 safetensors形式で書き出します。
 
 ```bash
-uv run python3 src/export.py --model ./vendor/model-c2k-e10.pth --output ../infer/crates/e2k-rs/src/models/model-c2k.safetensors
+uv run python3 src/export.py --model ./outputs/2025_03_14_23_43_01_example/model-e10.pth --output ./outputs/2025_03_14_23_43_01_example/model.safetensors
 ```
 
 ### フォーマット

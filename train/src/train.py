@@ -1,46 +1,43 @@
 # we train a s2s model to predict the katakana phonemes from
 # English phonemes
-import json
-import argparse
+from datetime import datetime
 from functools import partial
-from os import path
+import json
+import os
 from random import randint
 import shutil
-
-import torch
-from torch import nn
-from torch.utils.data import random_split, Dataset, DataLoader
-from torch.nn.utils.rnn import pad_sequence
-from torch.optim.lr_scheduler import ExponentialLR
-from torch.utils.tensorboard import SummaryWriter
-from tqdm.auto import tqdm
+import subprocess
+import sys
 
 from g2p_en import G2p
+import torch
+from torch import nn
+from torch.nn.utils.rnn import pad_sequence
+from torch.optim.lr_scheduler import ExponentialLR
+from torch.utils.data import DataLoader, Dataset, random_split
+from torch.utils.tensorboard import SummaryWriter
+from tqdm.auto import tqdm
+import yaml
 
-from constants import kanas, en_phones, ascii_entries, PAD_IDX, SOS_IDX, EOS_IDX
-
-
-SEED = 3407
-DIM = 256
+from config import Config
+from constants import EOS_IDX, PAD_IDX, SOS_IDX, ascii_entries, en_phones, kanas
+from evaluator import Evaluator
 
 
 class Model(nn.Module):
-    def __init__(self, p2k: bool = False):
+    def __init__(self, config: Config):
         super(Model, self).__init__()
-        if p2k:
-            self.e_emb = nn.Embedding(len(en_phones), DIM)
-        else:
-            self.e_emb = nn.Embedding(len(ascii_entries), DIM)
-        self.k_emb = nn.Embedding(len(kanas), DIM)
-        self.encoder = nn.GRU(DIM, DIM, batch_first=True, bidirectional=True)
+        self.e_emb = nn.Embedding(len(ascii_entries), config.dim)
+        self.k_emb = nn.Embedding(len(kanas), config.dim)
+        self.encoder = nn.GRU(config.dim, config.dim, batch_first=True, bidirectional=True)
         self.encoder_fc = nn.Sequential(
-            nn.Linear(2 * DIM, DIM),
+            nn.Linear(2 * config.dim, config.dim),
             nn.Tanh(),
         )
-        self.pre_decoder = nn.GRU(DIM, DIM, batch_first=True)
-        self.post_decoder = nn.GRU(2 * DIM, DIM, batch_first=True)
-        self.attn = nn.MultiheadAttention(DIM, 4, batch_first=True, dropout=0.1)
-        self.fc = nn.Linear(DIM, len(kanas))
+        self.pre_decoder = nn.GRU(config.dim, config.dim, batch_first=True)
+        self.post_decoder = nn.GRU(2 * config.dim, config.dim, batch_first=True)
+        self.attn = nn.MultiheadAttention(config.dim, 4, batch_first=True, dropout=0.1)
+        self.fc = nn.Linear(config.dim, len(kanas))
 
     def forward(self, src, tgt, src_mask=None, tgt_mask=None):
         """
@@ -90,7 +87,7 @@ class Model(nn.Module):
 
 
 class MyDataset(Dataset):
-    def __init__(self, path, device, p2k: bool = True):
+    def __init__(self, path, device):
         """
         reads a json line file
         """
@@ -108,7 +105,6 @@ class MyDataset(Dataset):
         self.eos_idx = EOS_IDX
         self.cache_en = {}
         self.cache_kata = {}
-        self.p2k_flag = p2k
         self.return_full = False
 
     def __len__(self):
@@ -137,10 +133,7 @@ class MyDataset(Dataset):
         item = self.data[idx]
         eng = item["word"]
         katas = item["kata"]
-        if self.p2k_flag:
-            eng = self.p2k(eng)
-        else:
-            eng = self.c2k(eng)
+        eng = self.c2k(eng)
         eng = [self.sos_idx] + eng + [self.eos_idx]
         # katas is a list of katakana words
         # if not return_full, we randomly select one of them
@@ -188,29 +181,27 @@ def collate_fn(batch, device):
     return engs, katas, eng_mask, kata_mask
 
 
-def infer(src, model, p2k):
+def infer(src, model):
     model = model.eval()
     res = model.inference(src)
     # return to words
     res = [kanas[i] for i in res]
     # also for english phonemes
-    if p2k:
-        src = [en_phones[i] for i in src]
-    else:
-        src = [ascii_entries[i] for i in src]
+    src = [ascii_entries[i] for i in src]
     return src, res
 
 
 def train():
-    torch.manual_seed(SEED)
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--data", type=str, default="./vendor/data.jsonl")
-    parser.add_argument("--p2k", action="store_true")
-    parser.add_argument("--label", type=str, required=True)
-    parser.add_argument("--batch_size", type=int)
-    args = parser.parse_args()
+    if len(sys.argv) < 2:
+        print("Usage: python train.py ./config/example.yml")
+        sys.exit(1)
+    config_path = sys.argv[1]
 
-    print(f"Training {'p2k' if args.p2k else 'c2k'}")
+    config = Config.load(config_path)
+    print(f"Using config: {config}")
+    config_name = os.path.basename(config_path).split(".")[0]
+
+    torch.manual_seed(config.seed)
 
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
@@ -223,21 +214,41 @@ def train():
         torch.backends.cudnn.benchmark = True
         torch.backends.cuda.matmul.allow_tf32 = True
 
-    model = Model(p2k=args.p2k).to(device)
-    dataset = MyDataset(args.data, device, p2k=args.p2k)
-    train_ds, val_ds = random_split(dataset, [0.95, 0.05])
+    model = Model(config).to(device)
+    train_dataset = MyDataset(config.train_data, device)
+    all_eval_dataset = MyDataset(config.eval_data, device)
+    eval_dataset, _ = random_split(
+        all_eval_dataset, [config.eval_data_portion, 1 - config.eval_data_portion]
+    )
 
-    batch_size = args.batch_size or (256 if use_cuda else 64)
+    batch_size = 256 if use_cuda else 64
     print(f"Batch size: {batch_size}")
 
-    train_dl = DataLoader(
-        train_ds,
-        batch_size=batch_size,
-        shuffle=True,
-        collate_fn=partial(collate_fn, device=device),
+    output_dir = os.path.join(
+        "outputs", datetime.now().strftime(f"%Y_%m_%d_%H_%M_%S_{config_name}")
     )
-    val_dl = DataLoader(
-        val_ds,
+
+    print(f"Output dir: {output_dir}")
+    os.makedirs(output_dir, exist_ok=True)
+
+    shutil.copyfile(
+        config_path,
+        os.path.join(output_dir, "config.yml"),
+    )
+    git_sha = (
+        subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8")
+    )
+    with open(os.path.join(output_dir, "train_info.yml"), "w") as file:
+        yaml.dump(
+            {
+                "git_sha": git_sha,
+                "use_cuda": use_cuda,
+            },
+            file,
+        )
+
+    train_dl = DataLoader(
+        train_dataset,
         batch_size=batch_size,
         shuffle=True,
         collate_fn=partial(collate_fn, device=device),
@@ -246,8 +257,9 @@ def train():
     criterion = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     scheduler = ExponentialLR(optimizer, 0.8)
-    writer = SummaryWriter(comment=f"_{args.label}")
-    epochs = 10
+    writer = SummaryWriter(log_dir=output_dir)
+    evaluator = Evaluator(eval_dataset)
+    epochs = config.max_epochs
     steps = 0
     for epoch in range(1, epochs + 1):
         model.train()
@@ -260,32 +272,28 @@ def train():
             optimizer.step()
             steps += 1
         model.eval()
-        total_loss = 0
-        count = 0
-        with torch.no_grad():
-            for eng, kata, e_mask, k_mask in tqdm(val_dl, desc=f"Epoch {epoch} val"):
-                out = model(eng, kata, e_mask, k_mask)
-                loss = criterion(out.transpose(1, 2), kata[:, 1:])
-                total_loss += loss.item()
-                count += 1
         # take a sample and inference it
-        sample = val_ds[randint(0, len(val_ds) - 1)]
+        sample = eval_dataset[randint(0, len(eval_dataset) - 1)]
         src, tgt = sample
-        src, pred = infer(src, model, args.p2k)
+        src, pred = infer(src, model)
         print(f"Epoch {epoch} Sample: {src} -> {pred}")
-        writer.add_scalar("Loss/val", total_loss / count, epoch)
-        print(f"Epoch {epoch} Loss: {total_loss / count}")
+
+        bleu = evaluator.evaluate(model)
+        writer.add_scalar("BLEU", bleu, epoch)
+        print(f"Epoch {epoch} BLEU: {bleu}")
+
         scheduler.step()
-        name = "p2k" if args.p2k else "c2k"
-    else:
         torch.save(
             model.state_dict(),
-            path.join("vendor", f"model-{name}-e{epoch}.pth"),
+            os.path.join(output_dir, f"model-e{epoch}.pth"),
         )
-        shutil.copyfile(
-            path.join("vendor", f"model-{name}-e{epoch}.pth"),
-            path.join("vendor", f"model-{name}-e{epoch}-{args.label}.pth"),
-        )
+
+        if epoch - config.num_models_to_keep > 0:
+            old = epoch - config.num_models_to_keep
+            old_path = os.path.join(output_dir, f"model-e{old}.pth")
+            if os.path.exists(old_path):
+                print(f"Removing {old_path}")
+                os.remove(old_path)
 
 
 if __name__ == "__main__":
