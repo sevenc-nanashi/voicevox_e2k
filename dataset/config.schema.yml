@@ -57,8 +57,6 @@ properties:
     required:
       - provider
       - concurrency
-      - gemini
-      - openai
     additionalProperties: false
 required:
   - randomSeed

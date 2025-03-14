@@ -10,16 +10,21 @@ export const configSchema = z.object({
     provider: z.enum(["gemini", "openai"]),
     concurrency: z.number(),
 
-    gemini: z.object({
-      apiKey: z.string(),
-      modelName: z.string(),
-    }),
-    openai: z.object({
-      apiBaseUrl: z.string(),
-      apiKey: z.string(),
-      modelName: z.string(),
-    }),
+    gemini: z
+      .object({
+        apiKey: z.string(),
+        modelName: z.string(),
+      })
+      .optional(),
+    openai: z
+      .object({
+        apiBaseUrl: z.string(),
+        apiKey: z.string(),
+        modelName: z.string(),
+      })
+      .optional(),
   }),
 });
 
 export type Config = z.infer<typeof configSchema>;
+export type OpenAIConfig = NonNullable<Config["inference"]["openai"]>;

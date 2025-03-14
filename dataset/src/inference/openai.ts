@@ -3,13 +3,18 @@ import type { Config } from "../config.ts";
 import { InferenceProvider } from "./index.ts";
 
 export class OpenAI extends InferenceProvider {
+  declare config: Config & { inference: { openai: object } };
   client: OpenAIClient;
+
   constructor(config: Config) {
+    if (config.inference.openai == null) {
+      throw new Error("OpenAI config is missing");
+    }
     super(config);
 
     this.client = new OpenAIClient({
-      baseURL: config.inference.openai.apiBaseUrl,
-      apiKey: config.inference.openai.apiKey,
+      baseURL: this.config.inference.openai.apiBaseUrl,
+      apiKey: this.config.inference.openai.apiKey,
     });
   }
 
