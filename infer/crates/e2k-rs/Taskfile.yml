@@ -7,8 +7,7 @@ tasks:
 
   generate_constants:
     cmds:
-      - cd tasks && uv run python3 ./generate_constants.py
-      - cargo fmt
+      - cd tasks && uv run ./generate_constants.py
   benchmark:
     cmds:
       - cd tasks && uv run pytest --benchmark-json=benchmark.json
