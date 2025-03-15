@@ -92,11 +92,11 @@ where
     ndarray_safetensors::parse_fp16_tensor_view_data(
         &weights
             .tensor(key)
-            .unwrap_or_else(|e| panic!("model corrupted: {} not found, {:?}", key, e)),
+            .unwrap_or_else(|e| panic!("model corrupted: {key} not found, {e:?}")),
     )
-    .unwrap_or_else(|e| panic!("model corrupted: failed to parse {}, {:?}", key, e))
+    .unwrap_or_else(|e| panic!("model corrupted: failed to parse {key}, {e:?}"))
     .into_dimensionality()
-    .unwrap_or_else(|e| panic!("model corrupted: dimension mismatch in {}, {:?}", key, e))
+    .unwrap_or_else(|e| panic!("model corrupted: dimension mismatch in {key}, {e:?}"))
 }
 
 impl S2s {
