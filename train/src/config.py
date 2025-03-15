@@ -6,7 +6,7 @@ import yaml
 class Config:
     train_data: str
     eval_data: str
-    eval_data_portion: float
+    eval_max_words: int
     dim: int
     max_epochs: int
     num_models_to_keep: int

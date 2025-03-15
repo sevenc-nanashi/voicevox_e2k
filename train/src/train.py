@@ -4,7 +4,7 @@ from datetime import datetime
 from functools import partial
 import json
 import os
-from random import randint
+import random
 import shutil
 import subprocess
 import sys
@@ -29,7 +29,9 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.e_emb = nn.Embedding(len(ascii_entries), config.dim)
         self.k_emb = nn.Embedding(len(kanas), config.dim)
-        self.encoder = nn.GRU(config.dim, config.dim, batch_first=True, bidirectional=True)
+        self.encoder = nn.GRU(
+            config.dim, config.dim, batch_first=True, bidirectional=True
+        )
         self.encoder_fc = nn.Sequential(
             nn.Linear(2 * config.dim, config.dim),
             nn.Tanh(),
@@ -87,7 +89,7 @@ class Model(nn.Module):
 
 
 class MyDataset(Dataset):
-    def __init__(self, path, device):
+    def __init__(self, path, device, max_words: int | None = None):
         """
         reads a json line file
         """
@@ -96,6 +98,8 @@ class MyDataset(Dataset):
         with open(path, "r") as file:
             lines = file.readlines()
         self.data = [json.loads(line) for line in lines]
+        if max_words is not None:
+            self.data = random.sample(self.data, min(max_words, len(self.data)))
         self.device = device
         self.eng_dict = {c: i for i, c in enumerate(en_phones)}
         self.c_dict = {c: i for i, c in enumerate(ascii_entries)}
@@ -139,7 +143,7 @@ class MyDataset(Dataset):
         # if not return_full, we randomly select one of them
         # else we return all of them
         if not self.return_full:
-            kata = katas[randint(0, len(katas) - 1)]
+            kata = katas[random.randint(0, len(katas) - 1)]
             kata = [self.kata_dict[c] for c in kata]
             kata = [self.sos_idx] + kata + [self.eos_idx]
             en = torch.tensor(eng).to(self.device)
@@ -216,11 +220,7 @@ def train():
 
     model = Model(config).to(device)
     train_dataset = MyDataset(config.train_data, device)
-    all_eval_dataset = MyDataset(config.eval_data, device)
-    eval_dataset, _ = random_split(
-        all_eval_dataset, [config.eval_data_portion, 1 - config.eval_data_portion]
-    )
-
+    eval_dataset = MyDataset(config.eval_data, device, max_words=config.eval_max_words)
     batch_size = 256 if use_cuda else 64
     print(f"Batch size: {batch_size}")
 
@@ -273,7 +273,7 @@ def train():
             steps += 1
         model.eval()
         # take a sample and inference it
-        sample = eval_dataset[randint(0, len(eval_dataset) - 1)]
+        sample = eval_dataset[random.randint(0, len(eval_dataset) - 1)]
         src, tgt = sample
         src, pred = infer(src, model)
         print(f"Epoch {epoch} Sample: {src} -> {pred}")

@@ -3,11 +3,9 @@
 import os
 import sys
 import torch
-from torcheval.metrics import BLEUScore
-from tqdm.auto import tqdm
 from config import Config
 from evaluator import Evaluator
-from train import Model, MyDataset, random_split
+from train import Model, MyDataset
 
 if len(sys.argv) < 2:
     print("Usage: python eval.py output")
