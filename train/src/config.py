@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import yaml
 
 
 @dataclass
@@ -13,7 +12,5 @@ class Config:
     seed: int
 
     @classmethod
-    def load(cls, path: str):
-        with open(path, "r") as file:
-            config = yaml.safe_load(file)
+    def from_dict(cls, config: dict):
         return cls(**config)

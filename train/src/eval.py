@@ -3,6 +3,7 @@
 import os
 import sys
 import torch
+import yaml
 from config import Config
 from evaluator import Evaluator
 from train import Model, MyDataset
@@ -31,7 +32,7 @@ if use_cuda:
     torch.backends.cuda.matmul.allow_tf32 = True
 
 
-config = Config.load(f"{output_dir}/config.yml")
+config = Config.from_dict(yaml.safe_load(f"{output_dir}/config.yml"))
 model_path = f"{output_dir}/{model}"
 
 model = Model(config)

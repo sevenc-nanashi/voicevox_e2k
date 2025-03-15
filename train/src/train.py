@@ -14,7 +14,7 @@ import torch
 from torch import nn
 from torch.nn.utils.rnn import pad_sequence
 from torch.optim.lr_scheduler import ExponentialLR
-from torch.utils.data import DataLoader, Dataset, random_split
+from torch.utils.data import DataLoader, Dataset
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.auto import tqdm
 import yaml
@@ -194,7 +194,7 @@ def train():
         sys.exit(1)
     config_path = sys.argv[1]
 
-    config = Config.load(config_path)
+    config = Config.from_dict(yaml.safe_load(open(config_path, "r")))
     print(f"Using config: {config}")
     config_name = os.path.basename(config_path).split(".")[0]
 
