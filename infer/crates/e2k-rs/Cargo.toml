@@ -5,9 +5,6 @@ edition = "2021"
 license = "MIT"
 include = ["!*", "/README.md", "/LICENSE", "/src/**/*.rs"]
 
-[lib]
-crate-type = ["rlib"]
-
 [[bench]]
 name = "benchmark"
 harness = false
