@@ -114,13 +114,6 @@ class MyDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def p2k(self, eng):
-        phonemes = self.g2p(eng)
-        # phonemes = [p[:-1] if p[-1] in "012" else p for p in phonemes]
-        phonemes = list(filter(lambda x: x in self.eng_dict, phonemes))
-        eng = [self.eng_dict[c] for c in phonemes]
-        return eng
-
     def c2k(self, eng):
         eng = [self.c_dict[c] for c in eng]
         return eng

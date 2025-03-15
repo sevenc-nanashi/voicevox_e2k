@@ -1,6 +1,10 @@
+from typing import TYPE_CHECKING
 import torch
 from torcheval.metrics import BLEUScore
 from tqdm.auto import tqdm
+
+if TYPE_CHECKING:
+    from train import Model, MyDataset
 
 
 def tensor2str(t):
@@ -8,17 +12,21 @@ def tensor2str(t):
 
 
 class Evaluator:
-    def __init__(self, dataset):
+    def __init__(self, dataset: "MyDataset"):
         self.dataset = dataset
 
-    def evaluate(self, model):
+    def evaluate(self, model: "Model"):
         bleu = BLEUScore(n_gram=3)
 
         with torch.no_grad():
             for eng, kata in tqdm(self.dataset, desc="Evaluating"):
                 res = model.inference(eng)
                 pred_kana = tensor2str(res)
-                kana = [[tensor2str(k) for k in kata]]
+                kana = (
+                    [[tensor2str(kata)]]
+                    if isinstance(kata, torch.Tensor)
+                    else [[tensor2str(k) for k in kata]]
+                )
                 bleu.update(pred_kana, kana)
 
         return bleu.compute()
