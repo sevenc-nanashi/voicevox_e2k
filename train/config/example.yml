@@ -6,7 +6,7 @@ eval_data: ./vendor/unidic_words.jsonl
 eval_data_portion: 0.5
 # モデルの次元数。
 dim: 256
-# 学習のエポック数。
+# 学習するエポック数。
 max_epochs: 10
 # 保存するモデルの数。
 num_models_to_keep: 2
