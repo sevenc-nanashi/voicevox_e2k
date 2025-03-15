@@ -34,10 +34,9 @@ if use_cuda:
 config = Config.load(f"{output_dir}/config.yml")
 model_path = f"{output_dir}/{model}"
 
-model = Model(config).to(device)
-
+model = Model(config)
 model.load_state_dict(torch.load(model_path, map_location=device))
-
+model.to(device)
 model.eval()
 
 dataset = MyDataset(config.eval_data, device)
