@@ -44,9 +44,9 @@ uv run src/export.py --model ./outputs/2025_03_14_23_43_01_example/model-e10.pth
 ### フォーマット
 
 ```bash
-uv run ruff check *.py
+uv run ruff check src/*.py
 
-uv run ruff format *.py
+uv run ruff format src/*.py
 ```
 
 ## 謝辞
