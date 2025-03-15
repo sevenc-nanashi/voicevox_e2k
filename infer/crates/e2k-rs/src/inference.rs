@@ -339,6 +339,10 @@ impl C2k {
     ///
     /// - `model`: モデルのバイト列。
     /// - `max_len`: 読みの最大長。
+    ///
+    /// # Panics
+    ///
+    /// モデルが壊れている場合はpanicします。
     pub fn new(model: &[u8], max_len: usize) -> Self {
         let weights = safetensors::SafeTensors::deserialize(model).expect("Model is corrupted");
         let inner = BaseE2k::new(
