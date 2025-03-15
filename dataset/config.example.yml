@@ -12,6 +12,7 @@ source:
 
 inference:
   # 読みの取得方法を指定します。
+  # "gemini"、"openai" が選択可能です。
   provider: gemini
 
   # 並列実行数。レートリミットとの兼ね合いで調整してください。
@@ -24,3 +25,14 @@ inference:
 
     # 使うモデルの名前。
     modelName: "gemini-2.0-flash"
+
+  # OpenAI互換APIの設定。
+  openai:
+    # APIのベースURL。
+    apiBaseUrl: "https://api.openai.com/v1"
+
+    # APIキー。
+    apiKey: ""
+
+    # 使うモデルの名前。
+    modelName: "text-davinci-003"

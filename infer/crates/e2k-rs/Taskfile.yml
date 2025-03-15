@@ -1,0 +1,15 @@
+version: "3"
+
+tasks:
+  generate_about:
+    cmds:
+      - cargo about generate about.hbs.md > ./NOTICE.md
+
+  generate_constants:
+    cmds:
+      - cd tasks && uv run ./generate_constants.py
+  benchmark:
+    cmds:
+      - cd tasks && uv run pytest --benchmark-json=benchmark.json
+      - cargo bench
+      - cd tasks && uv run python3 ./plot_benchmark.py

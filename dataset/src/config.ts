@@ -7,13 +7,22 @@ export const configSchema = z.object({
     maxNumWords: z.union([z.number(), z.literal("all")]),
   }),
   inference: z.object({
-    provider: z.enum(["gemini"]),
+    provider: z.enum(["gemini", "openai"]),
     concurrency: z.number(),
 
-    gemini: z.object({
-      apiKey: z.string(),
-      modelName: z.string(),
-    }),
+    gemini: z
+      .object({
+        apiKey: z.string(),
+        modelName: z.string(),
+      })
+      .optional(),
+    openai: z
+      .object({
+        apiBaseUrl: z.string(),
+        apiKey: z.string(),
+        modelName: z.string(),
+      })
+      .optional(),
   }),
 });
 

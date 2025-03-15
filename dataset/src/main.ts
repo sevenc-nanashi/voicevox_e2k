@@ -4,10 +4,11 @@ import { load as loadYaml } from "js-yaml";
 import { configSchema } from "./config.ts";
 import { Gemini } from "./inference/gemini.ts";
 import type { InferenceProvider } from "./inference/index.ts";
+import { OpenAI } from "./inference/openai.ts";
+import { Random } from "./random.ts";
 import { CmuDict } from "./source/cmudict.ts";
 import type { SourceProvider } from "./source/index.ts";
 import { ExhaustiveError, bisectMax, normalizeKana } from "./utils.ts";
-import { Random } from "./random.ts";
 
 async function main() {
   const config = await loadConfig();
@@ -24,6 +25,9 @@ async function main() {
   switch (config.inference.provider) {
     case "gemini":
       inferenceProvider = new Gemini(config);
+      break;
+    case "openai":
+      inferenceProvider = new OpenAI(config);
       break;
     default:
       throw new ExhaustiveError(config.inference.provider);
