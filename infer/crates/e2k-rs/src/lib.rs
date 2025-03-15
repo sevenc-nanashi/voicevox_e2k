@@ -7,7 +7,7 @@
 //! ```rust
 //! // 文字列をカタカナに変換する例
 //! let src = "constants";
-//! let c2k = e2k::C2k::new(e2k::models::C2K_MODEL, 32);
+//! let c2k = e2k::C2k::new(&e2k::models::MODEL, 32);
 //! let dst = c2k.infer(src);
 //!
 //! dbg!(dst); // "コンスタンツ"
@@ -32,7 +32,7 @@ mod constants;
 mod inference;
 mod layers;
 
-pub use constants::{ASCII_ENTRIES, EN_PHONES, KANAS};
+pub use constants::{ASCII_ENTRIES, KANAS};
 pub use inference::*;
 #[cfg(feature = "embed_model")]
 pub mod models;
