@@ -1,5 +1,6 @@
 # we train a s2s model to predict the katakana phonemes from
 # English phonemes
+import argparse
 from datetime import datetime
 from functools import partial
 import json
@@ -189,14 +190,14 @@ def infer(src, model):
 
 
 def train():
-    if len(sys.argv) < 2:
-        print("Usage: python train.py ./config/example.yml")
-        sys.exit(1)
-    config_path = sys.argv[1]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("config", type=str)
+    parser.add_argument("output", type=str, nargs="?")
+    args = parser.parse_args()
 
-    config = Config.from_dict(yaml.safe_load(open(config_path, "r")))
+    config = Config.from_dict(yaml.safe_load(open(args.config, "r")))
     print(f"Using config: {config}")
-    config_name = os.path.basename(config_path).split(".")[0]
+    config_name = os.path.basename(args.config).split(".")[0]
 
     torch.manual_seed(config.seed)
 
@@ -217,7 +218,7 @@ def train():
     batch_size = 256 if use_cuda else 64
     print(f"Batch size: {batch_size}")
 
-    output_dir = os.path.join(
+    output_dir = args.output or os.path.join(
         "outputs", datetime.now().strftime(f"%Y_%m_%d_%H_%M_%S_{config_name}")
     )
 
@@ -225,7 +226,7 @@ def train():
     os.makedirs(output_dir, exist_ok=True)
 
     shutil.copyfile(
-        config_path,
+        args.config,
         os.path.join(output_dir, "config.yml"),
     )
     git_sha = (
