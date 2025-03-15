@@ -33,7 +33,7 @@ enum StrategyArg {
 fn main() {
     let args = Args::parse();
 
-    let mut c2k = e2k::C2k::new(32);
+    let mut c2k = e2k::C2k::new(&e2k::models::MODEL, 32);
     match args.strategy {
         StrategyArg::Greedy => {
             c2k.set_decode_strategy(e2k::Strategy::Greedy);
