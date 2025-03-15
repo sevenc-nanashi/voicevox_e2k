@@ -40,7 +40,8 @@ def download_unidic(path: str):
     pb.close()
     print("Renaming to", path)
 
-    os.remove(path)
+    if os.path.exists(path):
+        os.remove(path)
     os.rename(path + ".tmp", path)
 
 

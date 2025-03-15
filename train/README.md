@@ -13,7 +13,7 @@
 
 ```bash
 # 学習
-uv run python3 src/train.py ./config/example.yml
+uv run src/train.py ./config/example.yml
 ```
 
 ```bash
@@ -25,12 +25,12 @@ uv run tensorboard --logdir outputs
 
 ```bash
 # UniDicをダウンロードし、英単語を抜き出す（初回のみ）
-uv run python3 src/setup_eval.py
+uv run src/setup_eval.py
 ```
 
 ```bash
 # 評価
-uv run python3 src/eval.py ./outputs/2025_03_14_23_43_01_example
+uv run src/eval.py ./outputs/2025_03_14_23_43_01_example
 ```
 
 ### 書き出し
@@ -38,7 +38,7 @@ uv run python3 src/eval.py ./outputs/2025_03_14_23_43_01_example
 safetensors形式で書き出します。
 
 ```bash
-uv run python3 src/export.py --model ./outputs/2025_03_14_23_43_01_example/model-e10.pth --output ./outputs/2025_03_14_23_43_01_example/model.safetensors
+uv run src/export.py --model ./outputs/2025_03_14_23_43_01_example/model-e10.pth --output ./outputs/2025_03_14_23_43_01_example/model.safetensors
 ```
 
 ### フォーマット
