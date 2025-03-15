@@ -4,6 +4,8 @@ from torcheval.metrics import BLEUScore
 from tqdm.auto import tqdm
 
 if TYPE_CHECKING:
+    # 循環インポートになるのでTYPE_CHECKINGを使って回避。
+    # FIXME: 本来はModelやMyDatasetはtrain.pyではなく他のファイルに定義すべき。
     from train import Model, MyDataset
 
 
