@@ -265,8 +265,8 @@ impl S2s {
     }
 }
 
-/// [C2k] 、 [P2k] の基底となる構造体。
-/// 基本的には[C2k]または[P2k]を使ってください。
+/// [C2k] の基底となる構造体。
+/// 基本的には[C2k]を使ってください。
 pub struct BaseE2k<I: Hash + Eq, O: Clone> {
     s2s: S2s,
     in_table: HashMap<I, usize>,
@@ -369,68 +369,6 @@ impl C2k {
     pub fn infer(&self, input: &str) -> String {
         let input = input.chars().map(|c| c.to_string()).collect::<Vec<_>>();
         self.inner.infer(&input).into_iter().collect()
-    }
-
-    /// アルゴリズムを設定する。
-    pub fn set_decode_strategy(&mut self, strategy: Strategy) {
-        self.inner.set_decode_strategy(strategy);
-    }
-}
-
-/// 発音 -> カタカナの変換器。
-pub struct P2k {
-    inner: BaseE2k<String, char>,
-}
-
-impl std::fmt::Debug for P2k {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("P2k").finish()
-    }
-}
-
-impl P2k {
-    /// 新しいインスタンスを生成する。
-    ///
-    /// # Arguments
-    ///
-    /// - `model`: モデルのバイト列。
-    /// - `max_len`: 読みの最大長。
-    pub fn new(model: &[u8], max_len: usize) -> Self {
-        let weights = safetensors::SafeTensors::deserialize(model).expect("Model is corrupted");
-        let inner = BaseE2k::new(
-            weights,
-            constants::EN_PHONES
-                .iter()
-                .enumerate()
-                .map(|(i, &c)| (c.to_string(), i))
-                .collect(),
-            constants::KANAS
-                .iter()
-                .enumerate()
-                .map(|(i, &c)| {
-                    (
-                        i,
-                        c.chars()
-                            .next()
-                            .expect("Unreachable: There should be no empty string"),
-                    )
-                })
-                .collect(),
-            max_len,
-        );
-        Self { inner }
-    }
-
-    /// 推論を行う。
-    ///
-    /// # Arguments
-    ///
-    /// - `input`: CMUDictの発音記号。
-    pub fn infer(&self, input: &[&str]) -> String {
-        self.inner
-            .infer(&input.iter().map(|&s| s.to_string()).collect::<Vec<_>>())
-            .into_iter()
-            .collect()
     }
 
     /// アルゴリズムを設定する。

@@ -13,14 +13,6 @@
 //! dbg!(dst); // "コンスタンツ"
 //! ```
 //!
-//! ```rust
-//! // CMUDictの発音記号をカタカナに変換する例
-//! let pronunciation = ["K", "AA1", "N", "S", "T", "AH0", "N", "T", "S"];
-//! let p2k = e2k::P2k::new(e2k::models::P2K_MODEL, 32);
-//! let dst = p2k.infer(&pronunciation);
-//! dbg!(dst); // "コンスタンツ"
-//! ```
-//!
 //! ## Features
 //! ### `embed_model`
 //! モデルを埋め込みます。

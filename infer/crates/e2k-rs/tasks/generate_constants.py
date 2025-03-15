@@ -12,13 +12,10 @@ with open(destination, "w") as f:
 // pub const PAD_IDX: usize = {constants.PAD_IDX};
 pub const SOS_IDX: usize = {constants.SOS_IDX};
 pub const EOS_IDX: usize = {constants.EOS_IDX};
-pub const EN_PHONES: &[&str] = [
-    {", ".join([f'"{phone}"' for phone in constants.en_phones])}
-];
-pub const KANAS: &[&str] = [
+pub const KANAS: &[&str] = &[
     {", ".join([f'"{kana}"' for kana in constants.kanas])}
 ];
-pub const ASCII_ENTRIES: &[&str] = [
+pub const ASCII_ENTRIES: &[&str] = &[
     {", ".join([f'"{entry}"' for entry in constants.ascii_entries])}
 ];
 """
