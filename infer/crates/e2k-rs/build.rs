@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
@@ -9,53 +9,75 @@ fn main() {
 }
 
 fn download_models() {
-    println!("cargo:rerun-if-changed=src/models/model-c2k.safetensors");
-    println!("cargo:rerun-if-changed=src/models/model-p2k.safetensors");
-    println!("cargo:rerun-if-changed=src/models/model-c2k.safetensors.br");
-    println!("cargo:rerun-if-changed=src/models/model-p2k.safetensors.br");
-    let root = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
-    for (raw_file, compressed_file, url) in [
-        (
-            "./src/models/model-c2k.safetensors",
-            "./src/models/model-c2k.safetensors.br",
-            "https://github.com/Patchethium/e2k/releases/download/0.2.0/model-c2k.safetensors",
-        ),
-        (
-            "./src/models/model-p2k.safetensors",
-            "./src/models/model-p2k.safetensors.br",
-            "https://github.com/Patchethium/e2k/releases/download/0.2.0/model-p2k.safetensors",
-        ),
-    ] {
-        let raw_model = root.join(raw_file);
-        if !raw_model.try_exists().unwrap() {
-            let tmp_raw_dest = root.join(format!("{}.tmp", raw_file));
-            download_model(&tmp_raw_dest, url);
-            std::fs::rename(&tmp_raw_dest, &raw_model).unwrap();
+    println!("cargo:rerun-if-changed=models/model-c2k.safetensors");
+    println!("cargo:rerun-if-changed=models/model-c2k.safetensors.br");
+
+    let model_exists = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap())
+        .join("./models/model-c2k.safetensors")
+        .try_exists()
+        .unwrap();
+
+    let model_root = if !model_exists {
+        let model_root = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("models");
+        std::fs::create_dir_all(&model_root).unwrap();
+
+        if !model_root
+            .join("model-c2k.safetensors")
+            .try_exists()
+            .unwrap()
+        {
+            download_to(
+                "https://github.com/Patchethium/e2k/releases/download/0.3.0/model-c2k.safetensors",
+                &model_root.join("model-c2k.safetensors"),
+            );
+        }
+        if !model_root
+            .join("model-c2k.safetensors.br")
+            .try_exists()
+            .unwrap()
+        {
+            compress_model(&model_root.join("model-c2k.safetensors"));
         }
 
-        let compressed_model = root.join(compressed_file);
-        if !compressed_model.try_exists().unwrap() {
-            let temp_compressed_dest = root.join(format!("{}.tmp", compressed_file));
-            let mut raw_model_file = std::fs::File::open(&raw_model).unwrap();
-            let mut compressed_model_file = std::fs::File::create(&temp_compressed_dest).unwrap();
+        model_root
+    } else {
+        PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap()).join("./models")
+    };
 
-            brotli::BrotliCompress(
-                &mut raw_model_file,
-                &mut compressed_model_file,
-                &brotli::enc::BrotliEncoderParams {
-                    quality: 11,
-                    ..Default::default()
-                },
-            )
-            .unwrap();
-
-            std::fs::rename(&temp_compressed_dest, &compressed_model).unwrap();
-        }
-    }
+    println!("cargo:rustc-env=E2K_MODEL_ROOT={}", model_root.display());
 }
 
-fn download_model(model: &std::path::Path, url: &str) {
-    let resp = ureq::get(url).call().unwrap();
-    let mut file = std::fs::File::create(model).unwrap();
-    std::io::copy(&mut resp.into_body().into_reader(), &mut file).unwrap();
+fn download_to(url: &str, path: &Path) {
+    let response = ureq::get(url).call().unwrap().into_body();
+    let temp_path = path.with_extra_extension("tmp");
+    let mut file = std::fs::File::create(&temp_path).unwrap();
+    std::io::copy(&mut response.into_reader(), &mut file).unwrap();
+    std::fs::rename(&temp_path, path).unwrap();
+}
+
+fn compress_model(path: &Path) {
+    let mut input = std::fs::File::open(path).unwrap();
+    let mut output = std::fs::File::create(path.with_extra_extension("br.tmp")).unwrap();
+    let mut output_writer = brotli::CompressorWriter::new(&mut output, 4096, 11, 22);
+    std::io::copy(&mut input, &mut output_writer).unwrap();
+    drop(output_writer);
+    std::fs::rename(
+        path.with_extra_extension("br.tmp"),
+        path.with_extra_extension("br"),
+    )
+    .unwrap();
+}
+
+trait AddExtensionExt {
+    fn with_extra_extension(&self, ext: &str) -> PathBuf;
+}
+
+impl AddExtensionExt for Path {
+    fn with_extra_extension(&self, ext: &str) -> PathBuf {
+        self.with_file_name(format!(
+            "{}.{}",
+            self.file_name().unwrap().to_str().unwrap(),
+            ext
+        ))
+    }
 }
