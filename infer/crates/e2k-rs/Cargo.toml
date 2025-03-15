@@ -1,0 +1,45 @@
+[package]
+name = "e2k"
+version = "0.2.3"
+edition = "2021"
+license = "MIT"
+include = ["!*", "/README.md", "/LICENSE", "/src/**/*.rs"]
+
+[[bench]]
+name = "benchmark"
+harness = false
+
+[features]
+default = ["embed_model", "compress_model"]
+
+getrandom_on_wasm32_unknown = ["dep:rand", "getrandom/wasm_js"]
+embed_model = []
+compress_model = ["embed_model", "dep:brotli-decompressor"]
+
+[dependencies]
+anyhow = "1.0.95"
+brotli-decompressor = { version = "4.0.2", optional = true }
+cfg-elif = "0.6.3"
+clap = { version = "4.5.29", features = ["derive"] }
+duplicate = "2.0.0"
+educe = "0.6.0"
+getrandom = { version = "0.3.1", optional = true }
+itertools = "0.14.0"
+ndarray = "0.16.1"
+ndarray-safetensors = "0.2.2"
+num-traits = "0.2.19"
+rand = { version = "0.9.0", optional = true }
+safetensors = "0.4.5"
+
+[target.'cfg(not(all(target_arch = "wasm32", target_os = "unknown")))'.dependencies]
+rand = "0.9.0"
+
+[dev-dependencies]
+criterion = "0.5.1"
+dialoguer = "0.11.0"
+
+[build-dependencies]
+brotli = "7.0.0"
+flate2 = "1.0.35"
+tar = "0.4.43"
+ureq = "3.0.5"
