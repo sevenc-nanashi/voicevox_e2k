@@ -4,9 +4,7 @@
 // pub const PAD_IDX: usize = 0;
 pub const SOS_IDX: usize = 1;
 pub const EOS_IDX: usize = 2;
-
-/// 入力として受け付けることのできる音素のリスト。
-pub const EN_PHONES: [&str; 74] = [
+pub const EN_PHONES: &[&str] = [
     "<pad>", "<sos>", "<eos>", "AA0", "AA1", "AA2", "AE0", "AE1", "AE2", "AH0", "AH1", "AH2",
     "AO0", "AO1", "AO2", "AW0", "AW1", "AW2", "AY0", "AY1", "AY2", "B", "CH", "D", "DH", "EH0",
     "EH1", "EH2", "ER0", "ER1", "ER2", "EY0", "EY1", "EY2", "F", "G", "HH", "IH0", "IH1", "IH2",
@@ -14,9 +12,7 @@ pub const EN_PHONES: [&str; 74] = [
     "P", "R", "S", "SH", "T", "TH", "UH0", "UH1", "UH2", "UW0", "UW1", "UW2", "V", "W", "Y", "Z",
     "ZH", " ", "'",
 ];
-
-/// 出力されうるカタカナのリスト。
-pub const KANAS: [&str; 88] = [
+pub const KANAS: &[&str] = [
     "<pad>", "<sos>", "<eos>", "ァ", "ア", "ィ", "イ", "ゥ", "ウ", "ェ", "エ", "ォ", "オ", "カ",
     "ガ", "キ", "ギ", "ク", "グ", "ケ", "ゲ", "コ", "ゴ", "サ", "ザ", "シ", "ジ", "ス", "ズ", "セ",
     "ゼ", "ソ", "ゾ", "タ", "ダ", "チ", "ヂ", "ッ", "ツ", "ヅ", "テ", "デ", "ト", "ド", "ナ", "ニ",
@@ -24,9 +20,7 @@ pub const KANAS: [&str; 88] = [
     "ボ", "ポ", "マ", "ミ", "ム", "メ", "モ", "ャ", "ヤ", "ュ", "ユ", "ョ", "ヨ", "ラ", "リ", "ル",
     "レ", "ロ", "ヮ", "ワ", "ヰ", "ヱ", "ヲ", "ン", "ヴ", "ー",
 ];
-
-/// 英単語に使用できる文字のリスト。
-pub const ASCII_ENTRIES: [&str; 31] = [
+pub const ASCII_ENTRIES: &[&str] = [
     "<pad>", "<sos>", "<eos>", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
     "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", " ", "'",
 ];
