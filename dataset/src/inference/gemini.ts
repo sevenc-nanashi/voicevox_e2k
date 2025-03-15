@@ -2,13 +2,18 @@ import {
   type GenerativeModel,
   GoogleGenerativeAI,
 } from "@google/generative-ai";
-import { InferenceProvider } from "./index.ts";
 import type { Config } from "../config.ts";
+import { InferenceProvider } from "./index.ts";
 
 export class Gemini extends InferenceProvider {
+  declare config: Config & { inference: { gemini: object } };
   genAI: GoogleGenerativeAI;
   model: GenerativeModel;
+
   constructor(config: Config) {
+    if (config.inference.gemini == null) {
+      throw new Error("Gemini config is missing");
+    }
     super(config);
 
     this.genAI = new GoogleGenerativeAI(config.inference.gemini.apiKey);

@@ -26,6 +26,7 @@ properties:
         type: string
         enum:
           - gemini
+          - openai
       concurrency:
         type: number
       gemini:
@@ -39,10 +40,23 @@ properties:
           - apiKey
           - modelName
         additionalProperties: false
+      openai:
+        type: object
+        properties:
+          apiBaseUrl:
+            type: string
+          apiKey:
+            type: string
+          modelName:
+            type: string
+        required:
+          - apiBaseUrl
+          - apiKey
+          - modelName
+        additionalProperties: false
     required:
       - provider
       - concurrency
-      - gemini
     additionalProperties: false
 required:
   - randomSeed

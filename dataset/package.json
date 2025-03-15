@@ -24,6 +24,7 @@
     "@core/asyncutil": "npm:@jsr/core__asyncutil@^1.2.0",
     "@google/generative-ai": "^0.24.0",
     "js-yaml": "^4.1.0",
+    "openai": "^4.87.3",
     "rand-seed": "^2.1.7",
     "zod": "^3.24.2"
   }
