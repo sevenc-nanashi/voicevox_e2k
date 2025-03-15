@@ -27,14 +27,14 @@ fn download_models() {
         ),
     ] {
         let raw_model = root.join(raw_file);
-        if !raw_model.exists() {
+        if !raw_model.try_exists().unwrap() {
             let tmp_raw_dest = root.join(format!("{}.tmp", raw_file));
             download_model(&tmp_raw_dest, url);
             std::fs::rename(&tmp_raw_dest, &raw_model).unwrap();
         }
 
         let compressed_model = root.join(compressed_file);
-        if !compressed_model.exists() {
+        if !compressed_model.try_exists().unwrap() {
             let temp_compressed_dest = root.join(format!("{}.tmp", compressed_file));
             let mut raw_model_file = std::fs::File::open(&raw_model).unwrap();
             let mut compressed_model_file = std::fs::File::create(&temp_compressed_dest).unwrap();
