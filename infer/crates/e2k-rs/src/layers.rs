@@ -9,7 +9,6 @@ pub(crate) fn matmul_3d<T>(a: &ndarray::Array3<T>, b: &ndarray::Array3<T>) -> nd
 where
     T: std::ops::Mul<Output = T>
         + std::ops::Add<Output = T>
-        + Default
         + num_traits::identities::Zero
         + Copy
         + std::ops::AddAssign,
