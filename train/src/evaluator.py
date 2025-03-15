@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from train import Model, MyDataset
 
 
-def tensor2str(t):
+def tensor2str(t: torch.Tensor):
     return " ".join([str(int(x)) for x in t])
 
 
