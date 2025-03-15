@@ -24,6 +24,7 @@ class Evaluator:
             for eng, kata in tqdm(self.dataset, desc="Evaluating"):
                 res = model.inference(eng)
                 pred_kana = tensor2str(res)
+                # TODO: 単語と読みを1:1対応にする
                 kana = (
                     [[tensor2str(kata)]]
                     if isinstance(kata, torch.Tensor)
