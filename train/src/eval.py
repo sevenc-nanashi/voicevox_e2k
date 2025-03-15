@@ -40,7 +40,7 @@ model.load_state_dict(torch.load(model_path, map_location=device))
 model.to(device)
 model.eval()
 
-dataset = MyDataset(config.eval_data, device)
+dataset = MyDataset(config.eval_data, device, max_words=None)
 dataset.set_return_full(True)  # bleu score test
 
 evaluator = Evaluator(dataset)

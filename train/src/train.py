@@ -89,7 +89,7 @@ class Model(nn.Module):
 
 
 class MyDataset(Dataset):
-    def __init__(self, path, device, max_words: int | None = None):
+    def __init__(self, path, device, max_words: int | None):
         """
         reads a json line file
         """
@@ -212,7 +212,7 @@ def train():
         torch.backends.cuda.matmul.allow_tf32 = True
 
     model = Model(config).to(device)
-    train_dataset = MyDataset(config.train_data, device)
+    train_dataset = MyDataset(config.train_data, device, max_words=None)
     eval_dataset = MyDataset(config.eval_data, device, max_words=config.eval_max_words)
     batch_size = 256 if use_cuda else 64
     print(f"Batch size: {batch_size}")

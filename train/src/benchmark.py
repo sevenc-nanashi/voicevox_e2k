@@ -9,8 +9,8 @@ from tqdm.auto import tqdm
 def main():
     p2k = P2K()
     c2k = C2K()
-    pds = MyDataset("vendor/katakana_dict.jsonl", p2k=True, device="cpu")
-    cds = MyDataset("vendor/katakana_dict.jsonl", p2k=False, device="cpu")
+    pds = MyDataset("vendor/katakana_dict.jsonl", device="cpu", max_words=None)
+    cds = MyDataset("vendor/katakana_dict.jsonl", device="cpu", max_words=None)
     # data preparation
     words = []
     phonemes = []
