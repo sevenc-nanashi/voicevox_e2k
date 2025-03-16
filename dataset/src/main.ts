@@ -21,6 +21,8 @@ async function main() {
     default:
       throw new ExhaustiveError(config.source.provider);
   }
+  console.log(`Source provider: ${config.source.provider}`);
+
   let inferenceProvider: InferenceProvider;
   switch (config.inference.provider) {
     case "gemini":
@@ -32,6 +34,7 @@ async function main() {
     default:
       throw new ExhaustiveError(config.inference.provider);
   }
+  console.log(`Inference provider: ${config.inference.provider}`);
 
   const random = new Random(config.randomSeed);
 
