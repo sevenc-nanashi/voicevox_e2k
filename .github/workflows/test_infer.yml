@@ -1,6 +1,7 @@
 name: Test Infer
 on:
   push:
+  pull_request:
     paths:
       - .github/workflows/test_infer.yml
       - infer
