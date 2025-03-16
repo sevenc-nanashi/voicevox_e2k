@@ -2,6 +2,12 @@ import { OpenAI as OpenAIClient } from "openai";
 import type { Config } from "../config.ts";
 import { InferenceProvider } from "./index.ts";
 
+type OpenRouterError = {
+  code: string;
+  message: string;
+  metadata: { headers: Record<string, string> };
+};
+
 export class OpenAI extends InferenceProvider {
   declare config: Config & { inference: { openai: object } };
   client: OpenAIClient;
@@ -33,6 +39,11 @@ export class OpenAI extends InferenceProvider {
 
       messages: [{ role: "user", content: prompt }],
     });
+    // @ts-expect-error: OpenRouter独自のエラー型。OpenAIのクライアントには型が無いので、ここで型を付ける。
+    const maybeError: OpenRouterError | undefined = completion.error;
+    if (maybeError != null) {
+      throw new Error(`${maybeError.code}: ${maybeError.message}`);
+    }
     const response = completion.choices[0].message.content;
     if (response == null) {
       throw new Error("No response");
