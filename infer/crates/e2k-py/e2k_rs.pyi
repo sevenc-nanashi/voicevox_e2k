@@ -7,7 +7,7 @@ MODEL: Final[bytes]
 class C2k:
     """英単語 -> カタカナの推論を行う。"""
 
-    def __init__(self, model: bytes, max_len: int = 32) -> None:
+    def __init__(self, model: bytes, *, max_len: int = 32) -> None:
         """
         新しいインスタンスを生成する。
 

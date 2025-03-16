@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyDict, PyList, PyType};
+use pyo3::types::{PyBytes, PyDict, PyList};
 
 fn extract_strategy(strategy: &str, kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<e2k::Strategy> {
     Ok(match strategy {
@@ -60,7 +60,7 @@ struct C2k {
 #[pymethods]
 impl C2k {
     #[new]
-    #[pyo3(signature = (model, max_len = 32))]
+    #[pyo3(signature = (model, *, max_len = 32))]
     fn new(model: &[u8], max_len: usize) -> Self {
         Self {
             inner: std::sync::RwLock::new(e2k::C2k::new(model, max_len)),
@@ -99,7 +99,7 @@ fn e2k_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     m.add("KANAS", kanas)?;
     m.add("ASCII_ENTRIES", ascii_entries)?;
-    m.add("MODEL", c2k_model)?;
+    m.add("MODEL", model)?;
 
     Ok(())
 }
