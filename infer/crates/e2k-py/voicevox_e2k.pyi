@@ -1,8 +1,11 @@
 from typing import Final, Literal, overload
 
 KANAS: Final[list[str]]
+"""c2kの入力に使える文字の一覧。"""
 ASCII_ENTRIES: Final[list[str]]
+"""c2kで出力される文字の一覧。"""
 MODEL: Final[bytes]
+"""c2kのモデルのバイナリデータ。"""
 
 class C2k:
     """英単語 -> カタカナの推論を行う。"""
