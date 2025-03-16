@@ -12,8 +12,5 @@ classifiers = [
 dynamic = ["version"]
 dependencies = []
 
-[tool.maturin]
-features = ["pyo3/extension-module"]
-
 [dependency-groups]
 dev = ["maturin>=1.8.2", "pytest>=8.3.5", "ruff>=0.11.0"]
