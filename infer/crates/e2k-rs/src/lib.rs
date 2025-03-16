@@ -14,10 +14,6 @@
 //! ```
 //!
 //! ## Features
-//! ### `embed_model`
-//! モデルを埋め込みます。
-//! このfeatureはデフォルトで有効です。
-//!
 //! ### `compress_model`
 //! brotliを使用してモデルを圧縮します。
 //! このfeatureはデフォルトで有効です。
@@ -34,5 +30,3 @@ mod layers;
 
 pub use constants::{ASCII_ENTRIES, KANAS};
 pub use inference::*;
-#[cfg(feature = "embed_model")]
-pub mod models;
