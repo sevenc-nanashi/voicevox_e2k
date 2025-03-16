@@ -2,6 +2,7 @@ name: Test Infer
 on:
   push:
     paths:
+      - ./.github/workflows/test_infer.yml
       - ./infer
 
 jobs:

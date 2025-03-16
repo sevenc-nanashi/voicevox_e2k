@@ -2,6 +2,7 @@ name: Test Dataset
 on:
   push:
     paths:
+      - ./.github/workflows/test_dataset.yml
       - ./dataset
 
 jobs:
