@@ -4,7 +4,11 @@ on:
   pull_request:
     paths:
       - .github/workflows/test_dataset.yml
-      - dataset
+      - dataset/**
+
+defaults:
+  run:
+    working-directory: dataset
 
 jobs:
   test:
@@ -24,9 +28,7 @@ jobs:
           node-version-file: dataset/.node-version
 
       - name: Install dependencies
-        working-directory: dataset
         run: pnpm install
 
       - name: Run lint
-        working-directory: dataset
         run: pnpm run lint

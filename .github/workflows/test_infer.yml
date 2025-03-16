@@ -4,7 +4,11 @@ on:
   pull_request:
     paths:
       - .github/workflows/test_infer.yml
-      - infer
+      - infer/**
+
+defaults:
+  run:
+    working-directory: infer
 
 jobs:
   test:
@@ -17,13 +21,11 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Run Rust lint
-        working-directory: infer
         run: |
           cargo clippy --all-targets --all-features -- -D warnings
           cargo fmt --all -- --check
 
       - name: Run Rust tests
-        working-directory: infer
         run: cargo test
 
       - name: Run Python lint
