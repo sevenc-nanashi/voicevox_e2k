@@ -1,2 +1,4 @@
 models/*
 !models/.gitkeep
+
+NOTICE.md
