@@ -89,8 +89,8 @@ impl C2k {
     }
 }
 
-#[pymodule(name = "e2k_rs")]
-fn e2k_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
+#[pymodule(name = "voicevox_e2k")]
+fn voicevox_e2k(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<C2k>()?;
 
     let kanas = PyList::new(m.py(), e2k::KANAS)?;

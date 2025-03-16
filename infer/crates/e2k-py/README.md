@@ -1,4 +1,4 @@
-# e2k-py
+# voicevox_e2k
 
 英単語から読みを推論するライブラリ。
 [e2k](https://github.com/VOICEVOX/e2k/tree/main/infer/crates/e2k-rs)のPythonバインディングです。
@@ -7,9 +7,9 @@
 
 ```py
 # 文字列をカタカナに変換する例
-import e2k_rs
+import voicevox_e2k
 
-c2k = e2k_rs.C2k(e2k_rs.models.MODEL)
+c2k = voicevox_e2k.C2k(voicevox_e2k.models.MODEL)
 
 word = "constants"
 print(c2k(word)) # => コンスタンツ
