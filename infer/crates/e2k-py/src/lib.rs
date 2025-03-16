@@ -93,13 +93,9 @@ impl C2k {
 fn voicevox_e2k(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<C2k>()?;
 
-    let kanas = PyList::new(m.py(), e2k::KANAS)?;
-    let ascii_entries = PyList::new(m.py(), e2k::ASCII_ENTRIES)?;
-    let model = PyBytes::new(m.py(), &e2k::models::MODEL);
-
-    m.add("KANAS", kanas)?;
-    m.add("ASCII_ENTRIES", ascii_entries)?;
-    m.add("MODEL", model)?;
+    m.add("KANAS", e2k::KANAS)?;
+    m.add("ASCII_ENTRIES", e2k::ASCII_ENTRIES)?;
+    m.add("MODEL", &*e2k::models::MODEL)?;
 
     Ok(())
 }
