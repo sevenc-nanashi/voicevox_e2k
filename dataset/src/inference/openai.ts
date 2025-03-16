@@ -5,7 +5,6 @@ import { InferenceProvider } from "./index.ts";
 type OpenRouterError = {
   code: string;
   message: string;
-  metadata: { headers: Record<string, string> };
 };
 
 export class OpenAI extends InferenceProvider {
