@@ -7,17 +7,13 @@
 //! ```rust
 //! // 文字列をカタカナに変換する例
 //! let src = "constants";
-//! let c2k = e2k::C2k::new(&e2k::models::MODEL, 32);
+//! let c2k = e2k::C2k::new(32);
 //! let dst = c2k.infer(src);
 //!
 //! dbg!(dst); // "コンスタンツ"
 //! ```
 //!
 //! ## Features
-//! ### `embed_model`
-//! モデルを埋め込みます。
-//! このfeatureはデフォルトで有効です。
-//!
 //! ### `compress_model`
 //! brotliを使用してモデルを圧縮します。
 //! このfeatureはデフォルトで有効です。
@@ -34,5 +30,3 @@ mod layers;
 
 pub use constants::{ASCII_ENTRIES, KANAS};
 pub use inference::*;
-#[cfg(feature = "embed_model")]
-pub mod models;

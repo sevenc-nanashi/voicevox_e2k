@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyDict, PyList};
+use pyo3::types::PyDict;
 
 fn extract_strategy(strategy: &str, kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<e2k::Strategy> {
     Ok(match strategy {
@@ -60,10 +60,10 @@ struct C2k {
 #[pymethods]
 impl C2k {
     #[new]
-    #[pyo3(signature = (model, *, max_len = 32))]
-    fn new(model: &[u8], max_len: usize) -> Self {
+    #[pyo3(signature = (max_len = 32))]
+    fn new(max_len: usize) -> Self {
         Self {
-            inner: std::sync::RwLock::new(e2k::C2k::new(model, max_len)),
+            inner: std::sync::RwLock::new(e2k::C2k::new(max_len)),
         }
     }
 
@@ -95,7 +95,6 @@ fn voicevox_e2k(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     m.add("KANAS", e2k::KANAS)?;
     m.add("ASCII_ENTRIES", e2k::ASCII_ENTRIES)?;
-    m.add("MODEL", &*e2k::models::MODEL)?;
 
     Ok(())
 }

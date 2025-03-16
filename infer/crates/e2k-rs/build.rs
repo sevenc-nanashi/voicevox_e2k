@@ -2,10 +2,7 @@ use std::path::{Path, PathBuf};
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-env-changed=CARGO_FEATURE_EMBED_MODEL");
-    if std::env::var("CARGO_FEATURE_EMBED_MODEL") == Ok("1".to_string()) {
-        download_models();
-    }
+    download_models();
 }
 
 fn download_models() {

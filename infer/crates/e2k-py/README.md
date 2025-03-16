@@ -9,7 +9,7 @@
 # 文字列をカタカナに変換する例
 import voicevox_e2k
 
-c2k = voicevox_e2k.C2k(voicevox_e2k.models.MODEL)
+c2k = voicevox_e2k.C2k()
 
 word = "constants"
 print(c2k(word)) # => コンスタンツ
