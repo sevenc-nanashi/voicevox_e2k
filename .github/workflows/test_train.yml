@@ -2,8 +2,8 @@ name: Test Train
 on:
   push:
     paths:
-      - ./.github/workflows/test_train.yml
-      - ./train
+      - .github/workflows/test_train.yml
+      - train
 
 jobs:
   test:
