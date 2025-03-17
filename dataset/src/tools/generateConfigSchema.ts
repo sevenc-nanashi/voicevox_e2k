@@ -14,9 +14,9 @@ async function main() {
   ].join("\n");
 
   if (isCheck) {
-    await check(path, content)
+    await check(path, content);
   } else {
-    await write(path, content)
+    await write(path, content);
   }
 }
 
