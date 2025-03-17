@@ -51,7 +51,7 @@ async function main() {
 
   console.log("2: Finding maximum batch size...");
   // ちょっと余裕を持たせる
-  const maxBatchSize = 448; // await findMaxBatchSize(inferenceProvider, words, random);
+  const maxBatchSize = await findMaxBatchSize(inferenceProvider, words, random);
   const batchSize = Math.floor(maxBatchSize * 0.9);
   console.log(`Batch size: ${batchSize}`);
 
