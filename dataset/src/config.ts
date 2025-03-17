@@ -9,6 +9,11 @@ export const configSchema = z.object({
   inference: z.object({
     provider: z.enum(["gemini", "openai"]),
     concurrency: z.number(),
+    rateLimit: z.object({
+      waitMs: z.number(),
+      maxRetries: z.number(),
+      throttleMs: z.number(),
+    }),
 
     gemini: z
       .object({
