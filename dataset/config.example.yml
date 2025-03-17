@@ -18,6 +18,16 @@ inference:
   # 並列実行数。レートリミットとの兼ね合いで調整してください。
   concurrency: 10
 
+  rateLimit:
+    # レートリミットに引っかかった場合のリトライ回数。
+    maxRetries: 10
+
+    # リトライ時の待ち時間。
+    waitMs: 60000
+
+    # 1回のリクエスト間の待ち時間。
+    throttleMs: 1000
+
   # Geminiの設定。
   gemini:
     # Google AI Studioから取得したAPIキー。

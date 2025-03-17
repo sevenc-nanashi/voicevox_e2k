@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import { Semaphore } from "@core/asyncutil/semaphore";
 import { load as loadYaml } from "js-yaml";
-import { configSchema } from "./config.ts";
+import { type Config, configSchema } from "./config.ts";
 import { Gemini } from "./inference/gemini.ts";
 import type { InferenceProvider } from "./inference/index.ts";
 import { OpenAI } from "./inference/openai.ts";
@@ -51,8 +51,8 @@ async function main() {
 
   console.log("2: Finding maximum batch size...");
   // ちょっと余裕を持たせる
-  const maxBatchSize = await findMaxBatchSize(inferenceProvider, words, random);
-  const batchSize = maxBatchSize * 0.9;
+  const maxBatchSize = 448; // await findMaxBatchSize(inferenceProvider, words, random);
+  const batchSize = Math.floor(maxBatchSize * 0.9);
   console.log(`Batch size: ${batchSize}`);
 
   console.log("3: Inferring pronunciations...");
@@ -62,6 +62,7 @@ async function main() {
     words,
     batchSize,
     random,
+    config.inference.rateLimit,
   );
 
   console.log("4: Cleaning up results...");
@@ -138,6 +139,7 @@ async function inferPronunciations(
   words: string[],
   batchSize: number,
   random: Random,
+  rateLimit: Config["inference"]["rateLimit"],
 ) {
   const semaphore = new Semaphore(concurrency);
   console.log(`Using ${concurrency} concurrency`);
@@ -148,6 +150,8 @@ async function inferPronunciations(
 
   const inferBatch = (words: string[]) =>
     semaphore.lock(async () => {
+      await new Promise((resolve) => setTimeout(resolve, rateLimit.throttleMs));
+
       const results = await inferenceProvider.infer(words);
 
       console.log(
@@ -162,13 +166,17 @@ async function inferPronunciations(
     const remainingWords = shuffledWords.filter(
       (word) => !(word in allResults),
     );
-    const promises: Promise<unknown>[] = [];
+    const promises: Promise<void>[] = [];
 
+    let numBatches = 0;
     while (remainingWords.length > 0) {
       const currentWords = remainingWords.splice(0, batchSize);
 
       promises.push(inferBatch(currentWords));
+      numBatches++;
     }
+
+    console.log(`Waiting for ${numBatches} batches...`);
 
     const results = await Promise.allSettled(promises);
 
@@ -179,17 +187,18 @@ async function inferPronunciations(
       const errors = results.flatMap((result) =>
         result.status === "rejected" ? [result.reason] : [],
       );
+      const error = new AggregateError(errors);
       if (errors.some((err) => !String(err).includes("429"))) {
-        const error = new AggregateError(errors);
         throw error;
       }
 
-      console.error("Sleeping for 1 minute...");
-      await new Promise((resolve) => setTimeout(resolve, 60000));
+      console.error(`Rate limited, waiting ${rateLimit.waitMs}ms...`);
+      console.error(error);
+      await new Promise((resolve) => setTimeout(resolve, rateLimit.waitMs));
     }
 
     numTries++;
-    if (numTries > 10) {
+    if (numTries > rateLimit.maxRetries) {
       throw new Error("Too many retries");
     }
   }
