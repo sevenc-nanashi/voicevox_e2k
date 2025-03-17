@@ -37,3 +37,6 @@ jobs:
 
       - name: Run typecheck
         run: pnpm run typecheck
+
+      - name: Check if schema is up-to-date
+        run: pnpm run tools:generateConfigSchema --check
