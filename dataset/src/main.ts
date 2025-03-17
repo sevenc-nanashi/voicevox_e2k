@@ -168,15 +168,12 @@ async function inferPronunciations(
     );
     const promises: Promise<void>[] = [];
 
-    let numBatches = 0;
     while (remainingWords.length > 0) {
       const currentWords = remainingWords.splice(0, batchSize);
 
       promises.push(inferBatch(currentWords));
-      numBatches++;
     }
-
-    console.log(`Waiting for ${numBatches} batches...`);
+    console.log(`Waiting for ${promises.length} batches...`);
 
     const results = await Promise.allSettled(promises);
 
