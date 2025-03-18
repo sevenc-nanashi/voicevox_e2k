@@ -19,7 +19,7 @@ export const bisectMax = async (
 };
 
 // 半角カタカナ、ひらがなを全角カタカナに変換し、長音っぽい文字を長音に変換する
-export const normalizeKana = (text: string) => {
+const normalizeKana = (text: string) => {
   return text
     .replace(/[\uFF65-\uFF9F]/g, (s) =>
       String.fromCharCode(s.charCodeAt(0) - 0x60),
@@ -28,6 +28,14 @@ export const normalizeKana = (text: string) => {
       String.fromCharCode(s.charCodeAt(0) + 0x60),
     )
     .replace(/[ｰ―－ー]/g, "ー");
+};
+
+export const normalizeOrNull = (pronunciation: string) => {
+  const normalized = normalizeKana(pronunciation.trim());
+  if (!normalized.match(/^[\p{Script=Katakana}ー]+$/u)) {
+    return undefined;
+  }
+  return normalized;
 };
 
 export class ExhaustiveError extends Error {

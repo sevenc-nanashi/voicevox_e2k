@@ -8,7 +8,7 @@ import { OpenAI } from "./inference/openai.ts";
 import { Random } from "./random.ts";
 import { CmuDict } from "./source/cmudict.ts";
 import type { SourceProvider } from "./source/index.ts";
-import { ExhaustiveError, bisectMax, normalizeKana } from "./utils.ts";
+import { ExhaustiveError, bisectMax, normalizeOrNull } from "./utils.ts";
 
 async function main() {
   const config = await loadConfig();
@@ -39,11 +39,11 @@ async function main() {
   const random = new Random(config.randomSeed);
 
   console.log("1: Loading words...");
-  const words = await loadWords(
+  const words = await loadWords({
     sourceProvider,
-    config.source.maxNumWords,
+    maxNumWords: config.source.maxNumWords,
     random,
-  );
+  });
   if (words.length <= 10) {
     console.error(`Too few words: ${words.length}`);
     return;
@@ -51,29 +51,30 @@ async function main() {
 
   console.log("2: Finding maximum batch size...");
   // ちょっと余裕を持たせる
-  const maxBatchSize = await findMaxBatchSize(inferenceProvider, words, random);
+  const maxBatchSize = await findMaxBatchSize({
+    inferenceProvider,
+    words,
+    random,
+  });
   const batchSize = Math.floor(maxBatchSize * 0.9);
   console.log(`Batch size: ${batchSize}`);
 
   console.log("3: Inferring pronunciations...");
-  const allResults = await inferPronunciations(
+  const allResults = await inferPronunciations({
     inferenceProvider,
-    config.inference.concurrency,
+    concurrency: config.inference.concurrency,
     words,
     batchSize,
     random,
-    config.inference.rateLimit,
-  );
+    rateLimit: config.inference.rateLimit,
+  });
 
-  console.log("4: Cleaning up results...");
-  const cleanedResults = cleanUpResults(allResults);
-
-  console.log("5: Writing results...");
+  console.log("4: Writing results...");
   const path = `${import.meta.dirname}/../../train/vendor/data.jsonl`;
-  await writeResults(path, cleanedResults);
+  await writeResults({ path, results: allResults });
 
   console.log(
-    `${Object.keys(cleanedResults).length} pronunciations written to ${path}`,
+    `${Object.keys(allResults).length} pronunciations written to ${path}`,
   );
 }
 
@@ -90,11 +91,15 @@ async function loadConfig() {
   );
 }
 
-async function loadWords(
-  sourceProvider: SourceProvider,
-  maxNumWords: number | "all",
-  random: Random,
-) {
+async function loadWords({
+  sourceProvider,
+  maxNumWords,
+  random,
+}: {
+  sourceProvider: SourceProvider;
+  maxNumWords: number | "all";
+  random: Random;
+}) {
   let words = await sourceProvider.getWords();
   console.log(`Loaded ${words.length} words`);
   if (maxNumWords !== "all") {
@@ -105,11 +110,15 @@ async function loadWords(
   return words;
 }
 
-async function findMaxBatchSize(
-  inferenceProvider: InferenceProvider,
-  words: string[],
-  random: Random,
-) {
+async function findMaxBatchSize({
+  inferenceProvider,
+  words,
+  random,
+}: {
+  inferenceProvider: InferenceProvider;
+  words: string[];
+  random: Random;
+}) {
   const maxBatchSize = await bisectMax(
     1,
     Math.min(words.length, 1000),
@@ -133,14 +142,21 @@ async function findMaxBatchSize(
   return maxBatchSize;
 }
 
-async function inferPronunciations(
-  inferenceProvider: InferenceProvider,
-  concurrency: number,
-  words: string[],
-  batchSize: number,
-  random: Random,
-  rateLimit: Config["inference"]["rateLimit"],
-) {
+async function inferPronunciations({
+  inferenceProvider,
+  concurrency,
+  words,
+  batchSize,
+  random,
+  rateLimit,
+}: {
+  inferenceProvider: InferenceProvider;
+  concurrency: number;
+  words: string[];
+  batchSize: number;
+  random: Random;
+  rateLimit: Config["inference"]["rateLimit"];
+}) {
   const semaphore = new Semaphore(concurrency);
   console.log(`Using ${concurrency} concurrency`);
 
@@ -154,11 +170,24 @@ async function inferPronunciations(
 
       const results = await inferenceProvider.infer(words);
 
+      const validResults: Record<string, string> = {};
+      for (const [word, pronunciation] of Object.entries(results)) {
+        const normalized = normalizeOrNull(pronunciation);
+        if (normalized === undefined) {
+          console.error(`Invalid pronunciation: ${word} -> ${pronunciation}`);
+          continue;
+        }
+        validResults[word] = normalized;
+      }
       console.log(
-        `Inferred ${Object.keys(results).length} pronunciations, ${shuffledWords.length - Object.keys(allResults).length} remaining`,
+        `Inferred ${Object.keys(results).length} pronunciations, ${
+          Object.keys(validResults).length
+        } valid, ${words.length - Object.keys(validResults).length} invalid, ${
+          shuffledWords.length - Object.keys(allResults).length
+        } remaining`,
       );
 
-      Object.assign(allResults, results);
+      Object.assign(allResults, validResults);
     });
 
   let numTries = 0;
@@ -203,21 +232,13 @@ async function inferPronunciations(
   return allResults;
 }
 
-function cleanUpResults(results: Record<string, string>) {
-  const cleanedResults: Record<string, string> = {};
-  for (const [word, pronunciation] of Object.entries(results)) {
-    const normalized = normalizeKana(pronunciation);
-    if (!normalized.match(/^[\p{Script=Katakana}ー]+$/u)) {
-      console.error(`Invalid pronunciation for ${word}: ${pronunciation}`);
-    } else {
-      cleanedResults[word] = normalized;
-    }
-  }
-
-  return cleanedResults;
-}
-
-async function writeResults(path: string, results: Record<string, string>) {
+async function writeResults({
+  path,
+  results,
+}: {
+  path: string;
+  results: Record<string, string>;
+}) {
   await fs.writeFile(
     path,
     Object.entries(results)
