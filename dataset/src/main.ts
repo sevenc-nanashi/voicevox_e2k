@@ -9,6 +9,7 @@ import { Random } from "./random.ts";
 import { CmuDict } from "./source/cmudict.ts";
 import type { SourceProvider } from "./source/index.ts";
 import { ExhaustiveError, bisectMax, filterPronunciations } from "./utils.ts";
+import {sleep} from "openai/core.mjs";
 
 async function main() {
   const config = await loadConfig();
@@ -151,9 +152,7 @@ async function inferPronunciations(args: {
 
   const inferBatch = (words: string[]) =>
     semaphore.lock(async () => {
-      await new Promise((resolve) =>
-        setTimeout(resolve, args.rateLimit.throttleMs),
-      );
+      await sleep(args.rateLimit.throttleMs);
 
       const results = await args.inferenceProvider.infer(words);
 
@@ -199,9 +198,7 @@ async function inferPronunciations(args: {
 
       console.error(`Rate limited, waiting ${args.rateLimit.waitMs}ms...`);
       console.error(error);
-      await new Promise((resolve) =>
-        setTimeout(resolve, args.rateLimit.waitMs),
-      );
+      await sleep(args.rateLimit.waitMs);
     }
 
     numTries++;

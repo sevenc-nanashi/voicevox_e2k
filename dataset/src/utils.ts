@@ -53,6 +53,9 @@ export const filterPronunciations = (
   return filtered;
 };
 
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 export class ExhaustiveError extends Error {
   constructor(value: never, message?: string) {
     super(message ?? `Unexpected value: ${JSON.stringify(value, null, 2)}`);
