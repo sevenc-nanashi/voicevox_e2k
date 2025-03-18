@@ -121,7 +121,9 @@ async function findMaxBatchSize(params: {
     Math.min(params.words.length, 1000),
     async (batchSize) => {
       console.log(`Trying batch size ${batchSize}...`);
-      const currentWords = params.random.shuffle(params.words).slice(0, batchSize);
+      const currentWords = params.random
+        .shuffle(params.words)
+        .slice(0, batchSize);
       const results = await params.inferenceProvider
         .infer(currentWords)
         .catch((err) => {
