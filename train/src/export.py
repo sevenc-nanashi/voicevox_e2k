@@ -7,24 +7,25 @@ from safetensors.numpy import save as save_safetensors
 import argparse
 import brotli
 import pathlib
+from pathlib import Path
 import yaml
 from train import Model
 from config import Config
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--model", type=str, required=True)
-parser.add_argument("--output", type=str, required=True)
 parser.add_argument("--fp32", action="store_true")
-parser.add_argument("--config", type=str, required=False)
+parser.add_argument("--model", type=Path, required=True)
+parser.add_argument("--output", type=Path, required=True)
+parser.add_argument("--config", type=Path, required=False)
 
 args = parser.parse_args()
 
-config = (
-    pathlib.Path(args.config)
-    if args.config
-    else pathlib.Path(args.model).parent / "config.yml"
-)
+if args.config is None:
+    config = args.model.parent / "config.yml"
+else:
+    config = args.config
+
 config = Config.from_dict(yaml.safe_load(config.read_text()))
 model = Model(config)
 model.load_state_dict(torch.load(args.model))
