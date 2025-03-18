@@ -171,7 +171,9 @@ async function inferPronunciations(
     while (remainingWords.length > 0) {
       const currentWords = remainingWords.splice(0, batchSize);
 
-      promises.push(inferBatch(currentWords));
+      promises.push(
+        inferBatch(currentWords).catch((err) => console.error(err)),
+      );
     }
     console.log(`Waiting for ${promises.length} batches...`);
 
@@ -184,13 +186,12 @@ async function inferPronunciations(
       const errors = results.flatMap((result) =>
         result.status === "rejected" ? [result.reason] : [],
       );
-      const error = new AggregateError(errors);
       if (errors.some((err) => !String(err).includes("429"))) {
+        const error = new AggregateError(errors);
         throw error;
       }
 
       console.error(`Rate limited, waiting ${rateLimit.waitMs}ms...`);
-      console.error(error);
       await new Promise((resolve) => setTimeout(resolve, rateLimit.waitMs));
     }
 
