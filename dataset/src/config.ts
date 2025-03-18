@@ -15,6 +15,18 @@ export const configSchema = z.object({
       throttleMs: z.number(),
     }),
 
+    batch: z.union([
+      z.object({
+        type: z.literal("fixed"),
+        batchSize: z.number(),
+      }),
+      z.object({
+        type: z.literal("bisect"),
+        maxBatchSize: z.number(),
+        ratio: z.number(),
+      }),
+    ]),
+
     gemini: z
       .object({
         apiKey: z.string(),
