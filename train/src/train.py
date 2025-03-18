@@ -290,8 +290,8 @@ def train():
             os.path.join(output_dir, f"model-best-e{epoch}.pth"),
         )
         if len(scores) > config.num_best_models_to_keep:
-            epoch, _ = scores.pop()
-            path = os.path.join(output_dir, f"model-best-e{epoch}.pth")
+            removed_epoch, _ = scores.pop()
+            path = os.path.join(output_dir, f"model-best-e{removed_epoch}.pth")
             os.remove(path)
 
         if epoch - config.num_last_models_to_keep > 0:
