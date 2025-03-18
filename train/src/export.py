@@ -3,9 +3,8 @@ Exports the torch weights
 """
 
 import torch
-from safetensors.numpy import save as save_safetensors
+from safetensors.numpy import save_file as save_safetensors
 import argparse
-import brotli
 from pathlib import Path
 import yaml
 from train import Model
@@ -45,8 +44,5 @@ output = (
     if args.output.endswith(".safetensors")
     else f"{args.output}.safetensors"
 )
-safetensors = save_safetensors(weights)
-with open(output, "wb") as f:
-    f.write(safetensors)
-with open(output + ".br", "wb") as f:
-    f.write(brotli.compress(safetensors))
+
+save_safetensors(weights, output)
