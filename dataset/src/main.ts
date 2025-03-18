@@ -91,41 +91,33 @@ async function loadConfig() {
   );
 }
 
-async function loadWords({
-  sourceProvider,
-  maxNumWords,
-  random,
-}: {
+async function loadWords(args: {
   sourceProvider: SourceProvider;
   maxNumWords: number | "all";
   random: Random;
 }) {
-  let words = await sourceProvider.getWords();
+  let words = await args.sourceProvider.getWords();
   console.log(`Loaded ${words.length} words`);
-  if (maxNumWords !== "all") {
-    console.log(`Shuffling and limiting to ${maxNumWords} words...`);
-    words = random.shuffle(words).slice(0, maxNumWords);
+  if (args.maxNumWords !== "all") {
+    console.log(`Shuffling and limiting to ${args.maxNumWords} words...`);
+    words = args.random.shuffle(words).slice(0, args.maxNumWords);
   }
 
   return words;
 }
 
-async function findMaxBatchSize({
-  inferenceProvider,
-  words,
-  random,
-}: {
+async function findMaxBatchSize(args: {
   inferenceProvider: InferenceProvider;
   words: string[];
   random: Random;
 }) {
   const maxBatchSize = await bisectMax(
     1,
-    Math.min(words.length, 1000),
+    Math.min(args.words.length, 1000),
     async (batchSize) => {
       console.log(`Trying batch size ${batchSize}...`);
-      const currentWords = random.shuffle(words).slice(0, batchSize);
-      const results = await inferenceProvider
+      const currentWords = args.random.shuffle(args.words).slice(0, batchSize);
+      const results = await args.inferenceProvider
         .infer(currentWords)
         .catch((err) => {
           console.error(err);
@@ -142,14 +134,7 @@ async function findMaxBatchSize({
   return maxBatchSize;
 }
 
-async function inferPronunciations({
-  inferenceProvider,
-  concurrency,
-  words,
-  batchSize,
-  random,
-  rateLimit,
-}: {
+async function inferPronunciations(args: {
   inferenceProvider: InferenceProvider;
   concurrency: number;
   words: string[];
@@ -157,23 +142,23 @@ async function inferPronunciations({
   random: Random;
   rateLimit: Config["inference"]["rateLimit"];
 }) {
-  const semaphore = new Semaphore(concurrency);
-  console.log(`Using ${concurrency} concurrency`);
+  const semaphore = new Semaphore(args.concurrency);
+  console.log(`Using ${args.concurrency} concurrency`);
 
   const allResults: Record<string, string> = {};
 
-  const shuffledWords = random.shuffle(words);
+  const shuffledWords = args.random.shuffle(args.words);
 
   const inferBatch = (words: string[]) =>
     semaphore.lock(async () => {
-      await new Promise((resolve) => setTimeout(resolve, rateLimit.throttleMs));
+      await new Promise((resolve) => setTimeout(resolve, args.rateLimit.throttleMs));
 
-      const results = await inferenceProvider.infer(words);
+      const results = await args.inferenceProvider.infer(words);
 
       const validResults: Record<string, string> = {};
       for (const [word, pronunciation] of Object.entries(results)) {
         const normalized = normalizeOrNull(pronunciation);
-        if (normalized === undefined) {
+        if (normalized == null) {
           console.error(`Invalid pronunciation: ${word} -> ${pronunciation}`);
           continue;
         }
@@ -191,14 +176,14 @@ async function inferPronunciations({
     });
 
   let numTries = 0;
-  while (Object.keys(allResults).length < words.length) {
+  while (Object.keys(allResults).length < args.words.length) {
     const remainingWords = shuffledWords.filter(
       (word) => !(word in allResults),
     );
     const promises: Promise<void>[] = [];
 
     while (remainingWords.length > 0) {
-      const currentWords = remainingWords.splice(0, batchSize);
+      const currentWords = remainingWords.splice(0, args.batchSize);
 
       promises.push(inferBatch(currentWords));
     }
@@ -218,13 +203,13 @@ async function inferPronunciations({
         throw error;
       }
 
-      console.error(`Rate limited, waiting ${rateLimit.waitMs}ms...`);
+      console.error(`Rate limited, waiting ${args.rateLimit.waitMs}ms...`);
       console.error(error);
-      await new Promise((resolve) => setTimeout(resolve, rateLimit.waitMs));
+      await new Promise((resolve) => setTimeout(resolve, args.rateLimit.waitMs));
     }
 
     numTries++;
-    if (numTries > rateLimit.maxRetries) {
+    if (numTries > args.rateLimit.maxRetries) {
       throw new Error("Too many retries");
     }
   }
@@ -232,16 +217,13 @@ async function inferPronunciations({
   return allResults;
 }
 
-async function writeResults({
-  path,
-  results,
-}: {
+async function writeResults(args: {
   path: string;
   results: Record<string, string>;
 }) {
   await fs.writeFile(
-    path,
-    Object.entries(results)
+    args.path,
+    Object.entries(args.results)
       .map(([word, pronunciation]) =>
         JSON.stringify({
           word,
