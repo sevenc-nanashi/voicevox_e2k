@@ -279,10 +279,10 @@ def train():
         writer.add_scalar("BLEU", bleu, epoch)
         print(f"Epoch {epoch} BLEU: {bleu}")
 
+        scheduler.step()
+
         save_best_models(epoch, model, output_dir, config, best_scores, bleu)
         save_last_models(epoch, model, output_dir, config)
-
-        scheduler.step()
 
 
 def save_best_models(
