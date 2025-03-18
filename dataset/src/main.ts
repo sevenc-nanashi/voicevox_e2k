@@ -8,8 +8,12 @@ import { OpenAI } from "./inference/openai.ts";
 import { Random } from "./random.ts";
 import { CmuDict } from "./source/cmudict.ts";
 import type { SourceProvider } from "./source/index.ts";
-import { ExhaustiveError, bisectMax, filterPronunciations } from "./utils.ts";
-import {sleep} from "openai/core.mjs";
+import {
+  ExhaustiveError,
+  bisectMax,
+  filterPronunciations,
+  sleep,
+} from "./utils.ts";
 
 async function main() {
   const config = await loadConfig();
