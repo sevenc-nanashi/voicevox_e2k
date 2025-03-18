@@ -5,13 +5,14 @@ from datetime import datetime
 from functools import partial
 import json
 import os
+from pathlib import Path
 import random
 import shutil
 import subprocess
 
 from g2p_en import G2p
 import torch
-from torch import nn
+from torch import Tensor, nn
 from torch.nn.utils.rnn import pad_sequence
 from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.data import DataLoader, Dataset
@@ -217,23 +218,26 @@ def train():
     batch_size = 256 if use_cuda else 64
     print(f"Batch size: {batch_size}")
 
-    output_dir = args.output or os.path.join(
-        "outputs", datetime.now().strftime(f"%Y_%m_%d_%H_%M_%S_{config_name}")
+    output_dir = Path(
+        args.output
+        or os.path.join(
+            "outputs", datetime.now().strftime(f"%Y_%m_%d_%H_%M_%S_{config_name}")
+        )
     )
 
     print(f"Output dir: {output_dir}")
-    os.makedirs(output_dir, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     best_scores = []
 
     shutil.copyfile(
         args.config,
-        os.path.join(output_dir, "config.yml"),
+        output_dir / "config.yml",
     )
     git_sha = (
         subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8")
     )
-    with open(os.path.join(output_dir, "train_info.yml"), "w") as file:
+    with open(output_dir / "train_info.yml", "w") as file:
         yaml.dump(
             {
                 "git_sha": git_sha,
@@ -277,34 +281,50 @@ def train():
         writer.add_scalar("BLEU", bleu, epoch)
         print(f"Epoch {epoch} BLEU: {bleu}")
 
+        save_best_models(epoch, model, output_dir, config, best_scores, bleu)
+        save_last_models(epoch, model, output_dir, config)
+
         scheduler.step()
+
+
+def save_best_models(
+    current_epoch: int,
+    model: Model,
+    output_dir: Path,
+    config: Config,
+    best_scores: list,
+    bleu: Tensor,
+):
+    best_scores.append((current_epoch, bleu))
+    best_scores.sort(key=lambda x: x[1], reverse=True)
+
+    removed_epoch = None
+    if len(best_scores) > config.num_best_models_to_keep:
+        removed_epoch, _ = best_scores.pop()
+
+    if removed_epoch != current_epoch:
         torch.save(
             model.state_dict(),
-            os.path.join(output_dir, f"model-e{epoch}.pth"),
+            os.path.join(output_dir, f"model-best-e{current_epoch}.pth"),
         )
+    elif removed_epoch is not None:
+        path = os.path.join(output_dir, f"model-best-e{removed_epoch}.pth")
+        os.remove(path)
 
-        best_scores.append((epoch, bleu))
-        best_scores.sort(key=lambda x: x[1], reverse=True)
 
-        removed_epoch = None
-        if len(best_scores) > config.num_best_models_to_keep:
-            removed_epoch, _ = best_scores.pop()
-
-        if removed_epoch != epoch:
-            torch.save(
-                model.state_dict(),
-                os.path.join(output_dir, f"model-best-e{epoch}.pth"),
-            )
-        elif removed_epoch is not None:
-            path = os.path.join(output_dir, f"model-best-e{removed_epoch}.pth")
-            os.remove(path)
-
-        if epoch - config.num_last_models_to_keep > 0:
-            old = epoch - config.num_last_models_to_keep
-            old_path = os.path.join(output_dir, f"model-e{old}.pth")
-            if os.path.exists(old_path):
-                print(f"Removing {old_path}")
-                os.remove(old_path)
+def save_last_models(
+    current_epoch: int, model: Model, output_dir: Path, config: Config
+):
+    torch.save(
+        model.state_dict(),
+        os.path.join(output_dir, f"model-e{current_epoch}.pth"),
+    )
+    if current_epoch - config.num_last_models_to_keep > 0:
+        old = current_epoch - config.num_last_models_to_keep
+        old_path = os.path.join(output_dir, f"model-e{old}.pth")
+        if os.path.exists(old_path):
+            print(f"Removing {old_path}")
+            os.remove(old_path)
 
 
 if __name__ == "__main__":
