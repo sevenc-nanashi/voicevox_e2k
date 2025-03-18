@@ -33,7 +33,7 @@ const normalizeKana = (text: string) => {
 export const normalizeOrNull = (pronunciation: string) => {
   const normalized = normalizeKana(pronunciation.trim());
   if (!normalized.match(/^[\p{Script=Katakana}ー]+$/u)) {
-    return undefined;
+    return null;
   }
   return normalized;
 };
