@@ -54,6 +54,7 @@ async function main() {
     return;
   }
 
+  console.log("2: Determining batch size...");
   const batchSize = await determineBatchSize({
     batchConfig: config.inference.batch,
     inferenceProvider,
@@ -94,12 +95,12 @@ async function determineBatchSize(params: {
   let batchSize: number;
   switch (params.batchConfig.type) {
     case "fixed": {
-      console.log("2: Using fixed batch size...");
+      console.log("Using fixed batch size");
       batchSize = params.batchConfig.batchSize;
       break;
     }
     case "bisect": {
-      console.log("2: Finding maximum batch size...");
+      console.log("Finding optimal batch size by bisection...");
       // ちょっと余裕を持たせる
       const maxBatchSize = await findMaxBatchSize({
         inferenceProvider: params.inferenceProvider,
