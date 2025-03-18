@@ -19,7 +19,7 @@ export const bisectMax = async (
 };
 
 // 半角カタカナ、ひらがなを全角カタカナに変換し、長音っぽい文字を長音に変換する
-export const normalizeKana = (text: string) => {
+const normalizeKana = (text: string) => {
   return text
     .replace(/[\uFF65-\uFF9F]/g, (s) =>
       String.fromCharCode(s.charCodeAt(0) - 0x60),
@@ -29,6 +29,32 @@ export const normalizeKana = (text: string) => {
     )
     .replace(/[ｰ―－ー]/g, "ー");
 };
+
+const normalizeOrNull = (pronunciation: string) => {
+  const normalized = normalizeKana(pronunciation.trim());
+  if (!normalized.match(/^[\p{Script=Katakana}ー]+$/u)) {
+    return null;
+  }
+  return normalized;
+};
+
+export const filterPronunciations = (
+  pronunciations: Record<string, string>,
+) => {
+  const filtered: Record<string, string> = {};
+  for (const [word, pronunciation] of Object.entries(pronunciations)) {
+    const normalized = normalizeOrNull(pronunciation);
+    if (normalized == null) {
+      console.error(`Invalid pronunciation: ${word} -> ${pronunciation}`);
+      continue;
+    }
+    filtered[word] = normalized;
+  }
+  return filtered;
+};
+
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 export class ExhaustiveError extends Error {
   constructor(value: never, message?: string) {
