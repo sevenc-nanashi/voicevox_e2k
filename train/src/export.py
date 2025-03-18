@@ -6,7 +6,6 @@ import torch
 from safetensors.numpy import save as save_safetensors
 import argparse
 import brotli
-import pathlib
 from pathlib import Path
 import yaml
 from train import Model
