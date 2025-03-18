@@ -224,7 +224,7 @@ def train():
     print(f"Output dir: {output_dir}")
     os.makedirs(output_dir, exist_ok=True)
 
-    scores = []
+    best_scores = []
 
     shutil.copyfile(
         args.config,
@@ -283,12 +283,12 @@ def train():
             os.path.join(output_dir, f"model-e{epoch}.pth"),
         )
 
-        scores.append((epoch, bleu))
-        scores.sort(key=lambda x: x[1], reverse=True)
+        best_scores.append((epoch, bleu))
+        best_scores.sort(key=lambda x: x[1], reverse=True)
 
         removed_epoch = None
-        if len(scores) > config.num_best_models_to_keep:
-            removed_epoch, _ = scores.pop()
+        if len(best_scores) > config.num_best_models_to_keep:
+            removed_epoch, _ = best_scores.pop()
 
         if removed_epoch != epoch:
             torch.save(
