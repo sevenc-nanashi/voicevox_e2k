@@ -96,33 +96,33 @@ async function loadConfig() {
   );
 }
 
-async function loadWords(args: {
+async function loadWords(params: {
   sourceProvider: SourceProvider;
   maxNumWords: number | "all";
   random: Random;
 }) {
-  let words = await args.sourceProvider.getWords();
+  let words = await params.sourceProvider.getWords();
   console.log(`Loaded ${words.length} words`);
-  if (args.maxNumWords !== "all") {
-    console.log(`Shuffling and limiting to ${args.maxNumWords} words...`);
-    words = args.random.shuffle(words).slice(0, args.maxNumWords);
+  if (params.maxNumWords !== "all") {
+    console.log(`Shuffling and limiting to ${params.maxNumWords} words...`);
+    words = params.random.shuffle(words).slice(0, params.maxNumWords);
   }
 
   return words;
 }
 
-async function findMaxBatchSize(args: {
+async function findMaxBatchSize(params: {
   inferenceProvider: InferenceProvider;
   words: string[];
   random: Random;
 }) {
   const maxBatchSize = await bisectMax(
     1,
-    Math.min(args.words.length, 1000),
+    Math.min(params.words.length, 1000),
     async (batchSize) => {
       console.log(`Trying batch size ${batchSize}...`);
-      const currentWords = args.random.shuffle(args.words).slice(0, batchSize);
-      const results = await args.inferenceProvider
+      const currentWords = params.random.shuffle(params.words).slice(0, batchSize);
+      const results = await params.inferenceProvider
         .infer(currentWords)
         .catch((err) => {
           console.error(err);
@@ -139,7 +139,7 @@ async function findMaxBatchSize(args: {
   return maxBatchSize;
 }
 
-async function inferPronunciations(args: {
+async function inferPronunciations(params: {
   inferenceProvider: InferenceProvider;
   concurrency: number;
   words: string[];
@@ -147,18 +147,18 @@ async function inferPronunciations(args: {
   random: Random;
   rateLimit: Config["inference"]["rateLimit"];
 }) {
-  const semaphore = new Semaphore(args.concurrency);
-  console.log(`Using ${args.concurrency} concurrency`);
+  const semaphore = new Semaphore(params.concurrency);
+  console.log(`Using ${params.concurrency} concurrency`);
 
   const allResults: Record<string, string> = {};
 
-  const shuffledWords = args.random.shuffle(args.words);
+  const shuffledWords = params.random.shuffle(params.words);
 
   const inferBatch = (words: string[]) =>
     semaphore.lock(async () => {
-      await sleep(args.rateLimit.throttleMs);
+      await sleep(params.rateLimit.throttleMs);
 
-      const results = await args.inferenceProvider.infer(words);
+      const results = await params.inferenceProvider.infer(words);
 
       const validResults = filterPronunciations(results);
       console.log(
@@ -173,14 +173,14 @@ async function inferPronunciations(args: {
     });
 
   let numTries = 0;
-  while (Object.keys(allResults).length < args.words.length) {
+  while (Object.keys(allResults).length < params.words.length) {
     const remainingWords = shuffledWords.filter(
       (word) => !(word in allResults),
     );
     const promises: Promise<void>[] = [];
 
     while (remainingWords.length > 0) {
-      const currentWords = remainingWords.splice(0, args.batchSize);
+      const currentWords = remainingWords.splice(0, params.batchSize);
 
       promises.push(inferBatch(currentWords));
     }
@@ -200,13 +200,13 @@ async function inferPronunciations(args: {
         throw error;
       }
 
-      console.error(`Rate limited, waiting ${args.rateLimit.waitMs}ms...`);
+      console.error(`Rate limited, waiting ${params.rateLimit.waitMs}ms...`);
       console.error(error);
-      await sleep(args.rateLimit.waitMs);
+      await sleep(params.rateLimit.waitMs);
     }
 
     numTries++;
-    if (numTries > args.rateLimit.maxRetries) {
+    if (numTries > params.rateLimit.maxRetries) {
       throw new Error("Too many retries");
     }
   }
@@ -214,13 +214,13 @@ async function inferPronunciations(args: {
   return allResults;
 }
 
-async function writeResults(args: {
+async function writeResults(params: {
   path: string;
   results: Record<string, string>;
 }) {
   await fs.writeFile(
-    args.path,
-    Object.entries(args.results)
+    params.path,
+    Object.entries(params.results)
       .map(([word, pronunciation]) =>
         JSON.stringify({
           word,
