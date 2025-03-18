@@ -172,7 +172,10 @@ async function inferPronunciations(
       const currentWords = remainingWords.splice(0, batchSize);
 
       promises.push(
-        inferBatch(currentWords).catch((err) => console.error(err)),
+        inferBatch(currentWords).catch((err) => {
+          console.error(err);
+          throw err;
+        }),
       );
     }
     console.log(`Waiting for ${promises.length} batches...`);
