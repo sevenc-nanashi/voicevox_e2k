@@ -38,7 +38,9 @@ const normalizeOrNull = (pronunciation: string) => {
   return normalized;
 };
 
-export const filterPronunciations = (pronunciations: Record<string, string>) => {
+export const filterPronunciations = (
+  pronunciations: Record<string, string>,
+) => {
   const filtered: Record<string, string> = {};
   for (const [word, pronunciation] of Object.entries(pronunciations)) {
     const normalized = normalizeOrNull(pronunciation);
