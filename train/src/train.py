@@ -191,13 +191,12 @@ def infer(src, model):
 
 def train():
     parser = argparse.ArgumentParser()
-    parser.add_argument("config", type=str)
-    parser.add_argument("output", type=str, nargs="?")
+    parser.add_argument("config", type=Path)
+    parser.add_argument("output", type=Path, nargs="?")
     args = parser.parse_args()
 
-    config = Config.from_dict(yaml.safe_load(open(args.config, "r")))
+    config = Config.from_dict(yaml.safe_load(args.config.read_text()))
     print(f"Using config: {config}")
-    config_name = os.path.basename(args.config).split(".")[0]
 
     torch.manual_seed(config.seed)
 
@@ -218,10 +217,9 @@ def train():
     batch_size = 256 if use_cuda else 64
     print(f"Batch size: {batch_size}")
 
-    output_dir = Path(
-        args.output
-        or os.path.join(
-            "outputs", datetime.now().strftime(f"%Y_%m_%d_%H_%M_%S_{config_name}")
+    output_dir = args.output or Path(
+        os.path.join(
+            "outputs", datetime.now().strftime(f"%Y_%m_%d_%H_%M_%S_{args.config.stem}")
         )
     )
 
@@ -305,10 +303,10 @@ def save_best_models(
     if removed_epoch != current_epoch:
         torch.save(
             model.state_dict(),
-            os.path.join(output_dir, f"model-best-e{current_epoch}.pth"),
+            output_dir / f"model-best-e{current_epoch}.pth",
         )
     elif removed_epoch is not None:
-        path = os.path.join(output_dir, f"model-best-e{removed_epoch}.pth")
+        path = output_dir / f"model-best-e{removed_epoch}.pth"
         os.remove(path)
 
 
@@ -317,12 +315,12 @@ def save_last_models(
 ):
     torch.save(
         model.state_dict(),
-        os.path.join(output_dir, f"model-e{current_epoch}.pth"),
+        output_dir / f"model-e{current_epoch}.pth",
     )
     if current_epoch - config.num_last_models_to_keep > 0:
         old = current_epoch - config.num_last_models_to_keep
-        old_path = os.path.join(output_dir, f"model-e{old}.pth")
-        if os.path.exists(old_path):
+        old_path = output_dir / f"model-e{old}.pth"
+        if old_path.exists():
             print(f"Removing {old_path}")
             os.remove(old_path)
 
