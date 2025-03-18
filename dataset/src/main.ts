@@ -55,7 +55,7 @@ async function main() {
   }
 
   const batchSize = await determineBatchSize({
-    inferenceConfig: config.inference,
+    batchConfig: config.inference.batch,
     inferenceProvider,
     words,
     random,
@@ -86,16 +86,16 @@ main().catch((err) => {
 });
 
 async function determineBatchSize(params: {
-  inferenceConfig: Config["inference"];
+  batchConfig: Config["inference"]["batch"];
   inferenceProvider: InferenceProvider;
   words: string[];
   random: Random;
 }) {
   let batchSize: number;
-  switch (params.inferenceConfig.batch.type) {
+  switch (params.batchConfig.type) {
     case "fixed": {
       console.log("2: Using fixed batch size...");
-      batchSize = params.inferenceConfig.batch.batchSize;
+      batchSize = params.batchConfig.batchSize;
       break;
     }
     case "bisect": {
@@ -105,13 +105,13 @@ async function determineBatchSize(params: {
         inferenceProvider: params.inferenceProvider,
         words: params.words,
         random: params.random,
-        maxBatchSize: params.inferenceConfig.batch.maxBatchSize,
+        maxBatchSize: params.batchConfig.maxBatchSize,
       });
-      batchSize = Math.floor(maxBatchSize * params.inferenceConfig.batch.ratio);
+      batchSize = Math.floor(maxBatchSize * params.batchConfig.ratio);
       break;
     }
     default:
-      throw new ExhaustiveError(params.inferenceConfig.batch);
+      throw new ExhaustiveError(params.batchConfig);
   }
   console.log(`Batch size: ${batchSize}`);
   return batchSize;
