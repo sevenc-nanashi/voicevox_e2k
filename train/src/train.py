@@ -224,6 +224,8 @@ def train():
     print(f"Output dir: {output_dir}")
     os.makedirs(output_dir, exist_ok=True)
 
+    scores = []
+
     shutil.copyfile(
         args.config,
         os.path.join(output_dir, "config.yml"),
@@ -281,8 +283,19 @@ def train():
             os.path.join(output_dir, f"model-e{epoch}.pth"),
         )
 
-        if epoch - config.num_models_to_keep > 0:
-            old = epoch - config.num_models_to_keep
+        scores.append((epoch, bleu))
+        scores.sort(key=lambda x: x[1], reverse=True)
+        torch.save(
+            model.state_dict(),
+            os.path.join(output_dir, f"model-best-e{epoch}.pth"),
+        )
+        if len(scores) > config.num_best_models_to_keep:
+            epoch, _ = scores.pop()
+            path = os.path.join(output_dir, f"model-best-e{epoch}.pth")
+            os.remove(path)
+
+        if epoch - config.num_last_models_to_keep > 0:
+            old = epoch - config.num_last_models_to_keep
             old_path = os.path.join(output_dir, f"model-e{old}.pth")
             if os.path.exists(old_path):
                 print(f"Removing {old_path}")

@@ -9,8 +9,10 @@ eval_max_words: 100
 dim: 256
 # 学習するエポック数。
 max_epochs: 10
-# 保存するモデルの数。
-num_models_to_keep: 2
+# 最新のエポックから保存するモデルの数。
+num_last_models_to_keep: 2
+# 保存する上位のモデルの数。
+num_best_models_to_keep: 2
 # 乱数のシード。
 seed: 0
 

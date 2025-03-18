@@ -8,7 +8,8 @@ class Config:
     eval_max_words: int
     dim: int
     max_epochs: int
-    num_models_to_keep: int
+    num_last_models_to_keep: int
+    num_best_models_to_keep: int
     seed: int
 
     @classmethod
