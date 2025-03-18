@@ -8,7 +8,7 @@ import { OpenAI } from "./inference/openai.ts";
 import { Random } from "./random.ts";
 import { CmuDict } from "./source/cmudict.ts";
 import type { SourceProvider } from "./source/index.ts";
-import { ExhaustiveError, bisectMax, normalizeOrNull } from "./utils.ts";
+import { ExhaustiveError, bisectMax, filterPronunciations } from "./utils.ts";
 
 async function main() {
   const config = await loadConfig();
@@ -151,24 +151,18 @@ async function inferPronunciations(args: {
 
   const inferBatch = (words: string[]) =>
     semaphore.lock(async () => {
-      await new Promise((resolve) => setTimeout(resolve, args.rateLimit.throttleMs));
+      await new Promise((resolve) =>
+        setTimeout(resolve, args.rateLimit.throttleMs),
+      );
 
       const results = await args.inferenceProvider.infer(words);
 
-      const validResults: Record<string, string> = {};
-      for (const [word, pronunciation] of Object.entries(results)) {
-        const normalized = normalizeOrNull(pronunciation);
-        if (normalized == null) {
-          console.error(`Invalid pronunciation: ${word} -> ${pronunciation}`);
-          continue;
-        }
-        validResults[word] = normalized;
-      }
+      const validResults = filterPronunciations(results);
       console.log(
         `Inferred ${Object.keys(results).length} pronunciations, ${
           Object.keys(validResults).length
         } valid, ${words.length - Object.keys(validResults).length} invalid, ${
-          shuffledWords.length - Object.keys(allResults).length
+          shuffledWords.length - Object.keys(allResults).length - words.length
         } remaining`,
       );
 
@@ -205,7 +199,9 @@ async function inferPronunciations(args: {
 
       console.error(`Rate limited, waiting ${args.rateLimit.waitMs}ms...`);
       console.error(error);
-      await new Promise((resolve) => setTimeout(resolve, args.rateLimit.waitMs));
+      await new Promise((resolve) =>
+        setTimeout(resolve, args.rateLimit.waitMs),
+      );
     }
 
     numTries++;

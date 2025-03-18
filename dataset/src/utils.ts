@@ -30,12 +30,25 @@ const normalizeKana = (text: string) => {
     .replace(/[ｰ―－ー]/g, "ー");
 };
 
-export const normalizeOrNull = (pronunciation: string) => {
+const normalizeOrNull = (pronunciation: string) => {
   const normalized = normalizeKana(pronunciation.trim());
   if (!normalized.match(/^[\p{Script=Katakana}ー]+$/u)) {
     return null;
   }
   return normalized;
+};
+
+export const filterPronunciations = (pronunciations: Record<string, string>) => {
+  const filtered: Record<string, string> = {};
+  for (const [word, pronunciation] of Object.entries(pronunciations)) {
+    const normalized = normalizeOrNull(pronunciation);
+    if (normalized == null) {
+      console.error(`Invalid pronunciation: ${word} -> ${pronunciation}`);
+      continue;
+    }
+    filtered[word] = normalized;
+  }
+  return filtered;
 };
 
 export class ExhaustiveError extends Error {
