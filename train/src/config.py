@@ -14,4 +14,8 @@ class Config:
 
     @classmethod
     def from_dict(cls, config: dict):
+        if "num_models_to_keep" in config:
+            config["num_last_models_to_keep"] = config["num_models_to_keep"]
+            config["num_best_models_to_keep"] = config["num_models_to_keep"]
+            del config["num_models_to_keep"]
         return cls(**config)
