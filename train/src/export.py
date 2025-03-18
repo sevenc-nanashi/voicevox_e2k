@@ -3,20 +3,29 @@ Exports the torch weights
 """
 
 import torch
-from safetensors.numpy import save_file
+from safetensors.numpy import save_file as save_safetensors
 import argparse
+from pathlib import Path
+import yaml
 from train import Model
+from config import Config
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--model", type=str, required=True)
-parser.add_argument("--p2k", action="store_true")
-parser.add_argument("--output", type=str, required=True)
 parser.add_argument("--fp32", action="store_true")
+parser.add_argument("--model", type=Path, required=True)
+parser.add_argument("--output", type=Path, required=True)
+parser.add_argument("--config", type=Path, required=False)
 
 args = parser.parse_args()
 
-model = Model(p2k=args.p2k)
+if args.config is None:
+    config = args.model.parent / "config.yml"
+else:
+    config = args.config
+
+config = Config.from_dict(yaml.safe_load(config.read_text()))
+model = Model(config)
 model.load_state_dict(torch.load(args.model))
 model.eval()
 
@@ -35,4 +44,5 @@ output = (
     if args.output.endswith(".safetensors")
     else f"{args.output}.safetensors"
 )
-save_file(weights, output)
+
+save_safetensors(weights, output)
