@@ -3,7 +3,7 @@ Exports the torch weights
 """
 
 import torch
-from safetensors.numpy import save_file
+from safetensors.numpy import save as save_safetensors
 import argparse
 import brotli
 import pathlib
@@ -16,11 +16,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--model", type=str, required=True)
 parser.add_argument("--output", type=str, required=True)
 parser.add_argument("--fp32", action="store_true")
+parser.add_argument("--config", type=str, required=False)
 
 args = parser.parse_args()
 
-config = pathlib.Path(args.model).parent / "config.yml"
-config = Config.from_dict(yaml.safe_load(config.open()))
+config = (
+    pathlib.Path(args.config)
+    if args.config
+    else pathlib.Path(args.model).parent / "config.yml"
+)
+config = Config.from_dict(yaml.safe_load(config.read_text()))
 model = Model(config)
 model.load_state_dict(torch.load(args.model))
 model.eval()
@@ -40,8 +45,8 @@ output = (
     if args.output.endswith(".safetensors")
     else f"{args.output}.safetensors"
 )
-save_file(weights, output)
-with open(output, "rb") as f:
-    compressed = brotli.compress(f.read())
+safetensors = save_safetensors(weights)
+with open(output, "wb") as f:
+    f.write(safetensors)
 with open(output + ".br", "wb") as f:
-    f.write(compressed)
+    f.write(brotli.compress(safetensors))
