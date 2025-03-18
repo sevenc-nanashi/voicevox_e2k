@@ -285,12 +285,17 @@ def train():
 
         scores.append((epoch, bleu))
         scores.sort(key=lambda x: x[1], reverse=True)
-        torch.save(
-            model.state_dict(),
-            os.path.join(output_dir, f"model-best-e{epoch}.pth"),
-        )
+
+        removed_epoch = None
         if len(scores) > config.num_best_models_to_keep:
             removed_epoch, _ = scores.pop()
+
+        if removed_epoch != epoch:
+            torch.save(
+                model.state_dict(),
+                os.path.join(output_dir, f"model-best-e{epoch}.pth"),
+            )
+        elif removed_epoch is not None:
             path = os.path.join(output_dir, f"model-best-e{removed_epoch}.pth")
             os.remove(path)
 
