@@ -49,29 +49,12 @@ async function main() {
     return;
   }
 
-  let batchSize: number;
-  switch (config.inference.batch.type) {
-    case "fixed": {
-      console.log("2: Using fixed batch size...");
-      batchSize = config.inference.batch.batchSize;
-      break;
-    }
-    case "bisect": {
-      console.log("2: Finding maximum batch size...");
-      // ちょっと余裕を持たせる
-      const maxBatchSize = await findMaxBatchSize(
-        inferenceProvider,
-        words,
-        random,
-        config.inference.batch.maxBatchSize,
-      );
-      batchSize = Math.floor(maxBatchSize * 0.9);
-      break;
-    }
-    default:
-      throw new ExhaustiveError(config.inference.batch);
-  }
-  console.log(`Batch size: ${batchSize}`);
+  const batchSize = await determineBatchSize({
+    inferenceConfig: config.inference,
+    inferenceProvider,
+    words,
+    random,
+  });
 
   console.log("3: Inferring pronunciations...");
   const allResults = await inferPronunciations(
@@ -99,6 +82,38 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
+async function determineBatchSize(params: {
+  inferenceConfig: Config["inference"];
+  inferenceProvider: InferenceProvider;
+  words: string[];
+  random: Random;
+}) {
+  let batchSize: number;
+  switch (params.inferenceConfig.batch.type) {
+    case "fixed": {
+      console.log("2: Using fixed batch size...");
+      batchSize = params.inferenceConfig.batch.batchSize;
+      break;
+    }
+    case "bisect": {
+      console.log("2: Finding maximum batch size...");
+      // ちょっと余裕を持たせる
+      const maxBatchSize = await findMaxBatchSize(
+        params.inferenceProvider,
+        params.words,
+        params.random,
+        params.inferenceConfig.batch.maxBatchSize,
+      );
+      batchSize = Math.floor(maxBatchSize * 0.9);
+      break;
+    }
+    default:
+      throw new ExhaustiveError(params.inferenceConfig.batch);
+  }
+  console.log(`Batch size: ${batchSize}`);
+  return batchSize;
+}
 
 async function loadConfig() {
   return configSchema.parse(
