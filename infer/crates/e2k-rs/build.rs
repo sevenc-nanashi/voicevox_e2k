@@ -29,7 +29,7 @@ fn download_models() {
             .unwrap()
         {
             download_to(
-                // TODO: このURLを置き換える
+                // TODO: このURLをVoicevoxで作ったモデルのURLに変更する
                 "https://github.com/Patchethium/e2k/releases/download/0.3.0/model-c2k.safetensors",
                 &model_root.join("model-c2k.safetensors"),
             );
