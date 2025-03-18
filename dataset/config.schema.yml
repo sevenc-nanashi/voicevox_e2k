@@ -50,11 +50,11 @@ properties:
               type:
                 type: string
                 const: fixed
-              maxBatchSize:
+              batchSize:
                 type: number
             required:
               - type
-              - maxBatchSize
+              - batchSize
             additionalProperties: false
           - type: object
             properties:
