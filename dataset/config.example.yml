@@ -18,6 +18,24 @@ inference:
   # 並列実行数。レートリミットとの兼ね合いで調整してください。
   concurrency: 10
 
+  # 1回のリクエストで取得する読みの数。
+  # 二分探索で最大の数を探す場合：
+  batch:
+    type: bisect
+
+    # 二分探索の上限。
+    maxBatchSize: 1000
+
+    # 余裕を持たせるための係数。
+    ratio: 0.95
+
+  # 固定値の場合：
+  # batch:
+  #   type: fixed
+  #
+  #   # 1回のリクエストで取得する読みの数。
+  #   batchSize: 100
+
   rateLimit:
     # レートリミットに引っかかった場合のリトライ回数。
     maxRetries: 10

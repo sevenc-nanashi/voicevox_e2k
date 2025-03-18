@@ -54,15 +54,13 @@ async function main() {
     return;
   }
 
-  console.log("2: Finding maximum batch size...");
-  // ちょっと余裕を持たせる
-  const maxBatchSize = await findMaxBatchSize({
+  console.log("2: Determining batch size...");
+  const batchSize = await determineBatchSize({
+    batchConfig: config.inference.batch,
     inferenceProvider,
     words,
     random,
   });
-  const batchSize = Math.floor(maxBatchSize * 0.9);
-  console.log(`Batch size: ${batchSize}`);
 
   console.log("3: Inferring pronunciations...");
   const allResults = await inferPronunciations({
@@ -87,6 +85,38 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
+async function determineBatchSize(params: {
+  batchConfig: Config["inference"]["batch"];
+  inferenceProvider: InferenceProvider;
+  words: string[];
+  random: Random;
+}) {
+  let batchSize: number;
+  switch (params.batchConfig.type) {
+    case "fixed": {
+      console.log("Using fixed batch size");
+      batchSize = params.batchConfig.batchSize;
+      break;
+    }
+    case "bisect": {
+      console.log("Finding optimal batch size by bisection...");
+      // ちょっと余裕を持たせる
+      const maxBatchSize = await findMaxBatchSize({
+        inferenceProvider: params.inferenceProvider,
+        words: params.words,
+        random: params.random,
+        maxBatchSize: params.batchConfig.maxBatchSize,
+      });
+      batchSize = Math.floor(maxBatchSize * params.batchConfig.ratio);
+      break;
+    }
+    default:
+      throw new ExhaustiveError(params.batchConfig);
+  }
+  console.log(`Batch size: ${batchSize}`);
+  return batchSize;
+}
 
 async function loadConfig() {
   return configSchema.parse(
@@ -115,10 +145,11 @@ async function findMaxBatchSize(params: {
   inferenceProvider: InferenceProvider;
   words: string[];
   random: Random;
+  maxBatchSize: number;
 }) {
-  const maxBatchSize = await bisectMax(
+  const maxPossibleBatchSize = await bisectMax(
     1,
-    Math.min(params.words.length, 1000),
+    Math.min(params.words.length, params.maxBatchSize),
     async (batchSize) => {
       console.log(`Trying batch size ${batchSize}...`);
       const currentWords = params.random
@@ -133,12 +164,12 @@ async function findMaxBatchSize(params: {
       return Object.keys(results).length === batchSize;
     },
   );
-  console.log(`Found maximum batch size: ${maxBatchSize}`);
+  console.log(`Found maximum batch size: ${maxPossibleBatchSize}`);
 
-  if (maxBatchSize < 10) {
-    throw new Error(`Batch size too small: ${maxBatchSize}`);
+  if (maxPossibleBatchSize < 10) {
+    throw new Error(`Batch size too small: ${maxPossibleBatchSize}`);
   }
-  return maxBatchSize;
+  return maxPossibleBatchSize;
 }
 
 async function inferPronunciations(params: {
