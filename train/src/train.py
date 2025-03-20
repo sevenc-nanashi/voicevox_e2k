@@ -9,7 +9,6 @@ from pathlib import Path
 import random
 import shutil
 import subprocess
-from typing import Tuple
 
 from g2p_en import G2p
 import torch
@@ -291,7 +290,7 @@ def save_best_models(
     model: Model,
     output_dir: Path,
     config: Config,
-    best_scores: list[Tuple[int, Tensor]],
+    best_scores: list[tuple[int, Tensor]],
     bleu: Tensor,
 ):
     best_scores.append((current_epoch, bleu))
