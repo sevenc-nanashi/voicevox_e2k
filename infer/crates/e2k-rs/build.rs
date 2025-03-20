@@ -9,12 +9,17 @@ fn download_models() {
     println!("cargo:rerun-if-changed=models/model-c2k.safetensors");
     println!("cargo:rerun-if-changed=models/model-c2k.safetensors.br");
 
-    let model_exists = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap())
-        .join("./models/model-c2k.safetensors")
-        .try_exists()
-        .unwrap();
+    let src_model_path = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap())
+        .join("./models/model-c2k.safetensors");
 
-    let model_root = if !model_exists {
+    let model_root = if src_model_path.try_exists().unwrap() {
+        let compressed_path = src_model_path.with_extra_extension("br");
+        if !compressed_path.try_exists().unwrap() {
+            compress_model(&src_model_path);
+        }
+
+        src_model_path.parent().unwrap().to_path_buf()
+    } else {
         let model_root = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("models");
         std::fs::create_dir_all(&model_root).unwrap();
 
@@ -24,6 +29,7 @@ fn download_models() {
             .unwrap()
         {
             download_to(
+                // TODO: このURLをVoicevoxで作ったモデルのURLに変更する
                 "https://github.com/Patchethium/e2k/releases/download/0.3.0/model-c2k.safetensors",
                 &model_root.join("model-c2k.safetensors"),
             );
@@ -37,8 +43,6 @@ fn download_models() {
         }
 
         model_root
-    } else {
-        PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap()).join("./models")
     };
 
     println!("cargo:rustc-env=E2K_MODEL_ROOT={}", model_root.display());
