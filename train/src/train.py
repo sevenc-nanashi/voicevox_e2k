@@ -307,8 +307,8 @@ def save_best_models(
         )
         if removed_epoch is not None:
             path = output_dir / f"model-best-e{removed_epoch}.pth"
-            os.remove(path)
             print(f"Removing {path}")
+            os.remove(path)
 
 
 def save_last_models(
