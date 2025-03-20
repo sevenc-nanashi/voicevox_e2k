@@ -290,7 +290,7 @@ def save_best_models(
     model: Model,
     output_dir: Path,
     config: Config,
-    best_scores: list,
+    best_scores: list[tuple[int, Tensor]],
     bleu: Tensor,
 ):
     best_scores.append((current_epoch, bleu))
@@ -305,9 +305,10 @@ def save_best_models(
             model.state_dict(),
             output_dir / f"model-best-e{current_epoch}.pth",
         )
-    elif removed_epoch is not None:
-        path = output_dir / f"model-best-e{removed_epoch}.pth"
-        os.remove(path)
+        if removed_epoch is not None:
+            path = output_dir / f"model-best-e{removed_epoch}.pth"
+            print(f"Removing {path}")
+            os.remove(path)
 
 
 def save_last_models(
