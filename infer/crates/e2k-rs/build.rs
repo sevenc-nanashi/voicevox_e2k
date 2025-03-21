@@ -1,5 +1,7 @@
 use std::path::{Path, PathBuf};
 
+static MODEL_TAG: &str = "v1";
+
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     download_models();
@@ -9,37 +11,42 @@ fn download_models() {
     println!("cargo:rerun-if-changed=models/model-c2k.safetensors");
     println!("cargo:rerun-if-changed=models/model-c2k.safetensors.br");
 
-    let src_model_path = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap())
+    let override_model_path = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap())
         .join("./models/model-c2k.safetensors");
 
-    let model_root = if src_model_path.try_exists().unwrap() {
-        let compressed_path = src_model_path.with_extra_extension("br");
+    let model_root = if override_model_path.try_exists().unwrap() {
+        let compressed_path = override_model_path.with_extra_extension("br");
         if !compressed_path.try_exists().unwrap() {
-            compress_model(&src_model_path);
+            compress_model(&override_model_path);
         }
 
-        src_model_path.parent().unwrap().to_path_buf()
+        override_model_path.parent().unwrap().to_path_buf()
     } else {
         let model_root = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("models");
         std::fs::create_dir_all(&model_root).unwrap();
 
-        if !model_root
-            .join("model-c2k.safetensors")
+        let model_version_path = PathBuf::from(std::env::var("OUT_DIR").unwrap())
+            .join("models")
+            .join("version.txt");
+
+        let downloaded = model_version_path
             .try_exists()
             .unwrap()
-        {
+            .then(|| std::fs::read_to_string(&model_version_path).unwrap())
+            .filter(|s| s.trim() == MODEL_TAG)
+            .is_some();
+
+        if !downloaded {
             download_to(
-                // TODO: このURLをVoicevoxで作ったモデルのURLに変更する
-                "https://github.com/Patchethium/e2k/releases/download/0.3.0/model-c2k.safetensors",
+                &format!(
+                    "https://huggingface.co/VOICEVOX/e2k/resolve/{MODEL_TAG}/model/c2k.safetensors"
+                ),
                 &model_root.join("model-c2k.safetensors"),
             );
-        }
-        if !model_root
-            .join("model-c2k.safetensors.br")
-            .try_exists()
-            .unwrap()
-        {
+
             compress_model(&model_root.join("model-c2k.safetensors"));
+
+            std::fs::write(&model_version_path, MODEL_TAG).unwrap();
         }
 
         model_root
@@ -49,10 +56,10 @@ fn download_models() {
 }
 
 fn download_to(url: &str, path: &Path) {
-    let response = ureq::get(url).call().unwrap().into_body();
+    let response = ureq::get(url).call().unwrap();
     let temp_path = path.with_extra_extension("tmp");
     let mut file = std::fs::File::create(&temp_path).unwrap();
-    std::io::copy(&mut response.into_reader(), &mut file).unwrap();
+    std::io::copy(&mut response.into_body().into_reader(), &mut file).unwrap();
     std::fs::rename(&temp_path, path).unwrap();
 }
 
