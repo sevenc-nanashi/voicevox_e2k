@@ -249,12 +249,14 @@ def train():
         batch_size=batch_size,
         shuffle=True,
         collate_fn=partial(collate_fn, device=device),
+        drop_last=True,
     )
     eval_dl = DataLoader(
         eval_dataset,
         batch_size=batch_size,
         shuffle=False,
         collate_fn=partial(collate_fn, device=device),
+        drop_last=True,
     )
 
     criterion = nn.CrossEntropyLoss(ignore_index=0)
@@ -282,8 +284,8 @@ def train():
             for eng, kata, e_mask, k_mask in tqdm(eval_dl, desc=f"Epoch {epoch} eval"):
                 out = model(eng, kata, e_mask, k_mask)
                 loss = criterion(out.transpose(1, 2), kata[:, 1:])
-                total_loss += loss.item()
-                total += 1
+                total_loss += loss.item() * len(out)
+                total += len(out)
 
         writer.add_scalar("Loss/eval", total_loss / total, epoch)
         print(f"Epoch {epoch} Loss: {total_loss / total}")
