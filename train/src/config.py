@@ -8,8 +8,10 @@ def migrate(config: dict):
         config["num_best_models_to_keep"] = config["num_models_to_keep"]
         del config["num_models_to_keep"]
 
-    if "lr" not in config:
-        config["lr"] = 0.9
+    if "optimizer_lr" not in config:
+        config["optimizer_lr"] = 1e-3
+    if "exponential_lr_gamma" not in config:
+        config["exponential_lr_gamma"] = 0.9
 
     return config
 
@@ -24,7 +26,8 @@ class Config:
     num_last_models_to_keep: int
     num_best_models_to_keep: int
     seed: int
-    lr: float
+    optimizer_lr: float
+    exponential_lr_scheduler_gamma: float
 
     @classmethod
     def from_dict(cls, config: dict):
