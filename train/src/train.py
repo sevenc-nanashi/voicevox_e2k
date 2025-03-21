@@ -253,7 +253,7 @@ def train():
 
     criterion = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-    scheduler = ExponentialLR(optimizer, 0.8)
+    scheduler = ExponentialLR(optimizer, config.lr)
     writer = SummaryWriter(log_dir=output_dir)
     evaluator = Evaluator(eval_dataset)
     epochs = config.max_epochs

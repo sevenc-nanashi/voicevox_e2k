@@ -8,7 +8,10 @@ def migrate(config: dict):
         config["num_best_models_to_keep"] = config["num_models_to_keep"]
         del config["num_models_to_keep"]
 
-    return config
+    return {
+        "lr": 0.9,
+        **config,
+    }
 
 
 @dataclass
@@ -21,6 +24,7 @@ class Config:
     num_last_models_to_keep: int
     num_best_models_to_keep: int
     seed: int
+    lr: float
 
     @classmethod
     def from_dict(cls, config: dict):
