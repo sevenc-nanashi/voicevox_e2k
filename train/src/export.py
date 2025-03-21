@@ -39,10 +39,6 @@ for name, param in model.named_parameters():
         print(name, param.data.shape)
         weights[name] = param.data.cpu().numpy()
 
-output = (
-    args.output
-    if args.output.endswith(".safetensors")
-    else f"{args.output}.safetensors"
-)
+print(f"Saving to {args.output}")
 
-save_safetensors(weights, output)
+save_safetensors(weights, args.output)
