@@ -8,10 +8,10 @@ def migrate(config: dict):
         config["num_best_models_to_keep"] = config["num_models_to_keep"]
         del config["num_models_to_keep"]
 
-    return {
-        "lr": 0.9,
-        **config,
-    }
+    if "lr" not in config:
+        config["lr"] = 0.9
+
+    return config
 
 
 @dataclass
