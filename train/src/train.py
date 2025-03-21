@@ -256,7 +256,6 @@ def train():
         batch_size=batch_size,
         shuffle=False,
         collate_fn=partial(collate_fn, device=device),
-        drop_last=True,
     )
 
     criterion = nn.CrossEntropyLoss(ignore_index=0)
