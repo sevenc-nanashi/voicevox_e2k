@@ -249,11 +249,18 @@ def train():
         batch_size=batch_size,
         shuffle=True,
         collate_fn=partial(collate_fn, device=device),
+        drop_last=True,
+    )
+    eval_dl = DataLoader(
+        eval_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        collate_fn=partial(collate_fn, device=device),
     )
 
     criterion = nn.CrossEntropyLoss(ignore_index=0)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-    scheduler = ExponentialLR(optimizer, 0.8)
+    optimizer = torch.optim.Adam(model.parameters(), lr=config.optimizer_lr)
+    scheduler = ExponentialLR(optimizer, config.exponential_lr_scheduler_gamma)
     writer = SummaryWriter(log_dir=output_dir)
     evaluator = Evaluator(eval_dataset)
     epochs = config.max_epochs
@@ -269,6 +276,19 @@ def train():
             optimizer.step()
             steps += 1
         model.eval()
+
+        total_loss = 0
+        total = 0
+        with torch.no_grad():
+            for eng, kata, e_mask, k_mask in tqdm(eval_dl, desc=f"Epoch {epoch} eval"):
+                out = model(eng, kata, e_mask, k_mask)
+                loss = criterion(out.transpose(1, 2), kata[:, 1:])
+                total_loss += loss.item() * len(out)
+                total += len(out)
+
+        writer.add_scalar("Loss/eval", total_loss / total, epoch)
+        print(f"Epoch {epoch} Loss: {total_loss / total}")
+
         # take a sample and inference it
         sample = eval_dataset[random.randint(0, len(eval_dataset) - 1)]
         src, tgt = sample
