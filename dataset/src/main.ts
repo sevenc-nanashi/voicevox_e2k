@@ -237,24 +237,11 @@ async function inferWorker(params: {
 
     await sleep(params.rateLimit.throttleMs);
 
+    let results: Record<string, string>;
     try {
-      const results = await params.inferenceProvider.infer(
+      results = await params.inferenceProvider.infer(
         entries.map((entry) => entry.word),
       );
-
-      const validResults = filterPronunciations(results);
-
-      console.log(
-        `Inferred ${Object.keys(results).length} pronunciations, ${
-          Object.keys(validResults).length
-        } valid, ${entries.length - Object.keys(validResults).length} invalid, ${
-          params.numAllWords - params.allResults.size - entries.length
-        } remaining`,
-      );
-
-      for (const [word, pronunciation] of Object.entries(validResults)) {
-        params.allResults.set(word, pronunciation);
-      }
     } catch (err) {
       if (String(err).includes("429")) {
         console.error(`Rate limited, waiting ${params.rateLimit.waitMs}ms...`);
@@ -275,6 +262,21 @@ async function inferWorker(params: {
             return false;
           }),
       );
+      continue;
+    }
+
+    const validResults = filterPronunciations(results);
+
+    console.log(
+      `Inferred ${Object.keys(results).length} pronunciations, ${
+        Object.keys(validResults).length
+      } valid, ${entries.length - Object.keys(validResults).length} invalid, ${
+        params.numAllWords - params.allResults.size - entries.length
+      } remaining`,
+    );
+
+    for (const [word, pronunciation] of Object.entries(validResults)) {
+      params.allResults.set(word, pronunciation);
     }
   }
 }
