@@ -252,18 +252,10 @@ async function inferWorker(params: {
       }
       console.error(err);
       params.queue.push(
-        ...entries
-          .map((entry) => ({
-            ...entry,
-            numTries: entry.numTries + 1,
-          }))
-          .filter((entry) => {
-            if (entry.numTries < params.rateLimit.maxRetries) {
-              return true;
-            }
-            console.error(`Dropping word: ${entry.word}`);
-            return false;
-          }),
+        ...incrementTryCountAndFilter({
+          entries,
+          maxRetries: params.rateLimit.maxRetries,
+        }),
       );
       continue;
     }
@@ -275,10 +267,10 @@ async function inferWorker(params: {
     const forgottenWords = entries.filter((entry) => !(entry.word in results));
 
     params.queue.push(
-      ...invalidWords.map((entry) => ({
-        ...entry,
-        numTries: entry.numTries + 1,
-      })),
+      ...incrementTryCountAndFilter({
+        entries: invalidWords,
+        maxRetries: params.rateLimit.maxRetries,
+      }),
     );
     params.queue.push(...forgottenWords);
 
@@ -294,6 +286,24 @@ async function inferWorker(params: {
       params.allResults.set(word, pronunciation);
     }
   }
+}
+
+function incrementTryCountAndFilter(params: {
+  entries: InferenceQueueEntry[];
+  maxRetries: number;
+}): InferenceQueueEntry[] {
+  return params.entries
+    .map((entry) => ({
+      ...entry,
+      numTries: entry.numTries + 1,
+    }))
+    .filter((entry) => {
+      if (entry.numTries < params.maxRetries) {
+        return true;
+      }
+      console.error(`Dropping word: ${entry.word}`);
+      return false;
+    });
 }
 
 async function writeResults(params: {
