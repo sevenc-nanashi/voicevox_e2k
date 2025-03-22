@@ -7,7 +7,7 @@ export const configSchema = z.object({
     maxNumWords: z.union([z.number(), z.literal("all")]),
   }),
   inference: z.object({
-    provider: z.enum(["gemini", "openai"]),
+    provider: z.enum(["gemini", "openai", "dummy"]),
     concurrency: z.number(),
     rateLimit: z.object({
       waitMs: z.number(),

@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -26,7 +28,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version-file: dataset/.node-version
-          cache: 'pnpm'
+          cache: "pnpm"
           cache-dependency-path: dataset/pnpm-lock.yaml
 
       - name: Install dependencies
@@ -37,6 +39,11 @@ jobs:
 
       - name: Run typecheck
         run: pnpm run typecheck
+
+      - name: Run test
+        run: |
+          cp ./config.test.yml ./config.yml
+          pnpm run start
 
       - name: Check if schema is up-to-date
         run: pnpm run tools:generateConfigSchema --check

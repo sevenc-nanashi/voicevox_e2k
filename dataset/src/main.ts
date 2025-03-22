@@ -2,11 +2,12 @@ import * as fs from "node:fs/promises";
 import { Semaphore } from "@core/asyncutil/semaphore";
 import { load as loadYaml } from "js-yaml";
 import { type Config, configSchema } from "./config.ts";
-import { Gemini } from "./inference/gemini.ts";
+import { DummyInferenceProvider } from "./inference/dummy.ts";
+import { GeminiInferenceProvider } from "./inference/gemini.ts";
 import type { InferenceProvider } from "./inference/index.ts";
-import { OpenAI } from "./inference/openai.ts";
+import { OpenAiInferenceProvider } from "./inference/openai.ts";
 import { Random } from "./random.ts";
-import { CmuDict } from "./source/cmudict.ts";
+import { CmuDictSourceProvider } from "./source/cmudict.ts";
 import type { SourceProvider } from "./source/index.ts";
 import {
   ExhaustiveError,
@@ -21,7 +22,7 @@ async function main() {
   let sourceProvider: SourceProvider;
   switch (config.source.provider) {
     case "cmudict":
-      sourceProvider = new CmuDict();
+      sourceProvider = new CmuDictSourceProvider();
       break;
     default:
       throw new ExhaustiveError(config.source.provider);
@@ -31,10 +32,13 @@ async function main() {
   let inferenceProvider: InferenceProvider;
   switch (config.inference.provider) {
     case "gemini":
-      inferenceProvider = new Gemini(config);
+      inferenceProvider = new GeminiInferenceProvider(config);
       break;
     case "openai":
-      inferenceProvider = new OpenAI(config);
+      inferenceProvider = new OpenAiInferenceProvider(config);
+      break;
+    case "dummy":
+      inferenceProvider = new DummyInferenceProvider(config);
       break;
     default:
       throw new ExhaustiveError(config.inference.provider);
@@ -77,7 +81,7 @@ async function main() {
   await writeResults({ path, results: allResults });
 
   console.log(
-    `${Object.keys(allResults).length} pronunciations written to ${path}`,
+    `${allResults.size} pronunciations inferred and written to ${path}`,
   );
 }
 
@@ -183,7 +187,7 @@ async function inferPronunciations(params: {
   const semaphore = new Semaphore(params.concurrency);
   console.log(`Using ${params.concurrency} concurrency`);
 
-  const allResults: Record<string, string> = {};
+  const allResults = new Map<string, string>();
 
   const shuffledWords = params.random.shuffle(params.words);
 
@@ -194,21 +198,24 @@ async function inferPronunciations(params: {
       const results = await params.inferenceProvider.infer(words);
 
       const validResults = filterPronunciations(results);
+
+      for (const [word, pronunciation] of Object.entries(validResults)) {
+        allResults.set(word, pronunciation);
+      }
+
       console.log(
         `Inferred ${Object.keys(results).length} pronunciations, ${
           Object.keys(validResults).length
         } valid, ${words.length - Object.keys(validResults).length} invalid, ${
-          shuffledWords.length - Object.keys(allResults).length - words.length
+          shuffledWords.length - allResults.size
         } remaining`,
       );
-
-      Object.assign(allResults, validResults);
     });
 
   let numTries = 0;
-  while (Object.keys(allResults).length < params.words.length) {
+  while (allResults.size < shuffledWords.length) {
     const remainingWords = shuffledWords.filter(
-      (word) => !(word in allResults),
+      (word) => !allResults.has(word),
     );
     const promises: Promise<void>[] = [];
 
@@ -249,11 +256,11 @@ async function inferPronunciations(params: {
 
 async function writeResults(params: {
   path: string;
-  results: Record<string, string>;
+  results: Map<string, string>;
 }) {
   await fs.writeFile(
     params.path,
-    Object.entries(params.results)
+    [...params.results]
       .map(([word, pronunciation]) =>
         JSON.stringify({
           word,
