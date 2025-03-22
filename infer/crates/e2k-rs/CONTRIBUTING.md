@@ -2,4 +2,4 @@
 
 ## モデルの変更
 
-`./models/model-c2k.safetensors` をモデルを配置するとそのモデルが読み込まれます。
+`./models/model-c2k.safetensors` にモデルを配置するとそのモデルが読み込まれます。
