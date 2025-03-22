@@ -10,6 +10,7 @@ import { CmuDictSourceProvider } from "./source/cmudict.ts";
 import type { SourceProvider } from "./source/index.ts";
 import {
   ExhaustiveError,
+  Throttle,
   bisectMax,
   filterPronunciations,
   sleep,
@@ -198,6 +199,7 @@ async function inferPronunciations(params: {
 
   const queue: InferenceQueueEntry[] = [...shuffledWords];
   const inferWorkers: Promise<void>[] = [];
+  const throttle = new Throttle(params.rateLimit.throttleMs);
 
   for (let i = 0; i < params.concurrency; i++) {
     inferWorkers.push(
@@ -206,6 +208,7 @@ async function inferPronunciations(params: {
         batchSize: params.batchSize,
         inferenceProvider: params.inferenceProvider,
         rateLimit: params.rateLimit,
+        throttle,
         queue,
         allResults,
         globalWaitPromise,
@@ -222,6 +225,7 @@ async function inferWorker(params: {
   numAllWords: number;
   batchSize: number;
   inferenceProvider: InferenceProvider;
+  throttle: Throttle;
   rateLimit: Config["inference"]["rateLimit"];
   queue: InferenceQueueEntry[];
   allResults: Map<string, string>;
@@ -234,8 +238,7 @@ async function inferWorker(params: {
     }
 
     await params.globalWaitPromise.value;
-
-    await sleep(params.rateLimit.throttleMs);
+    await params.throttle.throttle();
 
     let results: Record<string, string>;
     try {
