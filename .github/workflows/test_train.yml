@@ -29,4 +29,4 @@ jobs:
 
       - name: Run test train
         run: |
-          uv run src/train.py ./config/test.yml
+          uv run src/train.py ./config/dummy.yml
