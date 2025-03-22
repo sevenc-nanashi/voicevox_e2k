@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=./config.schema.yml
+
+randomSeed: 0
+
+source:
+  provider: cmudict
+  maxNumWords: "all"
+
+inference:
+  provider: dummy
+  concurrency: 10
+  batch:
+    type: bisect
+    maxBatchSize: 1000
+    ratio: 0.95
+  rateLimit:
+    maxRetries: 10
+    waitMs: 60000
+    throttleMs: 1000
+  gemini:
+    apiKey: ""
+    modelName: "gemini-2.0-flash"
+  openai:
+    apiBaseUrl: "https://api.openai.com/v1"
+    apiKey: ""
+    modelName: "text-davinci-003"

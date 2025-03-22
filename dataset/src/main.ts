@@ -1,11 +1,12 @@
 import * as fs from "node:fs/promises";
 import { load as loadYaml } from "js-yaml";
 import { type Config, configSchema } from "./config.ts";
-import { Gemini } from "./inference/gemini.ts";
+import { DummyInferenceProvider } from "./inference/dummy.ts";
+import { GeminiInferenceProvider } from "./inference/gemini.ts";
 import type { InferenceProvider } from "./inference/index.ts";
-import { OpenAI } from "./inference/openai.ts";
+import { OpenAiInferenceProvider } from "./inference/openai.ts";
 import { Random } from "./random.ts";
-import { CmuDict } from "./source/cmudict.ts";
+import { CmuDictSourceProvider } from "./source/cmudict.ts";
 import type { SourceProvider } from "./source/index.ts";
 import {
   ExhaustiveError,
@@ -20,7 +21,7 @@ async function main() {
   let sourceProvider: SourceProvider;
   switch (config.source.provider) {
     case "cmudict":
-      sourceProvider = new CmuDict();
+      sourceProvider = new CmuDictSourceProvider();
       break;
     default:
       throw new ExhaustiveError(config.source.provider);
@@ -30,10 +31,13 @@ async function main() {
   let inferenceProvider: InferenceProvider;
   switch (config.inference.provider) {
     case "gemini":
-      inferenceProvider = new Gemini(config);
+      inferenceProvider = new GeminiInferenceProvider(config);
       break;
     case "openai":
-      inferenceProvider = new OpenAI(config);
+      inferenceProvider = new OpenAiInferenceProvider(config);
+      break;
+    case "dummy":
+      inferenceProvider = new DummyInferenceProvider(config);
       break;
     default:
       throw new ExhaustiveError(config.inference.provider);
@@ -76,7 +80,7 @@ async function main() {
   await writeResults({ path, results: allResults });
 
   console.log(
-    `${Object.keys(allResults).length} pronunciations written to ${path}`,
+    `${allResults.size} pronunciations inferred and written to ${path}`,
   );
 }
 
@@ -185,7 +189,7 @@ async function inferPronunciations(params: {
 }) {
   const globalWaitPromise = { value: undefined };
 
-  const allResults: Record<string, string> = {};
+  const allResults = new Map<string, string>();
 
   const shuffledWords = params.random
     .shuffle(params.words)
@@ -220,7 +224,7 @@ async function inferWorker(params: {
   inferenceProvider: InferenceProvider;
   rateLimit: Config["inference"]["rateLimit"];
   queue: InferenceQueueEntry[];
-  allResults: Record<string, string>;
+  allResults: Map<string, string>;
   globalWaitPromise: { value: Promise<void> | undefined };
 }) {
   while (params.queue.length > 0) {
@@ -244,13 +248,13 @@ async function inferWorker(params: {
         `Inferred ${Object.keys(results).length} pronunciations, ${
           Object.keys(validResults).length
         } valid, ${entries.length - Object.keys(validResults).length} invalid, ${
-          params.numAllWords -
-          Object.keys(params.allResults).length -
-          entries.length
+          params.numAllWords - params.allResults.size - entries.length
         } remaining`,
       );
 
-      Object.assign(params.allResults, validResults);
+      for (const [word, pronunciation] of Object.entries(validResults)) {
+        params.allResults.set(word, pronunciation);
+      }
     } catch (err) {
       if (String(err).includes("429")) {
         console.error(`Rate limited, waiting ${params.rateLimit.waitMs}ms...`);
@@ -263,7 +267,13 @@ async function inferWorker(params: {
             ...entry,
             numTries: entry.numTries + 1,
           }))
-          .filter((entry) => entry.numTries < params.rateLimit.maxRetries),
+          .filter((entry) => {
+            if (entry.numTries < params.rateLimit.maxRetries) {
+              return true;
+            }
+            console.error(`Dropping word: ${entry.word}`);
+            return false;
+          }),
       );
     }
   }
@@ -271,11 +281,11 @@ async function inferWorker(params: {
 
 async function writeResults(params: {
   path: string;
-  results: Record<string, string>;
+  results: Map<string, string>;
 }) {
   await fs.writeFile(
     params.path,
-    Object.entries(params.results)
+    [...params.results]
       .map(([word, pronunciation]) =>
         JSON.stringify({
           word,

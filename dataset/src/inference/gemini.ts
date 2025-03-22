@@ -5,7 +5,7 @@ import {
 import type { Config } from "../config.ts";
 import { InferenceProvider } from "./index.ts";
 
-export class Gemini extends InferenceProvider {
+export class GeminiInferenceProvider extends InferenceProvider {
   declare config: Config & { inference: { gemini: object } };
   genAI: GoogleGenerativeAI;
   model: GenerativeModel;

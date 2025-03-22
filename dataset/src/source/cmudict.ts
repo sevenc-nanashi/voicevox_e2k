@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import { SourceProvider } from "./index.ts";
 
-export class CmuDict extends SourceProvider {
+export class CmuDictSourceProvider extends SourceProvider {
   async getWords() {
     const dictPath = `${import.meta.dirname}/../../deps/cmudict/cmudict-0.7b`;
     const dictContent = await fs.readFile(dictPath, "utf-8");

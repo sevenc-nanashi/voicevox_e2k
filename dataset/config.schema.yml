@@ -27,6 +27,7 @@ properties:
         enum:
           - gemini
           - openai
+          - dummy
       concurrency:
         type: number
       rateLimit:
