@@ -1,5 +1,5 @@
-train_data: ./datasets/test_dataset.jsonl
-eval_data: ./datasets/test_dataset_eval.jsonl
+train_data: ./datasets/dummy_dataset.jsonl
+eval_data: ./datasets/dummy_dataset_eval.jsonl
 eval_max_words: 100
 dim: 16
 max_epochs: 10
