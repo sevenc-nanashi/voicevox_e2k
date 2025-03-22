@@ -80,7 +80,7 @@ fn compress_model(path: &Path) {
     let output_path = path.with_extra_extension("br");
 
     let mut input = std::fs::File::open(path).unwrap();
-    let mut output = std::fs::File::create(&output_path.with_extra_extension("tmp")).unwrap();
+    let mut output = std::fs::File::create(output_path.with_extra_extension("tmp")).unwrap();
     let mut output_writer = brotli::CompressorWriter::new(&mut output, 4096, 11, 22);
     std::io::copy(&mut input, &mut output_writer).unwrap();
     drop(output_writer);
@@ -88,7 +88,7 @@ fn compress_model(path: &Path) {
     if output_path.try_exists().unwrap() {
         std::fs::remove_file(&output_path).unwrap();
     }
-    std::fs::rename(&output_path.with_extra_extension("tmp"), &output_path).unwrap();
+    std::fs::rename(output_path.with_extra_extension("tmp"), &output_path).unwrap();
 }
 
 trait AddExtensionExt {
