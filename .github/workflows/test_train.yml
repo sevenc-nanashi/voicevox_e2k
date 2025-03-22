@@ -26,3 +26,7 @@ jobs:
         run: |
           uv run ruff check
           uv run ruff format --diff
+
+      - name: Run test train
+        run: |
+          uv run src/train.py ./config/test.yml
