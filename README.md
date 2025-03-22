@@ -14,7 +14,7 @@
 
 ## Hugging Face
 
-e2k にて、データセットと学習済みモデルを公開しています。\
+Hugging Face にて、データセットと学習済みモデルを公開しています。\
 <https://huggingface.co/VOICEVOX/e2k>
 
 ## ライセンス
