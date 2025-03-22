@@ -193,11 +193,11 @@ async function inferPronunciations(params: {
   console.log(`Using ${params.concurrency} concurrency`);
 
   const queue: InferenceQueueEntry[] = [...shuffledWords];
-  const inferJobs: Promise<void>[] = [];
+  const inferWorkers: Promise<void>[] = [];
 
   for (let i = 0; i < params.concurrency; i++) {
-    inferJobs.push(
-      inferJob({
+    inferWorkers.push(
+      inferWorker({
         numAllWords: params.words.length,
         batchSize: params.batchSize,
         inferenceProvider: params.inferenceProvider,
@@ -209,12 +209,12 @@ async function inferPronunciations(params: {
     );
   }
 
-  await Promise.all(inferJobs);
+  await Promise.all(inferWorkers);
 
   return allResults;
 }
 
-async function inferJob(params: {
+async function inferWorker(params: {
   numAllWords: number;
   batchSize: number;
   inferenceProvider: InferenceProvider;
