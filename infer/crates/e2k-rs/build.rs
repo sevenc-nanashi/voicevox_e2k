@@ -11,11 +11,11 @@ fn download_models() {
     println!("cargo:rerun-if-changed=models/model-c2k.safetensors");
     println!("cargo:rerun-if-changed=models/model-c2k.safetensors.br");
 
-    let override_model_path = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap())
+    let local_model_path = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap())
         .join("./models/model-c2k.safetensors");
 
-    let model_path = if override_model_path.try_exists().unwrap() {
-        override_model_path
+    let model_path = if local_model_path.try_exists().unwrap() {
+        local_model_path
     } else {
         let model_root = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("models");
         std::fs::create_dir_all(&model_root).unwrap();
