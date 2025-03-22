@@ -7,7 +7,7 @@ type OpenRouterError = {
   message: string;
 };
 
-export class OpenAIInferenceProvider extends InferenceProvider {
+export class OpenAiInferenceProvider extends InferenceProvider {
   declare config: Config & { inference: { openai: object } };
   client: OpenAIClient;
 
