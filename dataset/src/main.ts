@@ -269,12 +269,24 @@ async function inferWorker(params: {
     }
 
     const validResults = filterPronunciations(results);
+    const invalidWords = entries
+      .filter((entry) => entry.word in results)
+      .filter((entry) => !(entry.word in validResults));
+    const forgottenWords = entries.filter((entry) => !(entry.word in results));
+
+    params.queue.push(
+      ...invalidWords.map((entry) => ({
+        ...entry,
+        numTries: entry.numTries + 1,
+      })),
+    );
+    params.queue.push(...forgottenWords);
 
     console.log(
       `Inferred ${Object.keys(results).length} pronunciations, ${
         Object.keys(validResults).length
-      } valid, ${entries.length - Object.keys(validResults).length} invalid, ${
-        params.numAllWords - params.allResults.size - entries.length
+      } valid, ${invalidWords.length} invalid, ${forgottenWords.length} forgotten, ${
+        params.queue.length
       } remaining`,
     );
 
