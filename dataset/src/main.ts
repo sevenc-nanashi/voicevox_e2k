@@ -1,5 +1,4 @@
 import * as fs from "node:fs/promises";
-import { Semaphore } from "@core/asyncutil/semaphore";
 import { load as loadYaml } from "js-yaml";
 import { type Config, configSchema } from "./config.ts";
 import { Gemini } from "./inference/gemini.ts";
@@ -172,6 +171,10 @@ async function findMaxBatchSize(params: {
   return maxPossibleBatchSize;
 }
 
+type InferenceQueueEntry = {
+  word: string;
+  numTries: number;
+};
 async function inferPronunciations(params: {
   inferenceProvider: InferenceProvider;
   concurrency: number;
@@ -180,71 +183,90 @@ async function inferPronunciations(params: {
   random: Random;
   rateLimit: Config["inference"]["rateLimit"];
 }) {
-  const semaphore = new Semaphore(params.concurrency);
-  console.log(`Using ${params.concurrency} concurrency`);
+  const globalWaitPromise = { value: undefined };
 
   const allResults: Record<string, string> = {};
 
-  const shuffledWords = params.random.shuffle(params.words);
+  const shuffledWords = params.random
+    .shuffle(params.words)
+    .map((word) => ({ word, numTries: 0 }));
+  console.log(`Using ${params.concurrency} concurrency`);
 
-  const inferBatch = (words: string[]) =>
-    semaphore.lock(async () => {
-      await sleep(params.rateLimit.throttleMs);
+  const queue: InferenceQueueEntry[] = [...shuffledWords];
+  const inferJobs: Promise<void>[] = [];
 
-      const results = await params.inferenceProvider.infer(words);
+  for (let i = 0; i < params.concurrency; i++) {
+    inferJobs.push(
+      inferJob({
+        numAllWords: params.words.length,
+        batchSize: params.batchSize,
+        inferenceProvider: params.inferenceProvider,
+        rateLimit: params.rateLimit,
+        queue,
+        allResults,
+        globalWaitPromise,
+      }),
+    );
+  }
+
+  await Promise.all(inferJobs);
+
+  return allResults;
+}
+
+async function inferJob(params: {
+  numAllWords: number;
+  batchSize: number;
+  inferenceProvider: InferenceProvider;
+  rateLimit: Config["inference"]["rateLimit"];
+  queue: InferenceQueueEntry[];
+  allResults: Record<string, string>;
+  globalWaitPromise: { value: Promise<void> | undefined };
+}) {
+  while (params.queue.length > 0) {
+    const entries = params.queue.splice(0, params.batchSize);
+    if (entries.length === 0) {
+      return;
+    }
+
+    await params.globalWaitPromise.value;
+
+    await sleep(params.rateLimit.throttleMs);
+
+    try {
+      const results = await params.inferenceProvider.infer(
+        entries.map((entry) => entry.word),
+      );
 
       const validResults = filterPronunciations(results);
+
       console.log(
         `Inferred ${Object.keys(results).length} pronunciations, ${
           Object.keys(validResults).length
-        } valid, ${words.length - Object.keys(validResults).length} invalid, ${
-          shuffledWords.length - Object.keys(allResults).length - words.length
+        } valid, ${entries.length - Object.keys(validResults).length} invalid, ${
+          params.numAllWords -
+          Object.keys(params.allResults).length -
+          entries.length
         } remaining`,
       );
 
-      Object.assign(allResults, validResults);
-    });
-
-  let numTries = 0;
-  while (Object.keys(allResults).length < params.words.length) {
-    const remainingWords = shuffledWords.filter(
-      (word) => !(word in allResults),
-    );
-    const promises: Promise<void>[] = [];
-
-    while (remainingWords.length > 0) {
-      const currentWords = remainingWords.splice(0, params.batchSize);
-
-      promises.push(inferBatch(currentWords));
-    }
-    console.log(`Waiting for ${promises.length} batches...`);
-
-    const results = await Promise.allSettled(promises);
-
-    const isAllFulfilled = results.every(
-      (result) => result.status === "fulfilled",
-    );
-    if (!isAllFulfilled) {
-      const errors = results.flatMap((result) =>
-        result.status === "rejected" ? [result.reason] : [],
-      );
-      const error = new AggregateError(errors);
-      if (errors.some((err) => !String(err).includes("429"))) {
-        throw error;
+      Object.assign(params.allResults, validResults);
+    } catch (err) {
+      if (String(err).includes("429")) {
+        console.error(`Rate limited, waiting ${params.rateLimit.waitMs}ms...`);
+        params.globalWaitPromise.value = sleep(params.rateLimit.waitMs);
       }
-
-      console.error(`Rate limited, waiting ${params.rateLimit.waitMs}ms...`);
-      console.error(error);
-      await sleep(params.rateLimit.waitMs);
-    }
-
-    numTries++;
-    if (numTries > params.rateLimit.maxRetries) {
-      throw new Error("Too many retries");
+      console.error(err);
+      params.queue.push(
+        ...entries
+          .map((entry) => ({
+            ...entry,
+            numTries: entry.numTries + 1,
+          }))
+          .filter((entry) => entry.numTries < params.rateLimit.maxRetries),
+      );
     }
   }
-
-  return allResults;
 }
 
 async function writeResults(params: {

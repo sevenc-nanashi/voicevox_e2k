@@ -54,7 +54,7 @@ export const filterPronunciations = (
 };
 
 export const sleep = (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export class ExhaustiveError extends Error {
   constructor(value: never, message?: string) {
