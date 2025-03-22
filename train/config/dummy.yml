@@ -1,0 +1,10 @@
+train_data: ./datasets/dummy_dataset.jsonl
+eval_data: ./datasets/dummy_dataset_eval.jsonl
+eval_max_words: 100
+dim: 16
+max_epochs: 10
+num_last_models_to_keep: 2
+num_best_models_to_keep: 2
+seed: 0
+optimizer_lr: 0.001
+exponential_lr_scheduler_gamma: 0.9
