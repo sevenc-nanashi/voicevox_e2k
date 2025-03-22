@@ -5,7 +5,7 @@ import { type Config, configSchema } from "./config.ts";
 import { DummyInferenceProvider } from "./inference/dummy.ts";
 import { GeminiInferenceProvider } from "./inference/gemini.ts";
 import type { InferenceProvider } from "./inference/index.ts";
-import { OpenAIInferenceProvider } from "./inference/openai.ts";
+import { OpenAiInferenceProvider } from "./inference/openai.ts";
 import { Random } from "./random.ts";
 import { CmuDictSourceProvider } from "./source/cmudict.ts";
 import type { SourceProvider } from "./source/index.ts";
@@ -35,7 +35,7 @@ async function main() {
       inferenceProvider = new GeminiInferenceProvider(config);
       break;
     case "openai":
-      inferenceProvider = new OpenAIInferenceProvider(config);
+      inferenceProvider = new OpenAiInferenceProvider(config);
       break;
     case "dummy":
       inferenceProvider = new DummyInferenceProvider(config);
