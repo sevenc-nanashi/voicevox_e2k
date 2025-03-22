@@ -29,14 +29,14 @@ fn download_models() {
             .join("models")
             .join("version.txt");
 
-        let downloaded = model_version_path
+        let latest_model_exists = model_version_path
             .try_exists()
             .unwrap()
             .then(|| std::fs::read_to_string(&model_version_path).unwrap())
-            .filter(|s| s.trim() == MODEL_TAG)
-            .is_some();
+            .as_deref()
+            == Some(MODEL_TAG);
 
-        if !downloaded {
+        if !latest_model_exists {
             download_to(
                 &format!(
                     "https://huggingface.co/VOICEVOX/e2k/resolve/{MODEL_TAG}/model/c2k.safetensors"
