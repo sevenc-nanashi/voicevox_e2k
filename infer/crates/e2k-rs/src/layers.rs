@@ -10,19 +10,34 @@ where
     T: std::ops::Mul<Output = T>
         + std::ops::Add<Output = T>
         + num_traits::identities::Zero
+        + num_traits::identities::One
         + Copy
-        + std::ops::AddAssign,
+        + std::ops::AddAssign
+        + std::ops::Sub<Output = T>
+        + std::ops::Div<Output = T>
+        + 'static,
 {
-    let mut result = ndarray::Array3::zeros((a.shape()[0], a.shape()[1], b.shape()[2]));
-    for i in 0..a.shape()[0] {
-        for j in 0..a.shape()[1] {
-            for k in 0..b.shape()[2] {
-                for l in 0..a.shape()[2] {
-                    result[[i, j, k]] += a[[i, j, l]] * b[[i, l, k]];
-                }
-            }
-        }
+    let shape = a.shape();
+    let mut results = Vec::new();
+
+    for i in 0..shape[0] {
+        let mut result_i = ndarray::Array2::<T>::zeros((shape[1], b.shape()[2]));
+        ndarray::linalg::general_mat_mul(
+            T::one(),
+            &a.index_axis(ndarray::Axis(0), i),
+            &b.index_axis(ndarray::Axis(0), i),
+            T::zero(),
+            &mut result_i,
+        );
+        results.push(result_i);
     }
+
+    let result = ndarray::stack(
+        Axis(0),
+        &results.iter().map(|x| x.view()).collect::<Vec<_>>(),
+    )
+    .unwrap();
+
     result
 }
 
