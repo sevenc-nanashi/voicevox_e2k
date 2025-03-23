@@ -72,7 +72,7 @@ fn prepare_huggingface_model() -> Result<PathBuf> {
                 "https://huggingface.co/VOICEVOX/e2k/resolve/{MODEL_TAG}/model/c2k.safetensors"
             ),
             &model_path,
-        );
+        )?;
 
         std::fs::write(&model_version_path, MODEL_TAG)?;
     }
