@@ -1,3 +1,4 @@
+extern crate blas_src;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
