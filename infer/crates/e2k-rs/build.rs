@@ -1,9 +1,8 @@
-use anyhow::Result;
 use std::path::{Path, PathBuf};
 
 static MODEL_TAG: &str = "v1";
 
-fn main() -> Result<()> {
+fn main() -> anyhow::Result<()> {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=models/model-c2k.safetensors");
     println!("cargo:rerun-if-changed=models/model-c2k.safetensors.br");
@@ -13,7 +12,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn prepare_model() -> Result<()> {
+fn prepare_model() -> anyhow::Result<()> {
     let local_model_path = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap())
         .join("./models/model-c2k.safetensors");
 
@@ -48,7 +47,7 @@ fn prepare_compressed_model(model_path: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn prepare_huggingface_model() -> Result<PathBuf> {
+fn prepare_huggingface_model() -> anyhow::Result<PathBuf> {
     let model_root = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("models");
     std::fs::create_dir_all(&model_root)?;
 
@@ -76,7 +75,7 @@ fn prepare_huggingface_model() -> Result<PathBuf> {
     Ok(model_path)
 }
 
-fn download_to(url: &str, path: &Path) -> Result<()> {
+fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
     let response = ureq::get(url).call()?;
     let temp_path = path.with_extra_extension("tmp");
     let mut file = std::fs::File::create(&temp_path)?;
@@ -89,7 +88,7 @@ fn download_to(url: &str, path: &Path) -> Result<()> {
     Ok(())
 }
 
-fn compress_model(path: &Path) -> Result<()> {
+fn compress_model(path: &Path) -> anyhow::Result<()> {
     let output_path = path.with_extra_extension("br");
 
     let mut input = std::fs::File::open(path)?;
