@@ -4,44 +4,20 @@ static MODEL_TAG: &str = "v1";
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
-    download_models();
-}
-
-fn download_models() {
     println!("cargo:rerun-if-changed=models/model-c2k.safetensors");
     println!("cargo:rerun-if-changed=models/model-c2k.safetensors.br");
 
+    prepare_model();
+}
+
+fn prepare_model() {
     let local_model_path = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap())
         .join("./models/model-c2k.safetensors");
 
     let model_path = if local_model_path.try_exists().unwrap() {
         local_model_path
     } else {
-        let model_root = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("models");
-        std::fs::create_dir_all(&model_root).unwrap();
-
-        let model_version_path = model_root.join("version.txt");
-        let model_path = model_root.join("model-c2k.safetensors");
-
-        let latest_model_exists = model_version_path
-            .try_exists()
-            .unwrap()
-            .then(|| std::fs::read_to_string(&model_version_path).unwrap())
-            .as_deref()
-            == Some(MODEL_TAG);
-
-        if !latest_model_exists {
-            download_to(
-                &format!(
-                    "https://huggingface.co/VOICEVOX/e2k/resolve/{MODEL_TAG}/model/c2k.safetensors"
-                ),
-                &model_path,
-            );
-
-            std::fs::write(&model_version_path, MODEL_TAG).unwrap();
-        }
-
-        model_path
+        prepare_network_model()
     };
 
     let compressed_model_path = model_path.with_extra_extension("br");
@@ -63,6 +39,34 @@ fn download_models() {
         "cargo:rustc-env=E2K_MODEL_ROOT={}",
         model_path.parent().unwrap().display()
     );
+}
+
+fn prepare_network_model() -> PathBuf {
+    let model_root = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("models");
+    std::fs::create_dir_all(&model_root).unwrap();
+
+    let model_version_path = model_root.join("version.txt");
+    let model_path = model_root.join("model-c2k.safetensors");
+
+    let latest_model_exists = model_version_path
+        .try_exists()
+        .unwrap()
+        .then(|| std::fs::read_to_string(&model_version_path).unwrap())
+        .as_deref()
+        == Some(MODEL_TAG);
+
+    if !latest_model_exists {
+        download_to(
+            &format!(
+                "https://huggingface.co/VOICEVOX/e2k/resolve/{MODEL_TAG}/model/c2k.safetensors"
+            ),
+            &model_path,
+        );
+
+        std::fs::write(&model_version_path, MODEL_TAG).unwrap();
+    }
+
+    model_path
 }
 
 fn download_to(url: &str, path: &Path) {
