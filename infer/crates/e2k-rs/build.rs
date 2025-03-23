@@ -20,25 +20,33 @@ fn prepare_model() {
         prepare_huggingface_model()
     };
 
-    let compressed_model_path = model_path.with_extra_extension("br");
-    let is_compressed_model_up_to_date = compressed_model_path
-        .try_exists()
-        .unwrap()
-        .then(|| {
-            let compressed_model_metadata = compressed_model_path.metadata().unwrap();
-            let model_metadata = model_path.metadata().unwrap();
-            compressed_model_metadata.modified().unwrap() >= model_metadata.modified().unwrap()
-        })
-        .unwrap_or(false);
-
-    if !is_compressed_model_up_to_date {
-        compress_model(&model_path);
-    }
+    prepare_compressed_model(&model_path);
 
     println!(
         "cargo:rustc-env=E2K_MODEL_ROOT={}",
         model_path.parent().unwrap().display()
     );
+}
+
+fn prepare_compressed_model(model_path: &Path) {
+    let compressed_model_path = model_path.with_extra_extension("br");
+    let is_compressed_model_up_to_date = compressed_model_path
+        .try_exists()
+        .unwrap()
+        .then(|| {
+            let compressed_model_modified = compressed_model_path
+                .metadata()
+                .unwrap()
+                .modified()
+                .unwrap();
+            let model_modified = model_path.metadata().unwrap().modified().unwrap();
+            compressed_model_modified >= model_modified
+        })
+        .unwrap_or(false);
+
+    if !is_compressed_model_up_to_date {
+        compress_model(model_path);
+    }
 }
 
 fn prepare_huggingface_model() -> PathBuf {
