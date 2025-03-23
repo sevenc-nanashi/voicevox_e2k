@@ -17,7 +17,7 @@ fn prepare_model() {
     let model_path = if local_model_path.try_exists().unwrap() {
         local_model_path
     } else {
-        prepare_network_model()
+        prepare_huggingface_model()
     };
 
     let compressed_model_path = model_path.with_extra_extension("br");
@@ -41,7 +41,7 @@ fn prepare_model() {
     );
 }
 
-fn prepare_network_model() -> PathBuf {
+fn prepare_huggingface_model() -> PathBuf {
     let model_root = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("models");
     std::fs::create_dir_all(&model_root).unwrap();
 
