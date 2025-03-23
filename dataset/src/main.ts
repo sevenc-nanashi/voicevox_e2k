@@ -251,20 +251,13 @@ async function inferWorker(params: {
         params.globalWaitPromise.value = sleep(params.rateLimit.waitMs);
       }
       console.error(err);
-      params.queue.push(
-        ...incrementTryCountAndFilter({
-          entries,
-          maxRetries: params.rateLimit.maxRetries,
-        }),
-      );
-      continue;
+      results = {};
     }
 
     const validResults = filterPronunciations(results);
-    const invalidWords = entries
-      .filter((entry) => entry.word in results)
-      .filter((entry) => !(entry.word in validResults));
-    const forgottenWords = entries.filter((entry) => !(entry.word in results));
+    const invalidWords = entries.filter(
+      (entry) => !(entry.word in validResults),
+    );
 
     params.queue.push(
       ...incrementTryCountAndFilter({
@@ -272,12 +265,11 @@ async function inferWorker(params: {
         maxRetries: params.rateLimit.maxRetries,
       }),
     );
-    params.queue.push(...forgottenWords);
 
     console.log(
       `Inferred ${Object.keys(results).length} pronunciations, ${
         Object.keys(validResults).length
-      } valid, ${invalidWords.length} invalid, ${forgottenWords.length} forgotten, ${
+      } valid, ${invalidWords.length} invalid or forgotten, ${
         params.queue.length
       } remaining`,
     );
