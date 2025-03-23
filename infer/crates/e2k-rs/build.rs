@@ -35,15 +35,11 @@ fn prepare_model() -> Result<()> {
 
 fn prepare_compressed_model(model_path: &Path) -> anyhow::Result<()> {
     let compressed_model_path = model_path.with_extra_extension("br");
-    let is_compressed_model_up_to_date = compressed_model_path
-        .try_exists()?
-        .then(|| {
-            let compressed_model_modified = compressed_model_path.metadata()?.modified()?;
-            let model_modified = model_path.metadata()?.modified()?;
-            Ok::<_, anyhow::Error>(compressed_model_modified >= model_modified)
-        })
-        .transpose()?
-        .unwrap_or(false);
+    let is_compressed_model_up_to_date = compressed_model_path.try_exists()? && {
+        let compressed_model_modified = compressed_model_path.metadata()?.modified()?;
+        let model_modified = model_path.metadata()?.modified()?;
+        compressed_model_modified >= model_modified
+    };
 
     if !is_compressed_model_up_to_date {
         compress_model(model_path)?;
