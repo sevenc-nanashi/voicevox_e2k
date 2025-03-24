@@ -46,7 +46,7 @@ jobs:
 
       - name: Delete non-manylinux wheels
         run: |
-          rm -f infer/target/wheels/*-linux_*.whl
+          rm -vf target/wheels/*-linux_*.whl
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
