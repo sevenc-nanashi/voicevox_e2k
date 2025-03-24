@@ -2,6 +2,9 @@
 requires = ["maturin>=1.8,<2.0"]
 build-backend = "maturin"
 
+[tool.maturin]
+# features = ["e2k-py/blas"]
+
 [project]
 name = "voicevox_e2k"
 requires-python = ">=3.8"
