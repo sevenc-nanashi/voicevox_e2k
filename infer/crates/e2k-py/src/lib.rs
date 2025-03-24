@@ -1,4 +1,3 @@
-#[cfg(feature = "blas")]
 extern crate blas_src;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
@@ -97,7 +96,6 @@ fn voicevox_e2k(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     m.add("KANAS", e2k::KANAS)?;
     m.add("ASCII_ENTRIES", e2k::ASCII_ENTRIES)?;
-    m.add("BLAS", cfg!(feature = "blas"))?;
 
     Ok(())
 }
