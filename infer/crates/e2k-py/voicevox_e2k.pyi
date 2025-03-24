@@ -1,5 +1,8 @@
 from typing import Final, Literal, overload
 
+__version__: Final[str]
+"""バージョン。"""
+
 KANAS: Final[list[str]]
 """c2kの入力に使える文字の一覧。"""
 ASCII_ENTRIES: Final[list[str]]

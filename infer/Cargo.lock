@@ -366,7 +366,7 @@ dependencies = [
 
 [[package]]
 name = "e2k"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "brotli",
