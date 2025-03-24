@@ -44,6 +44,10 @@ jobs:
         run: |
           uv run maturin build --release
 
+      - name: Delete non-manylinux wheels
+        run: |
+          rm -f infer/target/wheels/*-linux_*.whl
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
