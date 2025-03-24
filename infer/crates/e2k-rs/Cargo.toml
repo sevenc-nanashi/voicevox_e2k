@@ -27,10 +27,10 @@ educe = "0.6.0"
 getrandom = { version = "0.3.1", optional = true }
 itertools = "0.14.0"
 ndarray = "0.16.1"
-ndarray-safetensors = "0.2.2"
+ndarray-safetensors = "0.3.0"
 num-traits = "0.2.19"
 rand = { version = "0.9.0", optional = true }
-safetensors = "0.4.5"
+safetensors = "0.5.3"
 
 [target.'cfg(not(all(target_arch = "wasm32", target_os = "unknown")))'.dependencies]
 rand = "0.9.0"
