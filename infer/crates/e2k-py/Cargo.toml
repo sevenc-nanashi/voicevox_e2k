@@ -9,8 +9,15 @@ publish = false
 name = "voicevox_e2k"
 crate-type = ["cdylib"]
 
+[features]
+default = []
+blas = ["e2k/blas", "dep:blas-src", "dep:openblas-src"]
+
 [dependencies]
-e2k = { path = "../e2k-rs", features = ["blas"] }
+e2k = { path = "../e2k-rs" }
 pyo3 = { version = "0.24.0", features = ["extension-module"] }
-blas-src = { version = "0.10", features = ["openblas"] }
-openblas-src = { version = "0.10", features = ["cblas", "system"] }
+blas-src = { version = "0.10", features = ["openblas"], optional = true }
+openblas-src = { version = "0.10", features = [
+  "cblas",
+  "system",
+], optional = true }

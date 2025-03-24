@@ -5,6 +5,9 @@ KANAS: Final[list[str]]
 ASCII_ENTRIES: Final[list[str]]
 """c2kで出力される文字の一覧。"""
 
+BLAS: Final[bool]
+"""BLASが使えるかどうか。"""
+
 class C2k:
     """英単語 -> カタカナの推論を行う。"""
 
