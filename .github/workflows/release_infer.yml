@@ -44,6 +44,6 @@ jobs:
         with:
           files: infer/target/wheels/*.whl
           token: ${{ secrets.GITHUB_TOKEN }}
-          release_name: ${{ github.event.inputs.version }}
-          release_tag: ${{ github.event.inputs.version }}
+          name: ${{ github.event.inputs.version }}
+          tag_name: ${{ github.event.inputs.version }}
           prerelease: ${{ steps.info.outputs.prerelease }}
