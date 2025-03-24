@@ -1,0 +1,15 @@
+name: Release Infer
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release"
+        required: true
+
+jobs:
+  dummy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Noop
+        run: echo "Noop"
