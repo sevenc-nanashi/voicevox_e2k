@@ -5,6 +5,10 @@ on:
       version:
         description: "Version to release"
         required: true
+      production:
+        description: "Release to PyPI (not TestPyPI)"
+        required: false
+        default: "false"
 
 defaults:
   run:
@@ -12,7 +16,7 @@ defaults:
     working-directory: infer
 
 jobs:
-  test:
+  build:
     strategy:
       fail-fast: false
       matrix:
@@ -30,20 +34,22 @@ jobs:
         run: |
           uv run maturin build --release
 
-      - name: Get information
-        id: info
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const version = ${{ toJson(github.event.inputs.version) }};
-            core.setOutput('prerelease', version.includes('-'));
-
       - name: Upload artifacts
-        uses: softprops/action-gh-release@v2
+        uses: actions/upload-artifact@v4
         with:
-          files: infer/target/wheels/*.whl
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: ${{ github.event.inputs.version }}
-          tag_name: ${{ github.event.inputs.version }}
-          prerelease: ${{ steps.info.outputs.prerelease }}
+          name: e2k-py-${{ runner.os }}
+          path: infer/target/wheels/*.whl
+
+  publish:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: ${{ inputs.production == 'true' && 'https://upload.pypi.org/legacy/' || 'https://test.pypi.org/legacy/' }}
