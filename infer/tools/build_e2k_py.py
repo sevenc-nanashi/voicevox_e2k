@@ -1,11 +1,12 @@
 import argparse
+import base64
 import os
-from subprocess import check_output
+from pathlib import Path
+import platform
 import re
 import shutil
+from subprocess import check_output
 import tempfile
-import platform
-from pathlib import Path
 
 infer_root = Path(__file__).parent.parent
 e2k_py_root = infer_root / "crates" / "e2k-py"
@@ -50,7 +51,9 @@ def process_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wheel", action="store_true", help="Build wheel")
     parser.add_argument(
-            "--wheel-on-docker", action="store_true", help="Build wheel on docker (Linux only, requires Docker and sudo)"
+        "--wheel-on-docker",
+        action="store_true",
+        help="Build wheel on docker (Linux only, requires Docker and sudo)",
     )
     parser.add_argument("--sdist", action="store_true", help="Build sdist")
     parser.add_argument("--version", type=str, required=True, help="Version to set")
@@ -77,7 +80,7 @@ def replace_version(version: str) -> str:
 
 
 def build_notice():
-    result = check_output(
+    result = check_output_verbose(
         [
             "cargo",
             "about",
@@ -92,9 +95,9 @@ def build_notice():
 
 
 def build_wheel():
-    check_output(["uv", "run", "maturin", "build", "--release"])
+    check_output_verbose(["uv", "run", "maturin", "build", "--release"])
     if platform.system().lower() == "windows":
-        check_output(
+        check_output_verbose(
             [
                 "uv",
                 "run",
@@ -129,34 +132,49 @@ def build_wheel_on_docker(version: str):
 
     tag = "x86_64" if platform.machine() == "x86_64" else "aarch64"
 
-    os.makedirs(wheels_root, exist_ok=True)
-    check_output(
-        [
-            "docker",
-            "run",
-            "--rm",
-            "--mount",
-            f"type=bind,source={infer_root},target=/mnt",
-            f"messense/manylinux_2_28-cross:{tag}",
-            "bash",
-            "-c",
-            " && ".join(
-                [
-                    "(curl -LsSf https://astral.sh/uv/install.sh | sh)",
-                    "(curl -LsSf https://sh.rustup.rs | sh -s -- -y --profile minimal)",
-                    "export PATH=$HOME/.cargo/bin:$HOME/.local/bin:$PATH",
-                    "mkdir /work",
-                    "cp -r /mnt/. /work",
-                    "cd /work/tools",
-                    f"uv run ./build_e2k_py.py --wheel --version {version} --skip-notice",
-                    "cp -r /work/target/wheels/. /mnt/target/wheels",
-                ]
-            ),
+    with tempfile.NamedTemporaryFile(suffix=".tgz", delete=True) as temp_tgz:
+        copy_excludes = [
+            ".venv",
+            "target",
+            "__pycache__",
+            "dist",
+            ".pytest_cache",
         ]
-    )
 
-    # TODO: ここのsudo chownを無くす。
-    check_output(["sudo", "chown", f"{os.getuid()}:{os.getgid()}", "-R", wheels_root])
+        os.makedirs(wheels_root, exist_ok=True)
+        check_output_verbose(
+            [
+                "docker",
+                "run",
+                "--rm",
+                "--mount",
+                f"type=bind,source={infer_root},target=/mnt/infer",
+                "--mount",
+                f"type=bind,source={temp_tgz.name},target=/mnt/wheels.tar.gz",
+                f"messense/manylinux_2_28-cross:{tag}",
+                "bash",
+                "-c",
+                " && ".join(
+                    [
+                        "set -ex",
+                        "apt-get install -y rsync",
+                        "(curl -LsSf https://astral.sh/uv/install.sh | sh)",
+                        "(curl -LsSf https://sh.rustup.rs | sh -s -- -y --profile minimal)",
+                        "export PATH=$HOME/.cargo/bin:$HOME/.local/bin:$PATH",
+                        "mkdir /work",
+                        f"(echo {base64.b64encode('\n'.join(copy_excludes).encode()).decode()} | base64 -d) > /work/copy_excludes.txt",
+                        "rsync -av --exclude-from=/work/copy_excludes.txt /mnt/infer/ /work",
+                        "cd /work/tools",
+                        f"uv run ./build_e2k_py.py --wheel --version {version} --skip-notice",
+                        "cd /work/target/wheels",
+                        "tar -czvf /mnt/wheels.tar.gz .",
+                    ]
+                ),
+            ]
+        )
+
+        # Dockerでそのままファイルをコピーすると所有者がrootになるため、tgzで固めて出力した後に展開する
+        check_output_verbose(["tar", "-xzvf", temp_tgz.name, "-C", wheels_root])
 
 
 def build_sdist():
@@ -165,18 +183,25 @@ def build_sdist():
 
     temp_dir = Path(tempfile.mkdtemp(prefix="e2k-py-sdist-"))
 
-    check_output(["uv", "run", "maturin", "sdist", "-o", temp_dir])
+    check_output_verbose(["uv", "run", "maturin", "sdist", "-o", temp_dir])
 
     tar_path = next(temp_dir.glob("*.tar.gz"))
     tar_name = tar_path.name
     sdist_name = tar_name.replace(".tar.gz", "")
 
-    check_output(["tar", "-xzvf", tar_name], cwd=temp_dir)
+    check_output_verbose(["tar", "-xzvf", tar_name], cwd=temp_dir)
     pkg_root = temp_dir / sdist_name
     shutil.copyfile(e2k_py_root / "LICENSE", pkg_root / "LICENSE")
     shutil.copyfile(e2k_py_root / "NOTICE.md", pkg_root / "NOTICE.md")
 
-    check_output(["tar", "-czvf", wheels_root / tar_name, sdist_name], cwd=temp_dir)
+    check_output_verbose(
+        ["tar", "-czvf", wheels_root / tar_name, sdist_name], cwd=temp_dir
+    )
+
+
+def check_output_verbose(*args, **kwargs):
+    print(f"$ {' '.join(map(str, args[0]))}")
+    return check_output(*args, **kwargs)
 
 
 if __name__ == "__main__":
