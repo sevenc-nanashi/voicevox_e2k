@@ -105,6 +105,9 @@ def build_wheel():
 
 
 def build_sdist():
+    # NOTE: maturin sdistは特定条件下でLICENSEをsdistに含めないバグがあるため、手動で追加する。
+    # ref: https://github.com/PyO3/maturin/issues/2531
+
     temp_dir = Path(tempfile.mkdtemp(prefix="e2k-py-sdist-"))
 
     check_output(["uv", "run", "maturin", "sdist", "-o", temp_dir])
