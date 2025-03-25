@@ -110,7 +110,8 @@ def build_sdist():
     check_output(["uv", "run", "maturin", "sdist", "-o", temp_dir])
 
     tar_path = next(temp_dir.glob("*.tar.gz"))
-    tar_name, sdist_name = tar_path.name, tar_path.stem
+    tar_name = tar_path.name
+    sdist_name = tar_name.replace(".tar.gz", "")
 
     check_output(["tar", "-xzvf", tar_name], cwd=temp_dir)
     pkg_root = temp_dir / sdist_name
