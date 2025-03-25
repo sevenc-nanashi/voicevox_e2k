@@ -47,7 +47,7 @@ jobs:
         run: |
           uv run maturin build --release
 
-      - name: Delete non-manylinux wheels
+      - name: Delete non-many linux wheel
         run: |
           rm -vf target/wheels/*-linux_*.whl
 
