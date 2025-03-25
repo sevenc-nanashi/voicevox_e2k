@@ -71,7 +71,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: e2k-py-${{ runner.os }}
+          name: e2k-py-${{ matrix.os }}
           path: infer/target/wheels/*.whl
 
   publish:
