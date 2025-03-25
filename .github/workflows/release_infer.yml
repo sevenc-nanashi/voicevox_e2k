@@ -30,43 +30,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install uv
+      - name: Setup uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Install binstall
+      - name: Setup binstall
         uses: cargo-bins/cargo-binstall@main
 
-      - name: Install cargo-about
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          package_json_file: tools/package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          # TODO: .node-versionなどをdatasetと共通化する
+          node-version-file: tools/.node-version
+          cache: "pnpm"
+          cache-dependency-path: tools/pnpm-lock.yaml
+
+      - name: Setup cargo-about
         run: cargo binstall cargo-about
 
-      - name: Replace version
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const version = ${{ toJson(inputs.version) }};
-            const cargoToml = fs.readFileSync('./infer/Cargo.toml', 'utf8');
-            const replacedCargoToml = cargoToml.replace(/^version = ".*"$/m, `version = "${version}"`);
-            if (cargoToml === replacedCargoToml) {
-              throw new Error("assert: cargoToml !== replacedCargoToml");
-            }
-            fs.writeFileSync('./infer/Cargo.toml', replacedCargoToml);
-
-      - name: Run Python build
-        working-directory: infer/crates/e2k-py
+      - name: Build wheel
+        working-directory: tools
         run: |
-          (cd ../e2k-rs && cargo about generate about.hbs.md > ../e2k-py/NOTICE.md)
-          uv run maturin build --release
+          pnpm i
+          pnpm run tools:build_e2k_py --wheel --version ${{ inputs.version }}
 
       - name: Run Python sdist build
-        working-directory: infer/crates/e2k-py
+        working-directory: tools
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
-          uv run maturin sdist
-
-      - name: Delete non-many linux wheel
-        run: |
-          rm -vf target/wheels/*-linux_*.whl
+          pnpm run tools:build_e2k_py --sdist --version ${{ inputs.version }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
