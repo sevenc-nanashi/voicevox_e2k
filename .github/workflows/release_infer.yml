@@ -80,7 +80,9 @@ jobs:
           path: infer/target/wheels/*.tar.gz
 
   publish:
-    needs: build
+    needs:
+      - build
+      - build-sdist
 
     runs-on: ubuntu-latest
 
