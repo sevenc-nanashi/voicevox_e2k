@@ -5,7 +5,7 @@ from pathlib import Path
 import platform
 import re
 import shutil
-from subprocess import check_output
+from subprocess import check_output, run
 import tempfile
 
 infer_root = Path(__file__).parent.parent
@@ -95,9 +95,9 @@ def build_notice():
 
 
 def build_wheel():
-    check_output_verbose(["uv", "run", "maturin", "build", "--release"])
+    run_verbose(["uv", "run", "maturin", "build", "--release"])
     if platform.system().lower() == "windows":
-        check_output_verbose(
+        run_verbose(
             [
                 "uv",
                 "run",
@@ -142,7 +142,7 @@ def build_wheel_on_docker(version: str):
         ]
 
         os.makedirs(wheels_root, exist_ok=True)
-        check_output_verbose(
+        run_verbose(
             [
                 "docker",
                 "run",
@@ -174,7 +174,7 @@ def build_wheel_on_docker(version: str):
         )
 
         # Dockerでそのままファイルをコピーすると所有者がrootになるため、tgzで固めて出力した後に展開する
-        check_output_verbose(["tar", "-xzvf", temp_tgz.name, "-C", wheels_root])
+        run_verbose(["tar", "-xzvf", temp_tgz.name, "-C", wheels_root])
 
 
 def build_sdist():
@@ -183,20 +183,25 @@ def build_sdist():
 
     temp_dir = Path(tempfile.mkdtemp(prefix="e2k-py-sdist-"))
 
-    check_output_verbose(["uv", "run", "maturin", "sdist", "-o", temp_dir])
+    run_verbose(["uv", "run", "maturin", "sdist", "-o", temp_dir])
 
     tar_path = next(temp_dir.glob("*.tar.gz"))
     tar_name = tar_path.name
     sdist_name = tar_name.replace(".tar.gz", "")
 
-    check_output_verbose(["tar", "-xzvf", tar_name], cwd=temp_dir)
+    run_verbose(["tar", "-xzvf", tar_name], cwd=temp_dir)
     pkg_root = temp_dir / sdist_name
     shutil.copyfile(e2k_py_root / "LICENSE", pkg_root / "LICENSE")
     shutil.copyfile(e2k_py_root / "NOTICE.md", pkg_root / "NOTICE.md")
 
-    check_output_verbose(
+    run_verbose(
         ["tar", "-czvf", wheels_root / tar_name, sdist_name], cwd=temp_dir
     )
+
+
+def run_verbose(*args, **kwargs):
+    print(f"$ {' '.join(map(str, args[0]))}")
+    run(*args, **kwargs, check=True)
 
 
 def check_output_verbose(*args, **kwargs):
