@@ -105,20 +105,6 @@ def build_wheel():
                 "i686-pc-windows-msvc",
             ]
         )
-    elif platform.system().lower() == "linux":
-        wheels = list(wheels_root.iterdir())
-        non_manylinux_wheels = [
-            f for f in wheels if f.name.endswith(".whl") and "manylinux" not in f.name
-        ]
-        manylinux_wheels = [
-            f for f in wheels if f.name.endswith(".whl") and "manylinux" in f.name
-        ]
-        if len(manylinux_wheels) != 1:
-            raise Exception(
-                f"assert: manylinux_wheels.length == 1 ({len(manylinux_wheels)})"
-            )
-        for wheel in non_manylinux_wheels:
-            wheel.unlink()
 
 
 def build_wheel_on_docker(version: str):
