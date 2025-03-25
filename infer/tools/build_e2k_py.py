@@ -21,18 +21,22 @@ def main():
     version: str = args.version
 
     print("Replacing version...")
-    replace_version(infer_root, version)
+    original_version = replace_version(version)
 
-    print("Building NOTICE.md...")
-    build_notice()
+    try:
+        print("Building NOTICE.md...")
+        build_notice()
 
-    if wheel:
-        print("Building wheel...")
-        build_wheel()
+        if wheel:
+            print("Building wheel...")
+            build_wheel()
 
-    if sdist:
-        print("Building sdist...")
-        build_sdist()
+        if sdist:
+            print("Building sdist...")
+            build_sdist()
+    finally:
+        print("Restoring version...")
+        replace_version(original_version)
 
 
 def process_args():
@@ -46,15 +50,17 @@ def process_args():
     return args
 
 
-def replace_version(infer_root: Path, version):
+def replace_version(version: str) -> str:
     cargo_toml_path = infer_root / "Cargo.toml"
     cargo_toml = cargo_toml_path.read_text(encoding="utf8")
-    new_cargo_toml, count = re.subn(
-        r'^version = ".*"$', f'version = "{version}"', cargo_toml, flags=re.MULTILINE
-    )
-    if count == 0:
-        raise Exception("Failed to replace version in Cargo.toml")
+    version_pattern = re.compile(r'^version = "(.*)"$', flags=re.MULTILINE)
+    match = version_pattern.search(cargo_toml)
+    if match is None:
+        raise Exception("Failed to find version in Cargo.toml")
+    original_version = match.group(1)
+    new_cargo_toml = version_pattern.sub(f'version = "{version}"', cargo_toml)
     cargo_toml_path.write_text(new_cargo_toml, encoding="utf8")
+    return original_version
 
 
 def build_notice():
