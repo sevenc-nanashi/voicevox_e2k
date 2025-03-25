@@ -106,4 +106,4 @@ jobs:
           body: |
             Release v${{ inputs.version }}
           draft: false
-          prerelease: ${{ !inputs.production }}
+          prerelease: ${{ inputs.production != "true" }}
