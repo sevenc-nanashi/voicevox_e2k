@@ -51,7 +51,7 @@ jobs:
 
       - name: Build sdist
         working-directory: infer/tools
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-22.04'
         run: |
           uv run build_e2k_py.py --sdist --version ${{ inputs.version }}
 
