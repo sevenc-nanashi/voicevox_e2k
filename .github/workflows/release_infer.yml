@@ -36,7 +36,7 @@ jobs:
             const fs = require('fs');
             const version = ${{ toJson(inputs.version) }};
             const cargoToml = fs.readFileSync('./infer/crates/e2k-py/Cargo.toml', 'utf8');
-            const replacedCargoToml = cargoToml.replace(/^version = ".*"$/, `version = "${version}"`);
+            const replacedCargoToml = cargoToml.replace(/^version = ".*"$/m, `version = "${version}"`);
             if (cargoToml === replacedCargoToml) {
               throw new Error("assert: cargoToml !== replacedCargoToml");
             }
