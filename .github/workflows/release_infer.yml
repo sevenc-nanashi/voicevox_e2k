@@ -35,12 +35,12 @@ jobs:
           script: |
             const fs = require('fs');
             const version = ${{ toJson(inputs.version) }};
-            const cargoToml = fs.readFileSync('./infer/crates/e2k-py/Cargo.toml', 'utf8');
+            const cargoToml = fs.readFileSync('./infer/Cargo.toml', 'utf8');
             const replacedCargoToml = cargoToml.replace(/^version = ".*"$/m, `version = "${version}"`);
             if (cargoToml === replacedCargoToml) {
               throw new Error("assert: cargoToml !== replacedCargoToml");
             }
-            fs.writeFileSync('./infer/crates/e2k-py/Cargo.toml', replacedCargoToml);
+            fs.writeFileSync('./infer/Cargo.toml', replacedCargoToml);
 
       - name: Run Python build
         working-directory: infer/crates/e2k-py
