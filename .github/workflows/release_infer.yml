@@ -33,6 +33,12 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
+      - name: Install binstall
+        uses: cargo-bins/cargo-binstall@main
+
+      - name: Install cargo-about
+        run: cargo binstall cargo-about
+
       - name: Replace version
         uses: actions/github-script@v7
         with:
