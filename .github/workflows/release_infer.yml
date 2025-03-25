@@ -44,10 +44,17 @@ jobs:
         if: matrix.os == 'windows-2019'
         run: rustup target add i686-pc-windows-msvc
 
-      - name: Build wheel
+      - name: Build wheel on host
         working-directory: infer/tools
+        if: matrix.os == 'windows-2019' || matrix.os == 'macos-13'
         run: |
           uv run build_e2k_py.py --wheel --version ${{ inputs.version }}
+
+      - name: Build wheel on docker
+        working-directory: infer/tools
+        if: matrix.os == 'ubuntu-22.04' || matrix.os == 'ubuntu-22.04-arm'
+        run: |
+          uv run build_e2k_py.py --wheel-on-docker --version ${{ inputs.version }}
 
       - name: Build sdist
         working-directory: infer/tools

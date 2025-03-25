@@ -17,19 +17,26 @@ def main():
 
     args = process_args()
     wheel: bool = args.wheel
+    wheel_on_docker: bool = args.wheel_on_docker
     sdist: bool = args.sdist
     version: str = args.version
+    skip_notice: bool = args.skip_notice
 
     print("Replacing version...")
     original_version = replace_version(version)
 
     try:
-        print("Building NOTICE.md...")
-        build_notice()
+        if not skip_notice:
+            print("Building NOTICE.md...")
+            build_notice()
 
         if wheel:
             print("Building wheel...")
             build_wheel()
+
+        if wheel_on_docker:
+            print("Building wheel on docker...")
+            build_wheel_on_docker(version)
 
         if sdist:
             print("Building sdist...")
@@ -42,11 +49,15 @@ def main():
 def process_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wheel", action="store_true", help="Build wheel")
+    parser.add_argument(
+        "--wheel-on-docker", action="store_true", help="Build wheel on docker"
+    )
     parser.add_argument("--sdist", action="store_true", help="Build sdist")
     parser.add_argument("--version", type=str, required=True, help="Version to set")
+    parser.add_argument("--skip-notice", action="store_true", help="Skip NOTICE.md generation")
     args = parser.parse_args()
-    if not args.wheel and not args.sdist:
-        parser.error("Specify at least one of --wheel or --sdist")
+    if not any([args.wheel, args.wheel_on_docker, args.sdist]):
+        parser.error("Specify at least one of --wheel, --wheel-on-docker or --sdist")
     return args
 
 
@@ -108,6 +119,35 @@ def build_wheel():
             )
         for wheel in non_manylinux_wheels:
             wheel.unlink()
+
+
+def build_wheel_on_docker(version: str):
+    if platform.system().lower() != "linux":
+        raise Exception("This command must be run on Linux")
+
+    tag = "x86_64" if platform.machine() == "x86_64" else "aarch64"
+
+    check_output(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "-v",
+            f"{infer_root}:/mnt",
+            f"messense/manylinux_2_28-cross:{tag}",
+            "bash",
+            "-c",
+            " && ".join(
+                [
+                    "(curl -LsSf https://astral.sh/uv/install.sh | sh)",
+                    "(curl -LsSf https://sh.rustup.rs | sh -s -- -y --profile minimal)",
+                    "export PATH=$HOME/.cargo/bin:$HOME/.local/bin:$PATH",
+                    "cd /mnt/tools",
+                    f"uv run ./build_e2k_py.py --wheel --version {version} --skip-notice",
+                ]
+            ),
+        ]
+    )
 
 
 def build_sdist():
