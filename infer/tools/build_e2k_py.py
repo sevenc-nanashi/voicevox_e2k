@@ -67,7 +67,9 @@ def build_notice():
 
 def build_wheel():
     check_output(["uv", "run", "maturin", "build", "--release"])
-    if platform.system().lower() == "linux":
+    if platform.system().lower() == "windows":
+        check_output(["uv", "run", "maturin", "build", "--release", "--target", "i686-pc-windows-msvc"])
+    elif platform.system().lower() == "linux":
         wheels = list(wheels_root.iterdir())
         non_manylinux_wheels = [
             f for f in wheels if f.name.endswith(".whl") and "manylinux" not in f.name
