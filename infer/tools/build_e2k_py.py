@@ -50,11 +50,13 @@ def process_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wheel", action="store_true", help="Build wheel")
     parser.add_argument(
-        "--wheel-on-docker", action="store_true", help="Build wheel on docker"
+            "--wheel-on-docker", action="store_true", help="Build wheel on docker (Linux only, requires Docker and sudo)"
     )
     parser.add_argument("--sdist", action="store_true", help="Build sdist")
     parser.add_argument("--version", type=str, required=True, help="Version to set")
-    parser.add_argument("--skip-notice", action="store_true", help="Skip NOTICE.md generation")
+    parser.add_argument(
+        "--skip-notice", action="store_true", help="Skip NOTICE.md generation"
+    )
     args = parser.parse_args()
     if not any([args.wheel, args.wheel_on_docker, args.sdist]):
         parser.error("Specify at least one of --wheel, --wheel-on-docker or --sdist")
@@ -105,6 +107,20 @@ def build_wheel():
                 "i686-pc-windows-msvc",
             ]
         )
+    elif platform.system().lower() == "linux":
+        wheels = list(wheels_root.iterdir())
+        non_manylinux_wheels = [
+            f for f in wheels if f.name.endswith(".whl") and "manylinux" not in f.name
+        ]
+        manylinux_wheels = [
+            f for f in wheels if f.name.endswith(".whl") and "manylinux" in f.name
+        ]
+        if len(manylinux_wheels) != 1:
+            raise Exception(
+                f"assert: manylinux_wheels.length == 1 ({len(manylinux_wheels)})"
+            )
+        for wheel in non_manylinux_wheels:
+            wheel.unlink()
 
 
 def build_wheel_on_docker(version: str):
@@ -113,13 +129,14 @@ def build_wheel_on_docker(version: str):
 
     tag = "x86_64" if platform.machine() == "x86_64" else "aarch64"
 
+    os.makedirs(wheels_root, exist_ok=True)
     check_output(
         [
             "docker",
             "run",
             "--rm",
-            "-v",
-            f"{infer_root}:/mnt",
+            "--mount",
+            f"type=bind,source={infer_root},target=/mnt",
             f"messense/manylinux_2_28-cross:{tag}",
             "bash",
             "-c",
@@ -128,12 +145,18 @@ def build_wheel_on_docker(version: str):
                     "(curl -LsSf https://astral.sh/uv/install.sh | sh)",
                     "(curl -LsSf https://sh.rustup.rs | sh -s -- -y --profile minimal)",
                     "export PATH=$HOME/.cargo/bin:$HOME/.local/bin:$PATH",
-                    "cd /mnt/tools",
+                    "mkdir /work",
+                    "cp -r /mnt/. /work",
+                    "cd /work/tools",
                     f"uv run ./build_e2k_py.py --wheel --version {version} --skip-notice",
+                    "cp -r /work/target/wheels/. /mnt/target/wheels",
                 ]
             ),
         ]
     )
+
+    # TODO: ここのsudo chownを無くす。
+    check_output(["sudo", "chown", f"{os.getuid()}:{os.getgid()}", "-R", wheels_root])
 
 
 def build_sdist():
