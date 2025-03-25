@@ -1,14 +1,15 @@
-name: Release Infer
+name: Deploy Infer packages
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to release"
+        description: "バージョン情報（A.BB.C / A.BB.C-preview.D）"
         required: true
       production:
-        description: "Release to PyPI (not TestPyPI)"
+        description: "TestPyPIではなくPyPIにリリースする"
+        type: boolean
         required: false
-        default: "false"
+        default: false
 
 defaults:
   run:
@@ -96,4 +97,4 @@ jobs:
           body: |
             Release v${{ inputs.version }}
           draft: false
-          prerelease: ${{ inputs.production != 'true' }}
+          prerelease: ${{ !inputs.production }}
