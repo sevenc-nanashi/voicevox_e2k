@@ -101,6 +101,10 @@ async function buildSdist() {
     `${import.meta.dirname}/../LICENSE`,
     `${pkgRoot}/LICENSE`,
   );
+  await fs.promises.copyFile(
+    `${import.meta.dirname}/../infer/crates/e2k-py/NOTICE.md`,
+    `${pkgRoot}/NOTICE.md`,
+  );
   const outDir = `${inferRoot}/target/wheels`;
   await $({ cwd: tempDir })`tar -czvf ${outDir}/${tarName} ${sdistName}`;
 }

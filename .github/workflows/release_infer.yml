@@ -58,9 +58,9 @@ jobs:
           pnpm i
           pnpm run tools:build_e2k_py --wheel --version ${{ inputs.version }}
 
-      - name: Run Python sdist build
+      - name: Build sdist
         working-directory: tools
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: matrix.os == 'ubuntu-latest'
         run: |
           pnpm run tools:build_e2k_py --sdist --version ${{ inputs.version }}
 
