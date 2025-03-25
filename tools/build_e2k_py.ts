@@ -3,6 +3,7 @@ import { parseArgs } from "node:util";
 import { $, cd } from "zx";
 
 const inferRoot = `${import.meta.dirname}/../infer`;
+const wheelsRoot = `${inferRoot}/target/wheels`;
 
 async function main() {
   $.verbose = true;
@@ -81,6 +82,24 @@ async function buildNotice() {
 
 async function buildWheel() {
   await $`uv run maturin build --release`;
+
+  if (process.platform === "linux") {
+    const wheels = await fs.promises.readdir(wheelsRoot);
+    const nonManyLinuxWheels = wheels.filter(
+      (file) => file.endsWith(".whl") && !file.includes("manylinux"),
+    );
+    const manyLinuxWheels = wheels.filter(
+      (file) => file.endsWith(".whl") && file.includes("manylinux"),
+    );
+    if (manyLinuxWheels.length !== 1) {
+      throw new Error(
+        `assert: manyLinuxWheels.length === 1 (${manyLinuxWheels.length})`,
+      );
+    }
+    for (const wheel of nonManyLinuxWheels) {
+      await fs.promises.rm(`${wheelsRoot}/${wheel}`);
+    }
+  }
 }
 
 async function buildSdist() {
@@ -105,6 +124,5 @@ async function buildSdist() {
     `${import.meta.dirname}/../infer/crates/e2k-py/NOTICE.md`,
     `${pkgRoot}/NOTICE.md`,
   );
-  const outDir = `${inferRoot}/target/wheels`;
-  await $({ cwd: tempDir })`tar -czvf ${outDir}/${tarName} ${sdistName}`;
+  await $({ cwd: tempDir })`tar -czvf ${wheelsRoot}/${tarName} ${sdistName}`;
 }
