@@ -45,6 +45,7 @@ jobs:
       - name: Run Python build
         working-directory: infer/crates/e2k-py
         run: |
+          (cd ../e2k-rs && cargo about generate about.hbs.md > ../e2k-py/NOTICE.md)
           uv run maturin build --release
 
       - name: Delete non-many linux wheel
@@ -69,6 +70,7 @@ jobs:
       - name: Run Python build
         working-directory: infer/crates/e2k-py
         run: |
+          (cd ../e2k-rs && cargo about generate about.hbs.md > ../e2k-py/NOTICE.md)
           uv run maturin sdist
 
       - name: Upload artifacts
