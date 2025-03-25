@@ -37,6 +37,9 @@ jobs:
             const version = ${{ toJson(inputs.version) }};
             const cargoToml = fs.readFileSync('./infer/crates/e2k-py/Cargo.toml', 'utf8');
             const replacedCargoToml = cargoToml.replace(/^version = ".*"$/, `version = "${version}"`);
+            if (cargoToml === replacedCargoToml) {
+              throw new Error("assert: cargoToml !== replacedCargoToml");
+            }
             fs.writeFileSync('./infer/crates/e2k-py/Cargo.toml', replacedCargoToml);
 
       - name: Run Python build
