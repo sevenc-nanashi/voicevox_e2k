@@ -116,10 +116,7 @@ def build_sdist():
     check_output(["tar", "-xzvf", tar_name], cwd=temp_dir)
     pkg_root = temp_dir / sdist_name
     shutil.copyfile(e2k_py_root / "LICENSE", pkg_root / "LICENSE")
-    shutil.copyfile(
-        e2k_py_root / "NOTICE.md",
-        pkg_root / "NOTICE.md",
-    )
+    shutil.copyfile(e2k_py_root / "NOTICE.md", pkg_root / "NOTICE.md")
 
     check_output(["tar", "-czvf", wheels_root / tar_name, sdist_name], cwd=temp_dir)
 
