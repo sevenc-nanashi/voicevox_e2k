@@ -57,6 +57,26 @@ jobs:
           name: e2k-py-${{ runner.os }}
           path: infer/target/wheels/*.whl
 
+  build-sdist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Run Python build
+        working-directory: infer/crates/e2k-py
+        run: |
+          uv run maturin sdist
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2k-py-sdist
+          path: infer/target/wheels/*.tar.gz
+
   publish:
     needs: build
 
