@@ -59,7 +59,14 @@ def replace_version(infer_root: Path, version):
 
 def build_notice():
     result = check_output(
-        ["cargo", "about", "generate", "-c", "../e2k-rs/about.toml", "../e2k-rs/about.hbs.md"],
+        [
+            "cargo",
+            "about",
+            "generate",
+            "-c",
+            "../e2k-rs/about.toml",
+            "../e2k-rs/about.hbs.md",
+        ],
         cwd=e2k_py_root,
     )
     Path("NOTICE.md").write_bytes(result)
@@ -68,7 +75,19 @@ def build_notice():
 def build_wheel():
     check_output(["uv", "run", "maturin", "build", "--release"])
     if platform.system().lower() == "windows":
-        check_output(["uv", "run", "maturin", "build", "--release", "--target", "i686-pc-windows-msvc"])
+        check_output(
+            [
+                "uv",
+                "run",
+                "-p",
+                f"cpython-{platform.python_version()}-windows-x86",
+                "maturin",
+                "build",
+                "--release",
+                "--target",
+                "i686-pc-windows-msvc",
+            ]
+        )
     elif platform.system().lower() == "linux":
         wheels = list(wheels_root.iterdir())
         non_manylinux_wheels = [
