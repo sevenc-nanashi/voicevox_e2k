@@ -83,21 +83,26 @@ async function buildNotice() {
 async function buildWheel() {
   await $`uv run maturin build --release`;
 
-  if (process.platform === "linux") {
-    const wheels = await fs.promises.readdir(wheelsRoot);
-    const nonManyLinuxWheels = wheels.filter(
-      (file) => file.endsWith(".whl") && !file.includes("manylinux"),
-    );
-    const manyLinuxWheels = wheels.filter(
-      (file) => file.endsWith(".whl") && file.includes("manylinux"),
-    );
-    if (manyLinuxWheels.length !== 1) {
-      throw new Error(
-        `assert: manyLinuxWheels.length === 1 (${manyLinuxWheels.length})`,
-      );
+  switch (process.platform) {
+    case "win32": {
+      await $`uv run maturin build --release --target i686-pc-windows-msvc`;
     }
-    for (const wheel of nonManyLinuxWheels) {
-      await fs.promises.rm(`${wheelsRoot}/${wheel}`);
+    case "linux": {
+      const wheels = await fs.promises.readdir(wheelsRoot);
+      const nonManyLinuxWheels = wheels.filter(
+        (file) => file.endsWith(".whl") && !file.includes("manylinux"),
+      );
+      const manyLinuxWheels = wheels.filter(
+        (file) => file.endsWith(".whl") && file.includes("manylinux"),
+      );
+      if (manyLinuxWheels.length !== 1) {
+        throw new Error(
+          `assert: manyLinuxWheels.length === 1 (${manyLinuxWheels.length})`,
+        );
+      }
+      for (const wheel of nonManyLinuxWheels) {
+        await fs.promises.rm(`${wheelsRoot}/${wheel}`);
+      }
     }
   }
 }
