@@ -2,6 +2,10 @@
 requires = ["maturin>=1.8,<2.0"]
 build-backend = "maturin"
 
+[tool.uv]
+# uvではe2kをビルドできないので無効化
+package = false
+
 [project]
 name = "nanatsuki_voicevox_e2k"
 requires-python = ">=3.9"

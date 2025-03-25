@@ -54,7 +54,7 @@ wheels = [
 
 [[package]]
 name = "nanatsuki-voicevox-e2k"
-source = { editable = "." }
+source = { virtual = "." }
 
 [package.dev-dependencies]
 dev = [
