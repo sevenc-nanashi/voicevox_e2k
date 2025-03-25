@@ -366,7 +366,7 @@ dependencies = [
 
 [[package]]
 name = "e2k"
-version = "0.1.0"
+version = "0.1.0-preview.5"
 dependencies = [
  "anyhow",
  "brotli",
@@ -389,7 +389,7 @@ dependencies = [
 
 [[package]]
 name = "e2k-py"
-version = "0.1.0"
+version = "0.1.0-preview.5"
 dependencies = [
  "e2k",
  "pyo3",

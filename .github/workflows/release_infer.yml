@@ -36,19 +36,6 @@ jobs:
       - name: Setup binstall
         uses: cargo-bins/cargo-binstall@main
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          package_json_file: tools/package.json
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          # TODO: .node-versionなどをdatasetと共通化する
-          node-version-file: tools/.node-version
-          cache: "pnpm"
-          cache-dependency-path: tools/pnpm-lock.yaml
-
       - name: Setup cargo-about
         run: cargo binstall cargo-about
 
@@ -57,16 +44,15 @@ jobs:
         run: rustup target add i686-pc-windows-msvc
 
       - name: Build wheel
-        working-directory: tools
+        working-directory: infer/tools
         run: |
-          pnpm i
-          pnpm run tools:build_e2k_py --wheel --version ${{ inputs.version }}
+          uv run build_e2k_py.py --wheel --version ${{ inputs.version }}
 
       - name: Build sdist
-        working-directory: tools
+        working-directory: infer/tools
         if: matrix.os == 'ubuntu-latest'
         run: |
-          pnpm run tools:build_e2k_py --sdist --version ${{ inputs.version }}
+          uv run build_e2k_py.py --sdist --version ${{ inputs.version }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
