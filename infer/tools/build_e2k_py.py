@@ -178,7 +178,7 @@ def print_and_run(*args, **kwargs):
     run(*args, **kwargs, check=True)
 
 
-def print_and_check_output(*args, **kwargs):
+def print_and_check_output(*args, **kwargs) -> bytes:
     print(f"$ {' '.join(map(str, args[0]))}")
     return check_output(*args, **kwargs)
 
