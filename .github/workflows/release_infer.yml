@@ -21,11 +21,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-22.04
-          - ubuntu-22.04-arm
-          - windows-2019
-          - macos-13
+        include:
+          - os: ubuntu-22.04
+            build_args: --wheel-on-docker --sdist
+          - os: ubuntu-22.04-arm
+            build_args: --wheel-on-docker
+          - os: windows-2019
+            build_args: --wheel
+          - os: macos-13
+            build_args: --wheel
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -44,23 +48,11 @@ jobs:
         if: runner.os == 'Windows'
         run: rustup target add i686-pc-windows-msvc
 
-      - name: Build wheel on host
-        working-directory: infer/tools
-        if: runner.os != 'Linux'
-        run: |
-          uv run build_e2k_py.py --wheel --version ${{ inputs.version }}
-
-      - name: Build wheel on docker
+      - name: Build e2k-py
         working-directory: infer/tools
         if: runner.os == 'Linux'
         run: |
-          uv run build_e2k_py.py --wheel-on-docker --version ${{ inputs.version }}
-
-      - name: Build sdist
-        working-directory: infer/tools
-        if: matrix.os == 'ubuntu-22.04'
-        run: |
-          uv run build_e2k_py.py --sdist --version ${{ inputs.version }}
+          uv run build_e2k_py.py --version ${{ inputs.version }} ${{ inputs.build_args }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
