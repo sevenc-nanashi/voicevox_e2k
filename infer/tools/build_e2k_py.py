@@ -1,5 +1,4 @@
 import argparse
-import base64
 import os
 from pathlib import Path
 import platform
@@ -133,9 +132,6 @@ def build_wheel_on_docker(version: str):
     tag = "x86_64" if platform.machine() == "x86_64" else "aarch64"
 
     with tempfile.NamedTemporaryFile(suffix=".tgz", delete=True) as temp_tgz:
-        script_path = infer_root / "tools" / "build_e2k_py_docker.sh"
-        script = script_path.read_text(encoding="utf8")
-
         os.makedirs(wheels_root, exist_ok=True)
         print_and_run(
             [
@@ -149,7 +145,7 @@ def build_wheel_on_docker(version: str):
                 f"messense/manylinux_2_28-cross:{tag}",
                 "bash",
                 "-c",
-                f"echo {base64.b64encode(script.encode()).decode()} | base64 -d | VERSION={version} DOCKER=true bash",
+                f"VERSION={version} DOCKER=true bash < /mnt/infer/tools/build_e2k_py_docker.sh",
             ]
         )
 
