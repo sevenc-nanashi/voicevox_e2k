@@ -1,4 +1,4 @@
-name: Deploy Infer packages
+name: Build and release infer packages
 on:
   workflow_dispatch:
     inputs:
