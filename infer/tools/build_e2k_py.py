@@ -133,13 +133,8 @@ def build_wheel_on_docker(version: str):
     tag = "x86_64" if platform.machine() == "x86_64" else "aarch64"
 
     with tempfile.NamedTemporaryFile(suffix=".tgz", delete=True) as temp_tgz:
-        copy_excludes = [
-            ".venv",
-            "target",
-            "__pycache__",
-            "dist",
-            ".pytest_cache",
-        ]
+        script_path = infer_root / "tools" / "build_e2k_py_docker.sh"
+        script = script_path.read_text(encoding="utf8")
 
         os.makedirs(wheels_root, exist_ok=True)
         print_and_run(
@@ -154,22 +149,7 @@ def build_wheel_on_docker(version: str):
                 f"messense/manylinux_2_28-cross:{tag}",
                 "bash",
                 "-c",
-                " && ".join(
-                    [
-                        "set -ex",
-                        "apt-get install -y rsync",
-                        "(curl -LsSf https://astral.sh/uv/install.sh | sh)",
-                        "(curl -LsSf https://sh.rustup.rs | sh -s -- -y --profile minimal)",
-                        "export PATH=$HOME/.cargo/bin:$HOME/.local/bin:$PATH",
-                        "mkdir /work",
-                        f"(echo {base64.b64encode('\n'.join(copy_excludes).encode()).decode()} | base64 -d) > /work/copy_excludes.txt",
-                        "rsync -av --exclude-from=/work/copy_excludes.txt /mnt/infer/ /work",
-                        "cd /work/tools",
-                        f"uv run ./build_e2k_py.py --wheel --version {version} --skip-notice",
-                        "cd /work/target/wheels",
-                        "tar -czvf /mnt/wheels.tar.gz .",
-                    ]
-                ),
+                f"echo {base64.b64encode(script.encode()).decode()} | base64 -d | VERSION={version} DOCKER=true bash",
             ]
         )
 
@@ -194,9 +174,7 @@ def build_sdist():
     shutil.copyfile(e2k_py_root / "LICENSE", pkg_root / "LICENSE")
     shutil.copyfile(e2k_py_root / "NOTICE.md", pkg_root / "NOTICE.md")
 
-    print_and_run(
-        ["tar", "-czvf", wheels_root / tar_name, sdist_name], cwd=temp_dir
-    )
+    print_and_run(["tar", "-czvf", wheels_root / tar_name, sdist_name], cwd=temp_dir)
 
 
 def print_and_run(*args, **kwargs):
