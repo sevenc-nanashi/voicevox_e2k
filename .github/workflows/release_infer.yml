@@ -52,7 +52,7 @@ jobs:
         working-directory: infer/tools
         if: runner.os == 'Linux'
         run: |
-          uv run build_e2k_py.py --version ${{ inputs.version }} ${{ inputs.build_args }}
+          uv run build_e2k_py.py --version ${{ inputs.version }} ${{ matrix.build_args }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
