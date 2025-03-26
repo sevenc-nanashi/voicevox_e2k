@@ -109,29 +109,6 @@ def build_wheel():
                 "i686-pc-windows-msvc",
             ]
         )
-    elif platform.system().lower() == "darwin":
-        print_and_run(
-            [
-                "uv",
-                "run",
-                "maturin",
-                "build",
-                "--release",
-                "--target",
-                "x86_64-apple-darwin",
-            ]
-        )
-        print_and_run(
-            [
-                "uv",
-                "run",
-                "maturin",
-                "build",
-                "--release",
-                "--target",
-                "universal2-apple-darwin",
-            ]
-        )
     elif platform.system().lower() == "linux":
         wheels = list(wheels_root.iterdir())
         non_manylinux_wheels = [
