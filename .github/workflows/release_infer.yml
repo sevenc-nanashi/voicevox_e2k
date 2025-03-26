@@ -41,18 +41,18 @@ jobs:
         run: cargo binstall cargo-about
 
       - name: Setup windows i686
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
         run: rustup target add i686-pc-windows-msvc
 
       - name: Build wheel on host
         working-directory: infer/tools
-        if: matrix.os == 'windows-2019' || matrix.os == 'macos-13'
+        if: runner.os != 'Linux'
         run: |
           uv run build_e2k_py.py --wheel --version ${{ inputs.version }}
 
       - name: Build wheel on docker
         working-directory: infer/tools
-        if: matrix.os == 'ubuntu-22.04' || matrix.os == 'ubuntu-22.04-arm'
+        if: runner.os == 'Linux'
         run: |
           uv run build_e2k_py.py --wheel-on-docker --version ${{ inputs.version }}
 
