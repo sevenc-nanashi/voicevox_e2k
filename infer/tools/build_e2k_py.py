@@ -80,7 +80,7 @@ def replace_version(version: str) -> str:
 
 
 def build_notice():
-    result = check_output_verbose(
+    result = print_and_check_output(
         [
             "cargo",
             "about",
@@ -95,9 +95,9 @@ def build_notice():
 
 
 def build_wheel():
-    run_verbose(["uv", "run", "maturin", "build", "--release"])
+    print_and_run(["uv", "run", "maturin", "build", "--release"])
     if platform.system().lower() == "windows":
-        run_verbose(
+        print_and_run(
             [
                 "uv",
                 "run",
@@ -142,7 +142,7 @@ def build_wheel_on_docker(version: str):
         ]
 
         os.makedirs(wheels_root, exist_ok=True)
-        run_verbose(
+        print_and_run(
             [
                 "docker",
                 "run",
@@ -174,7 +174,7 @@ def build_wheel_on_docker(version: str):
         )
 
         # Dockerでそのままファイルをコピーすると所有者がrootになるため、tgzで固めて出力した後に展開する
-        run_verbose(["tar", "-xzvf", temp_tgz.name, "-C", wheels_root])
+        print_and_run(["tar", "-xzvf", temp_tgz.name, "-C", wheels_root])
 
 
 def build_sdist():
@@ -183,28 +183,28 @@ def build_sdist():
 
     temp_dir = Path(tempfile.mkdtemp(prefix="e2k-py-sdist-"))
 
-    run_verbose(["uv", "run", "maturin", "sdist", "-o", temp_dir])
+    print_and_run(["uv", "run", "maturin", "sdist", "-o", temp_dir])
 
     tar_path = next(temp_dir.glob("*.tar.gz"))
     tar_name = tar_path.name
     sdist_name = tar_name.replace(".tar.gz", "")
 
-    run_verbose(["tar", "-xzvf", tar_name], cwd=temp_dir)
+    print_and_run(["tar", "-xzvf", tar_name], cwd=temp_dir)
     pkg_root = temp_dir / sdist_name
     shutil.copyfile(e2k_py_root / "LICENSE", pkg_root / "LICENSE")
     shutil.copyfile(e2k_py_root / "NOTICE.md", pkg_root / "NOTICE.md")
 
-    run_verbose(
+    print_and_run(
         ["tar", "-czvf", wheels_root / tar_name, sdist_name], cwd=temp_dir
     )
 
 
-def run_verbose(*args, **kwargs):
+def print_and_run(*args, **kwargs):
     print(f"$ {' '.join(map(str, args[0]))}")
     run(*args, **kwargs, check=True)
 
 
-def check_output_verbose(*args, **kwargs):
+def print_and_check_output(*args, **kwargs):
     print(f"$ {' '.join(map(str, args[0]))}")
     return check_output(*args, **kwargs)
 
