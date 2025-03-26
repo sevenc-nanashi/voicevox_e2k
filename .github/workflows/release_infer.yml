@@ -28,8 +28,10 @@ jobs:
             build_args: --wheel-on-docker
           - os: windows-2019
             build_args: --wheel
-          - os: macos-13
+            extra_targets: i686-pc-windows-msvc
+          - os: macos-14
             build_args: --wheel
+            extra_targets: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -44,9 +46,9 @@ jobs:
       - name: Setup cargo-about
         run: cargo binstall cargo-about
 
-      - name: Setup windows i686
-        if: runner.os == 'Windows'
-        run: rustup target add i686-pc-windows-msvc
+      - name: Setup additional targets
+        if: matrix.extra_targets
+        run: rustup target add ${{ matrix.extra_targets }}
 
       - name: Build e2k-py
         working-directory: infer/tools
