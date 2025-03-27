@@ -90,7 +90,7 @@ def build_notice():
         ],
         cwd=e2k_py_root,
     )
-    Path("NOTICE.md").write_bytes(result)
+    (e2k_py_root / "NOTICE.md").write_bytes(result)
 
 
 def build_wheel():
