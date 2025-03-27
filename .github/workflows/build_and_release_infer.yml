@@ -46,7 +46,7 @@ jobs:
         uses: cargo-bins/cargo-binstall@main
 
       - name: Setup cargo-about
-        run: cargo binstall cargo-about
+        run: cargo binstall cargo-about cargo-edit
 
       - name: Setup additional targets
         if: matrix.additional_targets
@@ -55,7 +55,7 @@ jobs:
       - name: Build e2k-py
         working-directory: infer/tools
         run: |
-          uv run replace_version.py --version ${{ inputs.version }}
+          cargo set-version ${{ inputs.version }}
           uv run build_e2k_py.py ${{ matrix.build_args }}
 
       - name: Upload artifacts
