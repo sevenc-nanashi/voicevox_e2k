@@ -138,26 +138,28 @@ def build_wheel_on_docker(version: str):
 
     tag = "x86_64" if platform.machine() == "x86_64" else "aarch64"
 
-    with tempfile.NamedTemporaryFile(suffix=".tgz", delete=True) as temp_tgz:
-        os.makedirs(wheels_root, exist_ok=True)
-        print_and_run(
-            [
-                "docker",
-                "run",
-                "--rm",
-                "--mount",
-                f"type=bind,source={infer_root},target=/mnt/infer",
-                "--mount",
-                f"type=bind,source={temp_tgz.name},target=/mnt/wheels.tar.gz",
-                f"messense/manylinux_2_28-cross:{tag}",
-                "bash",
-                "-c",
-                f"VERSION={version} DOCKER=true bash < /mnt/infer/tools/build_e2k_py_docker.sh",
-            ]
-        )
-
-        # Dockerでそのままファイルをコピーすると所有者がrootになるため、tgzで固めて出力した後に展開する
-        print_and_run(["tar", "-xzvf", temp_tgz.name, "-C", wheels_root])
+    os.makedirs(wheels_root, exist_ok=True)
+    vars = {
+        # VERSION={version} DOCKER=true
+        "VERSION": version,
+        "DOCKER": "true",
+        "HOST_UID": str(os.getuid()),
+        "HOST_GID": str(os.getgid()),
+    }
+    vars_shell = " ".join([f"{k}={v}" for k, v in vars.items()])
+    print_and_run(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "--mount",
+            f"type=bind,source={infer_root},target=/mnt/infer",
+            f"messense/manylinux_2_28-cross:{tag}",
+            "bash",
+            "-c",
+            f"{vars_shell} bash < /mnt/infer/tools/build_e2k_py_docker.sh",
+        ]
+    )
 
 
 def build_sdist():
