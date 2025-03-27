@@ -4,6 +4,7 @@ e2k-pyをビルドする。
 環境構築を済ませた状態でこのファイルを実行するとビルドが行われる想定。
 環境構築やレジストリへの公開はこのファイルでは行わない。
 """
+
 import argparse
 import os
 from pathlib import Path
