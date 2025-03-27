@@ -30,7 +30,7 @@ def main():
     skip_notice: bool = args.skip_notice
 
     print("Replacing version...")
-    original_version = replace_version(version)
+    old_version = replace_version(version)
 
     try:
         if not skip_notice:
@@ -50,7 +50,7 @@ def main():
             build_sdist()
     finally:
         print("Restoring version...")
-        replace_version(original_version)
+        replace_version(old_version)
 
 
 def process_args():
