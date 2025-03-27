@@ -7,7 +7,7 @@ build-backend = "maturin"
 package = false
 
 [project]
-name = "nanatsuki_voicevox_e2k"
+name = "voicevox_e2k"
 requires-python = ">=3.9"
 classifiers = [
   "Programming Language :: Rust",
