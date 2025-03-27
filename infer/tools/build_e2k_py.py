@@ -12,7 +12,7 @@ import platform
 import shutil
 from subprocess import check_output, run
 import tempfile
-from paths import infer_root
+from common import infer_root, is_windows, is_linux
 
 e2k_py_root = infer_root / "crates" / "e2k-py"
 wheels_root = infer_root / "target" / "wheels"
@@ -34,6 +34,12 @@ def main():
     if wheel:
         print("Building wheel...")
         build_wheel()
+        if is_windows:
+            print("Building 32-bit wheel...")
+            build_wheel("i686-pc-windows-msvc")
+        elif is_linux:
+            print("Removing non-manylinux wheels...")
+            remove_non_manylinux_wheels()
 
     if wheel_on_docker:
         print("Building wheel on docker...")
@@ -77,40 +83,33 @@ def build_notice():
     (e2k_py_root / "NOTICE.md").write_bytes(result)
 
 
-def build_wheel():
-    print_and_run(["uv", "run", "maturin", "build", "--release"])
-    if platform.system().lower() == "windows":
+def build_wheel(target: str | None = None):
+    if target is None:
+        print_and_run(["uv", "run", "maturin", "build", "--release"])
+    else:
         print_and_run(
-            [
-                "uv",
-                "run",
-                "-p",
-                f"cpython-{platform.python_version()}-windows-x86",
-                "maturin",
-                "build",
-                "--release",
-                "--target",
-                "i686-pc-windows-msvc",
-            ]
+            ["uv", "run", "maturin", "build", "--release", "--target", target]
         )
-    elif platform.system().lower() == "linux":
-        wheels = list(wheels_root.iterdir())
-        non_manylinux_wheels = [
-            f for f in wheels if f.name.endswith(".whl") and "manylinux" not in f.name
-        ]
-        manylinux_wheels = [
-            f for f in wheels if f.name.endswith(".whl") and "manylinux" in f.name
-        ]
-        if len(manylinux_wheels) != 1:
-            raise Exception(
-                f"assert: manylinux_wheels.length == 1 ({len(manylinux_wheels)})"
-            )
-        for wheel in non_manylinux_wheels:
-            wheel.unlink()
+
+
+def remove_non_manylinux_wheels():
+    wheels = list(wheels_root.iterdir())
+    non_manylinux_wheels = [
+        f for f in wheels if f.name.endswith(".whl") and "manylinux" not in f.name
+    ]
+    manylinux_wheels = [
+        f for f in wheels if f.name.endswith(".whl") and "manylinux" in f.name
+    ]
+    if len(manylinux_wheels) != 1:
+        raise Exception(
+            f"assert: manylinux_wheels.length == 1 ({len(manylinux_wheels)})"
+        )
+    for wheel in non_manylinux_wheels:
+        wheel.unlink()
 
 
 def build_wheel_on_docker():
-    if platform.system().lower() != "linux":
+    if not is_linux:
         raise Exception("This command must be run on Linux")
 
     tag = "x86_64" if platform.machine() == "x86_64" else "aarch64"
