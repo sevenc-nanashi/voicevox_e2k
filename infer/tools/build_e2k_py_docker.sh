@@ -27,7 +27,7 @@ rsync -av --exclude-from=/work/copy_excludes.txt /mnt/infer/ /work
 
 # ビルド
 cd /work/tools
-uv run ./build_e2k_py.py --wheel --version $VERSION --skip-notice
+uv run ./build_e2k_py.py --wheel --skip-notice
 
 chown $HOST_UID:$HOST_GID /work/target/wheels/*
 cp -rp /work/target/wheels/* /mnt/infer/target/wheels/

@@ -9,12 +9,11 @@ import argparse
 import os
 from pathlib import Path
 import platform
-import re
 import shutil
 from subprocess import check_output, run
 import tempfile
+from paths import infer_root
 
-infer_root = Path(__file__).parent.parent
 e2k_py_root = infer_root / "crates" / "e2k-py"
 wheels_root = infer_root / "target" / "wheels"
 
@@ -26,31 +25,23 @@ def main():
     wheel: bool = args.wheel
     wheel_on_docker: bool = args.wheel_on_docker
     sdist: bool = args.sdist
-    version: str = args.version
     skip_notice: bool = args.skip_notice
 
-    print("Replacing version...")
-    old_version = replace_version(version)
+    if not skip_notice:
+        print("Building NOTICE.md...")
+        build_notice()
 
-    try:
-        if not skip_notice:
-            print("Building NOTICE.md...")
-            build_notice()
+    if wheel:
+        print("Building wheel...")
+        build_wheel()
 
-        if wheel:
-            print("Building wheel...")
-            build_wheel()
+    if wheel_on_docker:
+        print("Building wheel on docker...")
+        build_wheel_on_docker()
 
-        if wheel_on_docker:
-            print("Building wheel on docker...")
-            build_wheel_on_docker(version)
-
-        if sdist:
-            print("Building sdist...")
-            build_sdist()
-    finally:
-        print("Restoring version...")
-        replace_version(old_version)
+    if sdist:
+        print("Building sdist...")
+        build_sdist()
 
 
 def process_args():
@@ -62,7 +53,6 @@ def process_args():
         help="Build wheel on docker (Linux only, requires Docker and sudo)",
     )
     parser.add_argument("--sdist", action="store_true", help="Build sdist")
-    parser.add_argument("--version", type=str, required=True, help="Version to set")
     parser.add_argument(
         "--skip-notice", action="store_true", help="Skip NOTICE.md generation"
     )
@@ -70,19 +60,6 @@ def process_args():
     if not any([args.wheel, args.wheel_on_docker, args.sdist]):
         parser.error("Specify at least one of --wheel, --wheel-on-docker or --sdist")
     return args
-
-
-def replace_version(version: str) -> str:
-    cargo_toml_path = infer_root / "Cargo.toml"
-    cargo_toml = cargo_toml_path.read_text(encoding="utf8")
-    version_pattern = re.compile(r'^version = "(.*)"$', flags=re.MULTILINE)
-    match = version_pattern.search(cargo_toml)
-    if match is None:
-        raise Exception("Failed to find version in Cargo.toml")
-    original_version = match.group(1)
-    new_cargo_toml = version_pattern.sub(f'version = "{version}"', cargo_toml)
-    cargo_toml_path.write_text(new_cargo_toml, encoding="utf8")
-    return original_version
 
 
 def build_notice():
@@ -132,7 +109,7 @@ def build_wheel():
             wheel.unlink()
 
 
-def build_wheel_on_docker(version: str):
+def build_wheel_on_docker():
     if platform.system().lower() != "linux":
         raise Exception("This command must be run on Linux")
 
@@ -140,8 +117,6 @@ def build_wheel_on_docker(version: str):
 
     os.makedirs(wheels_root, exist_ok=True)
     vars = {
-        # VERSION={version} DOCKER=true
-        "VERSION": version,
         "DOCKER": "true",
         "HOST_UID": str(os.getuid()),
         "HOST_GID": str(os.getgid()),
