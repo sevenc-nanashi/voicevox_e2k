@@ -93,6 +93,7 @@ impl C2k {
 fn voicevox_e2k(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<C2k>()?;
 
+    m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     m.add("KANAS", e2k::KANAS)?;
     m.add("ASCII_ENTRIES", e2k::ASCII_ENTRIES)?;
 

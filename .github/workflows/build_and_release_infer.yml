@@ -1,0 +1,101 @@
+name: Build and release infer packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "バージョン情報（A.BB.C / A.BB.C-preview.D）"
+        required: true
+      production:
+        description: "TestPyPIではなくPyPIにリリースする"
+        type: boolean
+        required: false
+        default: false
+
+defaults:
+  run:
+    shell: bash
+    working-directory: infer
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            build_args: --wheel-on-docker --sdist
+          - os: ubuntu-22.04-arm
+            build_args: --wheel-on-docker
+          - os: windows-2019
+            build_args: --wheel
+            additional_targets: i686-pc-windows-msvc
+          - os: macos-13
+            build_args: --wheel
+          - os: macos-14
+            build_args: --wheel
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Setup binstall
+        uses: cargo-bins/cargo-binstall@main
+
+      - name: Setup cargo-about
+        run: cargo binstall cargo-about cargo-edit
+
+      - name: Setup additional targets
+        if: matrix.additional_targets
+        run: rustup target add ${{ matrix.additional_targets }}
+
+      - name: Build e2k-py
+        working-directory: infer/tools
+        run: |
+          cargo set-version ${{ inputs.version }}
+          uv run build_e2k_py.py ${{ matrix.build_args }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2k-py-${{ matrix.os }}
+          path: |
+            infer/target/wheels/*.whl
+            infer/target/wheels/*.tar.gz
+
+  publish:
+    needs:
+      - build
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: write
+
+    environment: release-pypi
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: e2k-py-*
+          merge-multiple: true
+          path: dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: ${{ inputs.production == 'true' && 'https://upload.pypi.org/legacy/' || 'https://test.pypi.org/legacy/' }}
+          verbose: true
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          target_commitish: ${{ github.sha }}
+          draft: false
+          prerelease: ${{ !inputs.production }}
