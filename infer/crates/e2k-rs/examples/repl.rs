@@ -54,7 +54,10 @@ fn main() {
         }
     };
 
-    let c2k = e2k::C2k::new(args.max_length, strategy);
+    let c2k = e2k::C2k::new()
+        .with_strategy(strategy)
+        .with_max_length(args.max_length);
+
     println!("Ctrl-C で終了します。");
     loop {
         let line = dialoguer::Input::<String>::new()

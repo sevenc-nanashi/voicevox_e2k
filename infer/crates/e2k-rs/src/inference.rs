@@ -310,6 +310,10 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
     fn set_decode_strategy(&mut self, strategy: Strategy) {
         self.s2s.strategy = strategy;
     }
+
+    fn set_max_length(&mut self, max_length: usize) {
+        self.s2s.max_length = max_length;
+    }
 }
 
 /// 英単語 -> カタカナの変換器。
@@ -323,14 +327,20 @@ impl std::fmt::Debug for C2k {
     }
 }
 
+impl Default for C2k {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl C2k {
     /// 新しいインスタンスを生成する。
     ///
-    /// # Arguments
+    /// # See also
     ///
-    /// - `max_length`: 読みの最大長。
-    /// - `strategy`: デコードに使うアルゴリズム。
-    pub fn new(max_length: usize, strategy: Strategy) -> Self {
+    /// [with_length]
+    /// [with_strategy]
+    pub fn new() -> Self {
         static MODEL: std::sync::LazyLock<Vec<u8>> = std::sync::LazyLock::new(|| {
             cfg_elif::expr::cfg!(if (docsrs) {
                 Vec::new()
@@ -370,10 +380,22 @@ impl C2k {
                     )
                 })
                 .collect(),
-            max_length,
+            32,
         );
-        inner.set_decode_strategy(strategy);
+        inner.set_decode_strategy(Strategy::default());
         Self { inner }
+    }
+
+    /// 読みの最大長を変更する。
+    pub fn with_max_length(mut self, max_length: usize) -> Self {
+        self.inner.set_max_length(max_length);
+        self
+    }
+
+    /// アルゴリズムを設定する。
+    pub fn with_strategy(mut self, strategy: Strategy) -> Self {
+        self.inner.set_decode_strategy(strategy);
+        self
     }
 
     /// 推論を行う。

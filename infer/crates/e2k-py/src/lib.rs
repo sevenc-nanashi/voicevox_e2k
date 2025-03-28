@@ -100,7 +100,11 @@ impl C2k {
     ) -> PyResult<Self> {
         let strategy = extract_strategy(strategy, kwargs)?;
         Ok(Self {
-            inner: std::sync::RwLock::new(e2k::C2k::new(max_length, strategy)),
+            inner: std::sync::RwLock::new(
+                e2k::C2k::new()
+                    .with_max_length(max_length)
+                    .with_strategy(strategy),
+            ),
         })
     }
 
