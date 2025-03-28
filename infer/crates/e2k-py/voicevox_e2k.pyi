@@ -47,11 +47,11 @@ class C2k:
         strategy : str, default "greedy"
             デコードのアルゴリズム。
         k : int, default 10
-            strategy="top_k"のときのみ有効。k。
+            strategy="top_k"のときのみ有効。Top-KアルゴリズムのK。
         p : float, default 0.9
-            strategy="top_p"のときのみ有効。p。
+            strategy="top_p"のときのみ有効。Top-PアルゴリズムのP。
         t : float, default 1.0
-            strategy="top_p"のときのみ有効。t。
+            strategy="top_p"のときのみ有効。Top-PアルゴリズムのTemperature。
         """
 
         ...
