@@ -75,8 +75,8 @@ def build_notice():
             "about",
             "generate",
             "-c",
-            "../e2k-rs/about.toml",
-            "../e2k-rs/about.hbs.md",
+            infer_root / "tools" / "about.toml",
+            infer_root / "tools" / "about.hbs.md",
         ],
         cwd=e2k_py_root,
     )
