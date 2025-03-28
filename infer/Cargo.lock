@@ -384,7 +384,6 @@ dependencies = [
  "num-traits",
  "rand",
  "safetensors",
- "serde",
  "ureq",
 ]
 
