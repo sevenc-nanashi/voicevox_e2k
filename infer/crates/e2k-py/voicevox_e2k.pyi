@@ -12,12 +12,14 @@ class C2k:
 
     @overload
     def __init__(
+        self,
         *,
         max_length: int = 32,
-        strategy: Literal["greedy"],
+        strategy: Literal["greedy"] = "greedy",
     ) -> None: ...
     @overload
     def __init__(
+        self,
         *,
         max_length: int = 32,
         strategy: Literal["top_k"],
@@ -25,6 +27,7 @@ class C2k:
     ) -> None: ...
     @overload
     def __init__(
+        self,
         *,
         max_length: int = 32,
         strategy: Literal["top_p"],
