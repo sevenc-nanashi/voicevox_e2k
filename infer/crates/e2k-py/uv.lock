@@ -185,23 +185,21 @@ wheels = [
 [[package]]
 name = "voicevox-e2k"
 source = { editable = "." }
-dependencies = [
-    { name = "pyright" },
-]
 
 [package.dev-dependencies]
 dev = [
     { name = "maturin" },
+    { name = "pyright" },
     { name = "pytest" },
     { name = "ruff" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pyright", specifier = ">=1.1.398" }]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "maturin", specifier = ">=1.8.2" },
+    { name = "pyright", specifier = ">=1.1.398" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "ruff", specifier = ">=0.11.0" },
 ]
