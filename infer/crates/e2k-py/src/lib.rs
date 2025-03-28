@@ -69,8 +69,8 @@ fn extract_strategy(strategy: &str, kwargs: Option<&Bound<'_, PyDict>>) -> PyRes
 
             let extra_keys = keys
                 .iter()
-                .filter(|&key| !expected.contains(&key.as_str()))
-                .cloned()
+                .map(|key| key.as_str())
+                .filter(|&key| !expected.contains(&key))
                 .collect::<Vec<_>>();
 
             if !extra_keys.is_empty() {
