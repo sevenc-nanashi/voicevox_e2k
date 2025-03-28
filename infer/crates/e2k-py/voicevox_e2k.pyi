@@ -31,7 +31,9 @@ class C2k:
         p: float = 0.9,
         t: float = 1.0,
     ) -> None: ...
-    def __init__(self, *, max_length: int = 32, strategy: Strategy = "greedy", **kwargs) -> None:
+    def __init__(
+        self, *, max_length: int = 32, strategy: Strategy = "greedy", **kwargs
+    ) -> None:
         """
         新しいインスタンスを生成する。
 
