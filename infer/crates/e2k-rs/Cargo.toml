@@ -1,9 +1,9 @@
 [package]
 name = "e2k"
-version = "0.2.3"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
 license = "MIT"
-include = ["!*", "/README.md", "/LICENSE", "/src/**/*.rs"]
+exclude = ["tasks", "models"]
 
 [[bench]]
 name = "benchmark"

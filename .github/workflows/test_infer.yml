@@ -8,6 +8,7 @@ on:
 
 defaults:
   run:
+    shell: bash
     working-directory: infer
 
 jobs:
@@ -38,6 +39,13 @@ jobs:
         run: |
           uv run ruff check
           uv run ruff format --diff
+
+      - name: Run Python lint for tools
+        working-directory: infer/tools
+        run: |
+          uv run ruff check
+          uv run ruff format --diff
+          uv run pyright
 
       - name: Run Python tests
         working-directory: infer/crates/e2k-py
