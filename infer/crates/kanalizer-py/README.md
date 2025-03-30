@@ -11,8 +11,8 @@ import kanalizer
 
 c2k = kanalizer.C2k()
 
-word = "constants"
-print(c2k(word)) # => コンスタンツ
+word = "kanalizer"
+print(c2k(word)) # => カナライザー
 ```
 
 ## ライセンス

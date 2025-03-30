@@ -1,10 +1,10 @@
 #[test]
 fn test_c2k() {
-    let src = "constants";
+    let src = "kanalizer";
 
     let c2k = kanalizer::C2k::new();
     let dst = c2k.infer(src);
-    dbg!(dst);
+    assert_eq!(dst, "カナライザー");
 }
 
 #[test]
