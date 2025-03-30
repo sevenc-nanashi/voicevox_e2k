@@ -117,7 +117,7 @@ impl C2k {
 }
 
 #[pymodule(name = "kanalizer")]
-fn kanalizer(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn init_kanalizer(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<C2k>()?;
 
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
