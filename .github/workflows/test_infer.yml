@@ -35,7 +35,7 @@ jobs:
         run: cargo test
 
       - name: Run Python lint
-        working-directory: infer/crates/e2k-py
+        working-directory: infer/crates/kanalizer-py
         run: |
           uv run ruff check
           uv run ruff format --diff
@@ -48,7 +48,7 @@ jobs:
           uv run pyright
 
       - name: Run Python tests
-        working-directory: infer/crates/e2k-py
+        working-directory: infer/crates/kanalizer-py
         run: |
           uv run maturin develop
           uv run pytest
