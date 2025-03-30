@@ -1,7 +1,10 @@
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
-fn extract_strategy(strategy: &str, kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<kanalizer::Strategy> {
+fn extract_strategy(
+    strategy: &str,
+    kwargs: Option<&Bound<'_, PyDict>>,
+) -> PyResult<kanalizer::Strategy> {
     return Ok(match strategy {
         "greedy" => {
             error_on_extra_args(kwargs, &[])?;
