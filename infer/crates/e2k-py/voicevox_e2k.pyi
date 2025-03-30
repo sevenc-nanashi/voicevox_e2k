@@ -9,6 +9,7 @@ ASCII_ENTRIES: Final[list[str]]
 """c2kで出力される文字の一覧。"""
 
 Strategy = Literal["greedy", "top_k", "top_p"]
+"""デコードのアルゴリズム。"""
 
 class C2k:
     """英単語 -> カタカナの推論を行う。"""
@@ -47,7 +48,7 @@ class C2k:
         ----------
         max_length : int, default 32
             最大の出力長。
-        strategy : str, default "greedy"
+        strategy : Strategy, default "greedy"
             デコードのアルゴリズム。
         k : int, default 10
             strategy="top_k"のときのみ有効。Top-KアルゴリズムのK。
