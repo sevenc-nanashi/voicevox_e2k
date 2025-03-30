@@ -10,3 +10,6 @@
 - `./crates/kanalizer-py`：Pythonバインディング。
 - `./tools`：ビルドスクリプトなどのツール。
 
+## 謝辞
+
+このディレクトリ下のコードは[Patchethium/e2k](https://github.com/Patchethium/e2k)のコードが元になっています。
