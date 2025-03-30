@@ -116,8 +116,8 @@ impl C2k {
     }
 }
 
-#[pymodule(name = "voicevox_kanalizer")]
-fn voicevox_kanalizer(m: &Bound<'_, PyModule>) -> PyResult<()> {
+#[pymodule(name = "kanalizer")]
+fn kanalizer(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<C2k>()?;
 
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;

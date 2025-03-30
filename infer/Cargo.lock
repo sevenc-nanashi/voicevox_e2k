@@ -365,37 +365,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "e2k"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "brotli",
- "brotli-decompressor",
- "cfg-elif",
- "clap",
- "criterion",
- "dialoguer",
- "duplicate",
- "educe",
- "getrandom 0.3.1",
- "itertools 0.14.0",
- "ndarray",
- "ndarray-safetensors",
- "num-traits",
- "rand",
- "safetensors",
- "ureq",
-]
-
-[[package]]
-name = "e2k-py"
-version = "0.0.0"
-dependencies = [
- "e2k",
- "pyo3",
-]
-
-[[package]]
 name = "educe"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -590,6 +559,37 @@ checksum = "1cfaf33c695fc6e08064efbc1f72ec937429614f25eef83af942d0e227c3a28f"
 dependencies = [
  "once_cell",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "kanalizer"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "brotli",
+ "brotli-decompressor",
+ "cfg-elif",
+ "clap",
+ "criterion",
+ "dialoguer",
+ "duplicate",
+ "educe",
+ "getrandom 0.3.1",
+ "itertools 0.14.0",
+ "ndarray",
+ "ndarray-safetensors",
+ "num-traits",
+ "rand",
+ "safetensors",
+ "ureq",
+]
+
+[[package]]
+name = "kanalizer-py"
+version = "0.0.0"
+dependencies = [
+ "kanalizer",
+ "pyo3",
 ]
 
 [[package]]
