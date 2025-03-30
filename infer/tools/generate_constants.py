@@ -4,7 +4,7 @@ from common import train_root, infer_root
 
 sys.path.append(str(train_root / "src"))
 
-import constants
+import constants  # type: ignore -- sys.path.append で追加したパスが pyright に認識されないため
 
 
 destination = infer_root / "crates" / "e2k-rs" / "src" / "constants.rs"
