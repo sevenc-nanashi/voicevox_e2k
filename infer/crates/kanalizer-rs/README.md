@@ -1,4 +1,4 @@
-# e2k-rs
+# kanalizer
 
 推論コードのRust実装。
 
@@ -7,7 +7,7 @@
 ```rust
 // 文字列をカタカナに変換する例
 let src = "constants";
-let c2k = e2k::C2k::new();
+let c2k = kanalizer::C2k::new();
 let dst = c2k.infer(src);
 
 dbg!(dst); // "コンスタンツ"

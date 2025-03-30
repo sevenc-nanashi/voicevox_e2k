@@ -1,9 +1,9 @@
 # tools
 
-## `./build_e2k_py.py`
+## `./build_kanalizer_py.py`
 
-`e2k-py`をビルドするためのスクリプト。
+`kanalizer-py`をビルドするためのスクリプト。
 
 ## `./generate_constants.py`
 
-`e2k-rs`の`constants.rs`を生成するためのスクリプト。
+`kanalizer-rs`の`constants.rs`を生成するためのスクリプト。

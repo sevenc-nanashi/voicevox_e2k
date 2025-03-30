@@ -18,7 +18,7 @@ uv run maturin develop
 
 ```bash
 cd ../../tools
-uv run ./build_e2k_py.py
+uv run ./build_kanalizer_py.py
 ```
 
 ## テスト

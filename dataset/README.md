@@ -1,4 +1,4 @@
-# e2k/dataset
+# kanalizer/dataset
 
 LLMを用いて、英単語から読みを推測するためのデータセットを生成します。
 

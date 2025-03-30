@@ -1,4 +1,4 @@
-# e2k
+# kanalizer
 
 英単語から読みを推測するライブラリ。\
 関連Issue：[VOICEVOX/voicevox_project#65](https://github.com/VOICEVOX/voicevox_project/issues/65)
@@ -14,7 +14,7 @@
 ## Hugging Face
 
 Hugging Face にて、データセットと学習済みモデルを公開しています。\
-<https://huggingface.co/VOICEVOX/e2k>
+<https://huggingface.co/VOICEVOX/kanalizer>
 
 ## ライセンス
 

@@ -1,5 +1,5 @@
 """
-e2k-pyをビルドする。
+kanalizer-pyをビルドする。
 
 環境構築を済ませた状態でこのファイルを実行するとビルドが行われる想定。
 環境構築やレジストリへの公開はこのファイルでは行わない。
@@ -14,12 +14,12 @@ from subprocess import check_output, run
 import tempfile
 from common import infer_root, is_windows, is_linux
 
-e2k_py_root = infer_root / "crates" / "e2k-py"
+kanalizer_py_root = infer_root / "crates" / "kanalizer-py"
 wheels_root = infer_root / "target" / "wheels"
 
 
 def main():
-    os.chdir(e2k_py_root)
+    os.chdir(kanalizer_py_root)
 
     args = process_args()
     wheel: bool = args.wheel
@@ -78,9 +78,9 @@ def build_notice():
             infer_root / "tools" / "about.toml",
             infer_root / "tools" / "about.hbs.md",
         ],
-        cwd=e2k_py_root,
+        cwd=kanalizer_py_root,
     )
-    (e2k_py_root / "NOTICE.md").write_bytes(result)
+    (kanalizer_py_root / "NOTICE.md").write_bytes(result)
 
 
 def build_wheel(target: str | None = None):
@@ -131,7 +131,7 @@ def build_wheel_on_docker():
             f"messense/manylinux_2_28-cross:{tag}",
             "bash",
             "-c",
-            f"{vars_shell} bash < /mnt/infer/tools/build_e2k_py_docker.sh",
+            f"{vars_shell} bash < /mnt/infer/tools/build_kanalizer_py_docker.sh",
         ]
     )
 
@@ -140,7 +140,7 @@ def build_sdist():
     # NOTE: maturin sdistは特定条件下でLICENSEをsdistに含めないバグがあるため、手動で追加する。
     # ref: https://github.com/PyO3/maturin/issues/2531
 
-    temp_dir = Path(tempfile.mkdtemp(prefix="e2k-py-sdist-"))
+    temp_dir = Path(tempfile.mkdtemp(prefix="kanalizer-py-sdist-"))
 
     print_and_run(["uv", "run", "maturin", "sdist", "-o", temp_dir])
 
@@ -150,8 +150,8 @@ def build_sdist():
 
     print_and_run(["tar", "-xzvf", tar_name], cwd=temp_dir)
     pkg_root = temp_dir / sdist_name
-    shutil.copyfile(e2k_py_root / "LICENSE", pkg_root / "LICENSE")
-    shutil.copyfile(e2k_py_root / "NOTICE.md", pkg_root / "NOTICE.md")
+    shutil.copyfile(kanalizer_py_root / "LICENSE", pkg_root / "LICENSE")
+    shutil.copyfile(kanalizer_py_root / "NOTICE.md", pkg_root / "NOTICE.md")
 
     print_and_run(["tar", "-czvf", wheels_root / tar_name, sdist_name], cwd=temp_dir)
 

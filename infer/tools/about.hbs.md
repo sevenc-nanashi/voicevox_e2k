@@ -1,7 +1,6 @@
-<!-- `task build` にて生成。手動で編集しないでください。 -->
 # Rust Licenses
 
-e2k-rs が依存しているクレートのライセンス一覧です。
+kanalizer-rs が依存しているクレートのライセンス一覧です。
 
 {{#each overview}}
 - {{name}} ({{count}})

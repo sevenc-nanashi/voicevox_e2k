@@ -1,12 +1,12 @@
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
-fn extract_strategy(strategy: &str, kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<e2k::Strategy> {
+fn extract_strategy(strategy: &str, kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<kanalizer::Strategy> {
     return Ok(match strategy {
         "greedy" => {
             error_on_extra_args(kwargs, &[])?;
 
-            e2k::Strategy::Greedy
+            kanalizer::Strategy::Greedy
         }
         "top_k" => {
             error_on_extra_args(kwargs, &["k"])?;
@@ -18,12 +18,12 @@ fn extract_strategy(strategy: &str, kwargs: Option<&Bound<'_, PyDict>>) -> PyRes
                 .map(|k| k.extract::<usize>())
                 .transpose()?;
 
-            let mut strategy = e2k::StrategyTopK::default();
+            let mut strategy = kanalizer::StrategyTopK::default();
             if let Some(k) = k {
                 strategy.k = k;
             }
 
-            e2k::Strategy::TopK(strategy)
+            kanalizer::Strategy::TopK(strategy)
         }
         "top_p" => {
             error_on_extra_args(kwargs, &["p", "t"])?;
@@ -42,7 +42,7 @@ fn extract_strategy(strategy: &str, kwargs: Option<&Bound<'_, PyDict>>) -> PyRes
                 .map(|temperature| temperature.extract::<f32>())
                 .transpose()?;
 
-            let mut strategy = e2k::StrategyTopP::default();
+            let mut strategy = kanalizer::StrategyTopP::default();
             if let Some(top_p) = top_p {
                 strategy.top_p = top_p;
             }
@@ -50,7 +50,7 @@ fn extract_strategy(strategy: &str, kwargs: Option<&Bound<'_, PyDict>>) -> PyRes
                 strategy.temperature = temperature;
             }
 
-            e2k::Strategy::TopP(strategy)
+            kanalizer::Strategy::TopP(strategy)
         }
         _ => {
             return Err(pyo3::exceptions::PyValueError::new_err(
@@ -86,7 +86,7 @@ fn extract_strategy(strategy: &str, kwargs: Option<&Bound<'_, PyDict>>) -> PyRes
 
 #[pyclass(frozen)]
 struct C2k {
-    inner: std::sync::RwLock<e2k::C2k>,
+    inner: std::sync::RwLock<kanalizer::C2k>,
 }
 
 #[pymethods]
@@ -101,7 +101,7 @@ impl C2k {
         let strategy = extract_strategy(strategy, kwargs)?;
         Ok(Self {
             inner: std::sync::RwLock::new(
-                e2k::C2k::new()
+                kanalizer::C2k::new()
                     .with_max_length(max_length)
                     .with_strategy(strategy),
             ),
@@ -113,13 +113,13 @@ impl C2k {
     }
 }
 
-#[pymodule(name = "voicevox_e2k")]
-fn voicevox_e2k(m: &Bound<'_, PyModule>) -> PyResult<()> {
+#[pymodule(name = "voicevox_kanalizer")]
+fn voicevox_kanalizer(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<C2k>()?;
 
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
-    m.add("KANAS", e2k::KANAS)?;
-    m.add("ASCII_ENTRIES", e2k::ASCII_ENTRIES)?;
+    m.add("KANAS", kanalizer::KANAS)?;
+    m.add("ASCII_ENTRIES", kanalizer::ASCII_ENTRIES)?;
 
     Ok(())
 }

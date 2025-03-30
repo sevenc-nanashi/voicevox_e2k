@@ -1,15 +1,15 @@
-# voicevox_e2k
+# kanalizer
 
 英単語から読みを推論するライブラリ。
-[e2k](https://github.com/VOICEVOX/e2k/tree/main/infer/crates/e2k-rs)のPythonバインディングです。
+[kanalizer](https://github.com/VOICEVOX/kanalizer/tree/main/infer/crates/kanalizer-rs)のPythonバインディングです。
 
 ## 使い方
 
 ```py
 # 文字列をカタカナに変換する例
-import voicevox_e2k
+import kanalizer
 
-c2k = voicevox_e2k.C2k()
+c2k = kanalizer.C2k()
 
 word = "constants"
 print(c2k(word)) # => コンスタンツ

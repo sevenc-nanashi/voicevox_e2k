@@ -1,4 +1,4 @@
-# e2k/train
+# kanalizer/train
 
 学習用コードと推論のPython実装です。
 

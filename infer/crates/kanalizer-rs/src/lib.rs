@@ -1,16 +1,16 @@
-//! # e2k-rs
+//! # kanalizer-rs
 //!
-//! [Patchethium氏のe2k](https://github.com/Patchethium/e2k)をRustに移植したものです。
+//! [Patchethium氏のkanalizer](https://github.com/Patchethium/kanalizer)をRustに移植したものです。
 //!
 //! ## 使い方
 //!
 //! ```rust
 //! // 文字列をカタカナに変換する例
-//! let src = "constants";
-//! let c2k = e2k::C2k::new();
+//! let src = "kanalizer";
+//! let c2k = kanalizer::C2k::new();
 //! let dst = c2k.infer(src);
 //!
-//! dbg!(dst); // "コンスタンツ"
+//! assert_eq!(dst, "カナライザー");
 //! ```
 //!
 //! ## Features

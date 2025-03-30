@@ -36,25 +36,25 @@ fn main() {
     let strategy = match args.strategy {
         StrategyArg::Greedy => {
             println!("アルゴリズム：Greedy");
-            e2k::Strategy::Greedy
+            kanalizer::Strategy::Greedy
         }
         StrategyArg::TopK => {
             println!("アルゴリズム：Top-K, K={}", args.top_k);
-            e2k::Strategy::TopK(e2k::StrategyTopK { k: args.top_k })
+            kanalizer::Strategy::TopK(kanalizer::StrategyTopK { k: args.top_k })
         }
         StrategyArg::TopP => {
             println!(
                 "アルゴリズム：Top-P, P={}, T={}",
                 args.top_p, args.temperature
             );
-            e2k::Strategy::TopP(e2k::StrategyTopP {
+            kanalizer::Strategy::TopP(kanalizer::StrategyTopP {
                 top_p: args.top_p,
                 temperature: args.temperature,
             })
         }
     };
 
-    let c2k = e2k::C2k::new()
+    let c2k = kanalizer::C2k::new()
         .with_strategy(strategy)
         .with_max_length(args.max_length);
 

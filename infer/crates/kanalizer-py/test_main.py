@@ -1,8 +1,8 @@
-import voicevox_e2k
+import kanalizer
 
 
 def test_c2k():
-    c2k = voicevox_e2k.C2k()
+    c2k = kanalizer.C2k()
 
     word = "constants"
     assert c2k(word) == "コンスタンツ"

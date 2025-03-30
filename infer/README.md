@@ -1,4 +1,4 @@
-# e2k/infer
+# kanalizer/infer
 
 推論コードのRust実装。
 
@@ -6,7 +6,7 @@
 
 詳細は各ディレクトリのREADMEを参照してください。
 
-- `./crates/e2k-rs`：Rust実装。
-- `./crates/e2k-py`：Pythonバインディング。
+- `./crates/kanalizer-rs`：Rust実装。
+- `./crates/kanalizer-py`：Pythonバインディング。
 - `./tools`：ビルドスクリプトなどのツール。
 
