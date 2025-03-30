@@ -17,8 +17,8 @@ uv run maturin develop
 ## リリース用ビルド
 
 ```bash
-(cd ../e2k-rs && cargo about generate about.hbs.md > ../e2k-py/NOTICE.md)
-uv run maturin build --release
+cd ../../tools
+uv run ./build_e2k_py.py
 ```
 
 ## テスト

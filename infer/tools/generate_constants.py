@@ -1,11 +1,15 @@
-import os
-from e2k import constants
 import subprocess
+import sys
+from common import train_root, infer_root
+
+sys.path.append(str(train_root / "src"))
+
+import constants  # type: ignore -- sys.path.append で追加したパスが pyright に認識されないため
 
 
-destination = os.path.join(os.path.dirname(__file__), "../src/constants.rs")
+destination = infer_root / "crates" / "e2k-rs" / "src" / "constants.rs"
 content = f"""
-// `task generate_constants` により生成。
+// `generate_constants.py` により生成。
 // このファイルは直接編集しないでください。
 
 // pub const PAD_IDX: usize = {constants.PAD_IDX};
@@ -20,9 +24,10 @@ pub const ASCII_ENTRIES: &[&str] = &[
 """
 
 formatted_content = subprocess.run(
-    ["rustfmt", "--edition", "2021"],
+    ["rustfmt", "--edition", "2024"],
     input=content.encode(),
     stdout=subprocess.PIPE,
 ).stdout.decode()
+
 with open(destination, "w") as f:
     f.write(formatted_content)

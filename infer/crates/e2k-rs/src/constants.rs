@@ -1,4 +1,4 @@
-// `task generate_constants` により生成。
+// `generate_constants.py` により生成。
 // このファイルは直接編集しないでください。
 
 // pub const PAD_IDX: usize = 0;
