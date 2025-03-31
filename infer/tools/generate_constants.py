@@ -7,7 +7,7 @@ sys.path.append(str(train_root / "src"))
 import constants  # type: ignore -- sys.path.append で追加したパスが pyright に認識されないため
 
 
-destination = infer_root / "crates" / "e2k-rs" / "src" / "constants.rs"
+destination = infer_root / "crates" / "kanalizer-rs" / "src" / "constants.rs"
 content = f"""
 // `generate_constants.py` により生成。
 // このファイルは直接編集しないでください。

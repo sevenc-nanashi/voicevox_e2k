@@ -52,16 +52,16 @@ jobs:
         if: matrix.additional_targets
         run: rustup target add ${{ matrix.additional_targets }}
 
-      - name: Build e2k-py
+      - name: Build kanalizer-py
         working-directory: infer/tools
         run: |
           cargo set-version ${{ inputs.version }}
-          uv run build_e2k_py.py ${{ matrix.build_args }}
+          uv run build_kanalizer_py.py ${{ matrix.build_args }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: e2k-py-${{ matrix.os }}
+          name: kanalizer-py-${{ matrix.os }}
           path: |
             infer/target/wheels/*.whl
             infer/target/wheels/*.tar.gz
@@ -82,7 +82,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: e2k-py-*
+          pattern: kanalizer-py-*
           merge-multiple: true
           path: dist
 

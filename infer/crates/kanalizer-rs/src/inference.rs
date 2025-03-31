@@ -348,7 +348,7 @@ impl C2k {
                 {
                     use std::io::Read;
                     let model = include_bytes!(concat!(
-                        env!("E2K_MODEL_ROOT"),
+                        env!("KANALIZER_MODEL_ROOT"),
                         "/model-c2k.safetensors.br"
                     ));
                     let mut input = brotli_decompressor::Decompressor::new(model.as_slice(), 4096);
@@ -357,7 +357,11 @@ impl C2k {
                     buf
                 }
             } else {
-                include_bytes!(concat!(env!("E2K_MODEL_ROOT"), "/model-c2k.safetensors")).to_vec()
+                include_bytes!(concat!(
+                    env!("KANALIZER_MODEL_ROOT"),
+                    "/model-c2k.safetensors"
+                ))
+                .to_vec()
             })
         });
         let weights = safetensors::SafeTensors::deserialize(&MODEL).expect("Model is corrupted");

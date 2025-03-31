@@ -3,5 +3,5 @@ version = "0.0.0"
 edition = "2024"
 
 [workspace]
-members = ["crates/e2k-rs", "crates/e2k-py"]
+members = ["crates/kanalizer-rs", "crates/kanalizer-py"]
 resolver = "3"

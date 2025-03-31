@@ -25,7 +25,7 @@ fn prepare_model() -> anyhow::Result<()> {
     prepare_compressed_model(&model_path)?;
 
     println!(
-        "cargo:rustc-env=E2K_MODEL_ROOT={}",
+        "cargo:rustc-env=KANALIZER_MODEL_ROOT={}",
         model_path.parent().unwrap().display()
     );
 
@@ -64,7 +64,7 @@ fn prepare_huggingface_model() -> anyhow::Result<PathBuf> {
     if !latest_model_exists {
         download_to(
             &format!(
-                "https://huggingface.co/VOICEVOX/e2k/resolve/{MODEL_TAG}/model/c2k.safetensors"
+                "https://huggingface.co/VOICEVOX/kanalizer/resolve/{MODEL_TAG}/model/c2k.safetensors"
             ),
             &model_path,
         )?;
