@@ -1,7 +1,7 @@
 import kanalizer
 
 
-def test_c2k():
+def test_kana():
     kana = kanalizer.Kanalizer()
 
     word = "kanalizer"
