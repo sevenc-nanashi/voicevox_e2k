@@ -11,8 +11,8 @@ fn test_kana() {
 fn test_kana_empty() {
     let src = "";
 
-    let kana = kanalizer::Kanalizer::new();
-    let dst = kana.infer(src);
+    let kanalizer = kanalizer::Kanalizer::new();
+    let dst = kanalizer.infer(src);
     assert_eq!(dst, "");
 }
 
@@ -20,10 +20,10 @@ fn test_kana_empty() {
 fn test_kana_long() {
     let src = "pneumonoultramicroscopicsilicovolcanoconiosis";
 
-    let unlimited_kana = kanalizer::Kanalizer::new();
-    let limited_kana = kanalizer::Kanalizer::new().with_max_length(10);
-    let unlimited_dst = unlimited_kana.infer(src);
-    let limited_dst = limited_kana.infer(src);
+    let unlimited_kanalizer = kanalizer::Kanalizer::new();
+    let limited_kanalizer = kanalizer::Kanalizer::new().with_max_length(10);
+    let unlimited_dst = unlimited_kanalizer.infer(src);
+    let limited_dst = limited_kanalizer.infer(src);
     assert_ne!(unlimited_dst, limited_dst);
     assert_eq!(limited_dst.chars().count(), 10);
 }

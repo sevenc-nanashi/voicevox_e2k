@@ -1,8 +1,8 @@
-import kanalizer
+from kanalizer import Kanalizer
 
 
-def test_kana():
-    kana = kanalizer.Kanalizer()
+def test_kanalizer():
+    kanalizer = Kanalizer()
 
     word = "kanalizer"
-    assert kana.infer(word) == "カナライザー"
+    assert kanalizer.infer(word) == "カナライザー"

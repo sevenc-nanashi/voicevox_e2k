@@ -7,12 +7,12 @@
 
 ```py
 # 文字列をカタカナに変換する例
-import kanalizer
+from kanalizer import Kanalizer
 
-kana = kanalizer.Kanalizer()
+kanalizer = Kanalizer()
 
 word = "kanalizer"
-print(kana.infer(word)) # => カナライザー
+print(kanalizer.infer(word)) # => カナライザー
 ```
 
 ## ライセンス
