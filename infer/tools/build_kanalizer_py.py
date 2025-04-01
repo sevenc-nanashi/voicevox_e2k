@@ -12,7 +12,7 @@ import platform
 import shutil
 from subprocess import check_output, run
 import tempfile
-from common import infer_root, is_windows, is_linux
+from common import infer_root, is_windows, is_linux, os_name
 
 kanalizer_py_root = infer_root / "crates" / "kanalizer-py"
 wheels_root = infer_root / "target" / "wheels"
@@ -83,13 +83,19 @@ def build_notice():
     (kanalizer_py_root / "NOTICE.md").write_bytes(result)
 
 
-def build_wheel(target: str | None = None):
-    if target is None:
-        print_and_run(["uv", "run", "maturin", "build", "--release"])
-    else:
-        print_and_run(
-            ["uv", "run", "maturin", "build", "--release", "--target", target]
-        )
+def build_wheel(*, python_arch: str | None = None, target: str | None = None):
+    target_args = []
+    if target is not None:
+        target_args = ["--target", target]
+    python_arch_args = []
+    if python_arch is not None:
+        python_arch_args = [
+            "--python",
+            f"cpython-{platform.python_version}-{os_name}-{python_arch}",
+        ]
+    print_and_run(
+        ["uv", "run", *python_arch_args, "maturin", "build", "--release", *target_args]
+    )
 
 
 def remove_non_manylinux_wheels():

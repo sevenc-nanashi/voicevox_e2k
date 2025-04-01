@@ -15,7 +15,7 @@ curl -LsSf https://sh.rustup.rs | sh -s -- -y --profile minimal
 export PATH=$HOME/.cargo/bin:$HOME/.local/bin:$PATH
 
 # ファイルをコピー
-mkdir /work
+mkdir -p /work/infer
 cat <<EOF > /work/copy_excludes.txt
 .venv
 target
@@ -23,11 +23,11 @@ __pycache__
 dist
 .pytest_cache
 EOF
-rsync -av --exclude-from=/work/copy_excludes.txt /mnt/infer/ /work
+rsync -av --exclude-from=/work/copy_excludes.txt /mnt/infer/ /work/infer
 
 # ビルド
-cd /work/tools
+cd /work/infer/tools
 uv run ./build_kanalizer_py.py --wheel --skip-notice
 
-chown $HOST_UID:$HOST_GID /work/target/wheels/*
-cp -rp /work/target/wheels/* /mnt/infer/target/wheels/
+chown $HOST_UID:$HOST_GID /work/infer/target/wheels/*
+cp -rp /work/infer/target/wheels/* /mnt/infer/target/wheels/
