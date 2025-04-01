@@ -1,29 +1,29 @@
 #[test]
-fn test_c2k() {
+fn test_kana() {
     let src = "kanalizer";
 
-    let c2k = kanalizer::C2k::new();
-    let dst = c2k.infer(src);
+    let kana = kanalizer::Kanalizer::new();
+    let dst = kana.infer(src);
     assert_eq!(dst, "カナライザー");
 }
 
 #[test]
-fn test_c2k_empty() {
+fn test_kana_empty() {
     let src = "";
 
-    let c2k = kanalizer::C2k::new();
-    let dst = c2k.infer(src);
+    let kana = kanalizer::Kanalizer::new();
+    let dst = kana.infer(src);
     assert_eq!(dst, "");
 }
 
 #[test]
-fn test_c2k_long() {
+fn test_kana_long() {
     let src = "pneumonoultramicroscopicsilicovolcanoconiosis";
 
-    let unlimited_c2k = kanalizer::C2k::new();
-    let limited_c2k = kanalizer::C2k::new().with_max_length(10);
-    let unlimited_dst = unlimited_c2k.infer(src);
-    let limited_dst = limited_c2k.infer(src);
+    let unlimited_kana = kanalizer::Kanalizer::new();
+    let limited_kana = kanalizer::Kanalizer::new().with_max_length(10);
+    let unlimited_dst = unlimited_kana.infer(src);
+    let limited_dst = limited_kana.infer(src);
     assert_ne!(unlimited_dst, limited_dst);
     assert_eq!(limited_dst.chars().count(), 10);
 }

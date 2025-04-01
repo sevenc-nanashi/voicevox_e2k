@@ -4,14 +4,14 @@ __version__: Final[str]
 """バージョン。"""
 
 KANAS: Final[list[str]]
-"""c2kの入力に使える文字の一覧。"""
+"""Kanalizerの入力に使える文字の一覧。"""
 ASCII_ENTRIES: Final[list[str]]
-"""c2kで出力される文字の一覧。"""
+"""Kanalizerで出力される文字の一覧。"""
 
 Strategy = Literal["greedy", "top_k", "top_p"]
 """デコードのアルゴリズム。"""
 
-class C2k:
+class Kanalizer:
     """英単語 -> カタカナの推論を行う。"""
 
     @overload
@@ -60,7 +60,7 @@ class C2k:
 
         ...
 
-    def __call__(self, word: str) -> str:
+    def infer(self, word: str) -> str:
         """
         推論を行う。
 

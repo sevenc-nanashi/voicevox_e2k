@@ -54,7 +54,7 @@ fn main() {
         }
     };
 
-    let c2k = kanalizer::C2k::new()
+    let kana = kanalizer::Kanalizer::new()
         .with_strategy(strategy)
         .with_max_length(args.max_length);
 
@@ -64,7 +64,7 @@ fn main() {
             .with_prompt("Input")
             .interact()
             .unwrap();
-        let dst = c2k.infer(&line);
+        let dst = kana.infer(&line);
         println!("{} -> {}", line, dst);
     }
 }

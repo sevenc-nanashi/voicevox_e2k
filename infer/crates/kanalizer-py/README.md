@@ -9,10 +9,10 @@
 # 文字列をカタカナに変換する例
 import kanalizer
 
-c2k = kanalizer.C2k()
+kana = kanalizer.Kanalizer()
 
 word = "kanalizer"
-print(c2k(word)) # => カナライザー
+print(kana.infer(word)) # => カナライザー
 ```
 
 ## ライセンス

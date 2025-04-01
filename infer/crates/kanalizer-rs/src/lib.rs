@@ -7,8 +7,8 @@
 //! ```rust
 //! // 文字列をカタカナに変換する例
 //! let src = "kanalizer";
-//! let c2k = kanalizer::C2k::new();
-//! let dst = c2k.infer(src);
+//! let kana = kanalizer::Kanalizer::new();
+//! let dst = kana.infer(src);
 //!
 //! assert_eq!(dst, "カナライザー");
 //! ```
