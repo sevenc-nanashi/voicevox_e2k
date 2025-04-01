@@ -92,7 +92,7 @@ def build_wheel(*, python_arch: str | None = None, target: str | None = None):
     if python_arch is not None:
         python_arch_args = [
             "--python",
-            f"cpython-{platform.python_version}-{os_name}-{python_arch}",
+            f"cpython-{platform.python_version()}-{os_name}-{python_arch}",
         ]
     print_and_run(
         ["uv", "run", *python_arch_args, "maturin", "build", "--release", *target_args]
