@@ -36,7 +36,7 @@ def main():
         build_wheel()
         if is_windows:
             print("Building 32-bit wheel...")
-            build_wheel("i686-pc-windows-msvc")
+            build_wheel(target="i686-pc-windows-msvc", python_arch="x86")
         elif is_linux:
             print("Removing non-manylinux wheels...")
             remove_non_manylinux_wheels()
@@ -69,7 +69,7 @@ def process_args():
 
 
 def build_notice():
-    result = print_and_check_output(
+    print_and_run(
         [
             "cargo",
             "about",
@@ -77,10 +77,11 @@ def build_notice():
             "-c",
             infer_root / "tools" / "about.toml",
             infer_root / "tools" / "about.hbs.md",
+            "-o",
+            kanalizer_py_root / "NOTICE.md",
         ],
         cwd=kanalizer_py_root,
     )
-    (kanalizer_py_root / "NOTICE.md").write_bytes(result)
 
 
 def build_wheel(*, python_arch: str | None = None, target: str | None = None):
