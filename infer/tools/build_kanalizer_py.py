@@ -6,6 +6,7 @@ kanalizer-pyをビルドする。
 """
 
 # TODO: wheelビルドなどを別ファイルに分割し、build_kanalizer_py_docker.shと循環参照しないようにする
+# https://github.com/VOICEVOX/kanalizer/pull/54#discussion_r2023809776
 
 import argparse
 import os
