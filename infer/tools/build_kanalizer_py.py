@@ -5,6 +5,9 @@ kanalizer-pyをビルドする。
 環境構築やレジストリへの公開はこのファイルでは行わない。
 """
 
+# TODO: wheelビルドなどを別ファイルに分割し、build_kanalizer_py_docker.shと循環参照しないようにする
+# https://github.com/VOICEVOX/kanalizer/pull/54#discussion_r2023809776
+
 import argparse
 import os
 from pathlib import Path
@@ -36,7 +39,7 @@ def main():
         build_wheel()
         if is_windows:
             print("Building 32-bit wheel...")
-            build_wheel("i686-pc-windows-msvc")
+            build_wheel(target="i686-pc-windows-msvc", python_arch="x86")
         elif is_linux:
             print("Removing non-manylinux wheels...")
             remove_non_manylinux_wheels()
@@ -69,7 +72,7 @@ def process_args():
 
 
 def build_notice():
-    result = print_and_check_output(
+    print_and_run(
         [
             "cargo",
             "about",
@@ -77,19 +80,32 @@ def build_notice():
             "-c",
             infer_root / "tools" / "about.toml",
             infer_root / "tools" / "about.hbs.md",
+            "-o",
+            kanalizer_py_root / "NOTICE.md",
         ],
         cwd=kanalizer_py_root,
     )
-    (kanalizer_py_root / "NOTICE.md").write_bytes(result)
 
 
-def build_wheel(target: str | None = None):
-    if target is None:
-        print_and_run(["uv", "run", "maturin", "build", "--release"])
-    else:
-        print_and_run(
-            ["uv", "run", "maturin", "build", "--release", "--target", target]
-        )
+def build_wheel(*, python_arch: str | None = None, target: str | None = None):
+    # TODO: targetとpython_archの指定を必須にする
+    target_args = []
+    if target is not None:
+        target_args = ["--target", target]
+    python_arch_args = []
+    if python_arch is not None:
+        os_name = {
+            "Windows": "windows",
+            "Linux": "linux",
+            "Darwin": "macos",
+        }[platform.system()]
+        python_arch_args = [
+            "--python",
+            f"cpython-{platform.python_version()}-{os_name}-{python_arch}",
+        ]
+    print_and_run(
+        ["uv", "run", *python_arch_args, "maturin", "build", "--release", *target_args]
+    )
 
 
 def remove_non_manylinux_wheels():
