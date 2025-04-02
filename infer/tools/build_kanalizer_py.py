@@ -12,7 +12,7 @@ import platform
 import shutil
 from subprocess import check_output, run
 import tempfile
-from common import infer_root, is_windows, is_linux, os_name
+from common import infer_root, is_windows, is_linux
 
 kanalizer_py_root = infer_root / "crates" / "kanalizer-py"
 wheels_root = infer_root / "target" / "wheels"
@@ -90,6 +90,11 @@ def build_wheel(*, python_arch: str | None = None, target: str | None = None):
         target_args = ["--target", target]
     python_arch_args = []
     if python_arch is not None:
+        os_name = {
+            "Windows": "windows",
+            "Linux": "linux",
+            "Darwin": "macos",
+        }[platform.system()]
         python_arch_args = [
             "--python",
             f"cpython-{platform.python_version()}-{os_name}-{python_arch}",
