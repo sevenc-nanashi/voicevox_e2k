@@ -15,7 +15,7 @@ curl -LsSf https://sh.rustup.rs | sh -s -- -y --profile minimal
 export PATH=$HOME/.cargo/bin:$HOME/.local/bin:$PATH
 
 # ファイルをコピー
-mkdir -p /work/infer
+mkdir -p /work/infer  # ビルドスクリプトはリポジトリの構造に依存しているので、それを可能な限り模倣する。
 cat <<EOF > /work/copy_excludes.txt
 .venv
 target
