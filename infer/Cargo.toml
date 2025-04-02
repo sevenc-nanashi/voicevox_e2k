@@ -1,6 +1,7 @@
 [workspace.package]
 version = "0.0.0"
 edition = "2024"
+description = "英単語から読みを推論するライブラリ。"
 
 [workspace]
 members = ["crates/kanalizer-rs", "crates/kanalizer-py"]
