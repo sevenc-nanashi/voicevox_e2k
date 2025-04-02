@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 license = "MIT"
 exclude = ["tasks", "models"]
+description.workspace = true
 
 [[bench]]
 name = "benchmark"
