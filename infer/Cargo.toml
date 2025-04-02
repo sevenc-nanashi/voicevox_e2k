@@ -2,6 +2,7 @@
 version = "0.0.0"
 edition = "2024"
 description = "英単語から読みを推論するライブラリ。"
+repository = "https://github.com/VOICEVOX/kanalizer"
 
 [workspace]
 members = ["crates/kanalizer-rs", "crates/kanalizer-py"]
