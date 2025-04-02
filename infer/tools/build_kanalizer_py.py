@@ -5,6 +5,8 @@ kanalizer-pyをビルドする。
 環境構築やレジストリへの公開はこのファイルでは行わない。
 """
 
+# TODO: wheelビルドなどを別ファイルに分割し、build_kanalizer_py_docker.shと循環参照しないようにする
+
 import argparse
 import os
 from pathlib import Path
