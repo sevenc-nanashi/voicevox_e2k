@@ -85,6 +85,7 @@ def build_notice():
 
 
 def build_wheel(*, python_arch: str | None = None, target: str | None = None):
+    # TODO: targetとpython_archの指定を必須にする
     target_args = []
     if target is not None:
         target_args = ["--target", target]
