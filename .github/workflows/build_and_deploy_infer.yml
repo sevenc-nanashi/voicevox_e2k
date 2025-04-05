@@ -18,6 +18,7 @@ defaults:
     working-directory: infer
 
 jobs:
+  # TODO: 入力のパースとそれに従った値の分岐をconfigというjobにまとめる
   validate:
     runs-on: ubuntu-latest
 
