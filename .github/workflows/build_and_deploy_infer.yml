@@ -30,6 +30,7 @@ jobs:
             echo "Invalid version format. Expected A.BB.C or A.BB.C-preview.D"
             exit 1
           fi
+
   build:
     needs:
       - validate
