@@ -88,12 +88,12 @@ fn extract_strategy(
 }
 
 #[pyclass(frozen)]
-struct C2k {
-    inner: std::sync::RwLock<kanalizer::C2k>,
+struct Kanalizer {
+    inner: std::sync::RwLock<kanalizer::Kanalizer>,
 }
 
 #[pymethods]
-impl C2k {
+impl Kanalizer {
     #[new]
     #[pyo3(signature = (max_length = 32, strategy = "greedy", **kwargs))]
     fn new(
@@ -104,21 +104,21 @@ impl C2k {
         let strategy = extract_strategy(strategy, kwargs)?;
         Ok(Self {
             inner: std::sync::RwLock::new(
-                kanalizer::C2k::new()
+                kanalizer::Kanalizer::new()
                     .with_max_length(max_length)
                     .with_strategy(strategy),
             ),
         })
     }
 
-    fn __call__(&self, src: &str) -> String {
-        self.inner.read().unwrap().infer(src)
+    fn convert(&self, src: &str) -> String {
+        self.inner.read().unwrap().convert(src)
     }
 }
 
 #[pymodule(name = "kanalizer")]
 fn init_kanalizer(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<C2k>()?;
+    m.add_class::<Kanalizer>()?;
 
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     m.add("KANAS", kanalizer::KANAS)?;

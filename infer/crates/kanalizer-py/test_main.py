@@ -1,8 +1,8 @@
-import kanalizer
+from kanalizer import Kanalizer
 
 
-def test_c2k():
-    c2k = kanalizer.C2k()
+def test_kanalizer():
+    kanalizer = Kanalizer()
 
     word = "kanalizer"
-    assert c2k(word) == "カナライザー"
+    assert kanalizer.convert(word) == "カナライザー"

@@ -317,23 +317,23 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
 }
 
 /// 英単語 -> カタカナの変換器。
-pub struct C2k {
+pub struct Kanalizer {
     inner: BaseE2k<String, char>,
 }
 
-impl std::fmt::Debug for C2k {
+impl std::fmt::Debug for Kanalizer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("C2k").finish()
+        f.debug_struct("Kanalizer").finish()
     }
 }
 
-impl Default for C2k {
+impl Default for Kanalizer {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl C2k {
+impl Kanalizer {
     /// 新しいインスタンスを生成する。
     ///
     /// # See also
@@ -403,7 +403,7 @@ impl C2k {
     }
 
     /// 推論を行う。
-    pub fn infer(&self, input: &str) -> String {
+    pub fn convert(&self, input: &str) -> String {
         let input = input.chars().map(|c| c.to_string()).collect::<Vec<_>>();
         self.inner.infer(&input).into_iter().collect()
     }
