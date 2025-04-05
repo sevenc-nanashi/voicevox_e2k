@@ -12,3 +12,8 @@
   5. `git push origin v{バージョン番号}`でタグをpushする。
 2. Githubを更新する
   1. `infer/crates/kanalizer-rs/build.rs`の`MODEL_TAG`を更新する。
+
+## リリース先の方針
+
+- リリース時の挙動を確認したいときはTestPyPIに上げる。
+- メインPyPIはユーザーが使っていいものにする。
