@@ -60,7 +60,7 @@ class Kanalizer:
 
         ...
 
-    def infer(self, word: str) -> str:
+    def convert(self, word: str) -> str:
         """
         推論を行う。
 

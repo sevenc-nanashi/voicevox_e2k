@@ -12,7 +12,7 @@ from kanalizer import Kanalizer
 kanalizer = Kanalizer()
 
 word = "kanalizer"
-print(kanalizer.infer(word)) # => カナライザー
+print(kanalizer.convert(word)) # => カナライザー
 ```
 
 ## ライセンス

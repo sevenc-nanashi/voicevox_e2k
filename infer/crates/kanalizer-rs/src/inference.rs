@@ -403,7 +403,7 @@ impl Kanalizer {
     }
 
     /// 推論を行う。
-    pub fn infer(&self, input: &str) -> String {
+    pub fn convert(&self, input: &str) -> String {
         let input = input.chars().map(|c| c.to_string()).collect::<Vec<_>>();
         self.inner.infer(&input).into_iter().collect()
     }

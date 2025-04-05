@@ -8,7 +8,7 @@
 // 文字列をカタカナに変換する例
 let src = "kanalizer";
 let kana = kanalizer::Kanalizer::new();
-let dst = kana.infer(src);
+let dst = kana.convert(src);
 
 assert_eq!(dst, "カナライザー");
 ```

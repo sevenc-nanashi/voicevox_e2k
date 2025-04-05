@@ -111,8 +111,8 @@ impl Kanalizer {
         })
     }
 
-    fn infer(&self, src: &str) -> String {
-        self.inner.read().unwrap().infer(src)
+    fn convert(&self, src: &str) -> String {
+        self.inner.read().unwrap().convert(src)
     }
 }
 

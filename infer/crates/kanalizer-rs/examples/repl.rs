@@ -64,7 +64,7 @@ fn main() {
             .with_prompt("Input")
             .interact()
             .unwrap();
-        let dst = kana.infer(&line);
+        let dst = kana.convert(&line);
         println!("{} -> {}", line, dst);
     }
 }
