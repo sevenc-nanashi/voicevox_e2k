@@ -54,7 +54,7 @@ fn main() {
         }
     };
 
-    let kana = kanalizer::Kanalizer::new()
+    let kanalizer = kanalizer::Kanalizer::new()
         .with_strategy(strategy)
         .with_max_length(args.max_length);
 
@@ -64,7 +64,7 @@ fn main() {
             .with_prompt("Input")
             .interact()
             .unwrap();
-        let dst = kana.convert(&line);
+        let dst = kanalizer.convert(&line);
         println!("{} -> {}", line, dst);
     }
 }

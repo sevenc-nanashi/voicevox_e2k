@@ -1,14 +1,14 @@
 #[test]
-fn test_kana() {
+fn test_kanalizer() {
     let src = "kanalizer";
 
-    let kana = kanalizer::Kanalizer::new();
-    let dst = kana.convert(src);
+    let kanalizer = kanalizer::Kanalizer::new();
+    let dst = kanalizer.convert(src);
     assert_eq!(dst, "カナライザー");
 }
 
 #[test]
-fn test_kana_empty() {
+fn test_kanalizer_empty() {
     let src = "";
 
     let kanalizer = kanalizer::Kanalizer::new();
@@ -17,7 +17,7 @@ fn test_kana_empty() {
 }
 
 #[test]
-fn test_kana_long() {
+fn test_kanalizer_long() {
     let src = "pneumonoultramicroscopicsilicovolcanoconiosis";
 
     let unlimited_kanalizer = kanalizer::Kanalizer::new();
