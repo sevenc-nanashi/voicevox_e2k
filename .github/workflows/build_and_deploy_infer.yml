@@ -109,7 +109,7 @@ jobs:
           verbose: true
 
       - name: Create release
-        if: inputs.production == 'true'
+        if: inputs.production
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.version }}
