@@ -18,7 +18,21 @@ defaults:
     working-directory: infer
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate version
+        run: |
+          if [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-preview\.[0-9]+)?$ ]]; then
+            echo "Valid version format"
+          else
+            echo "Invalid version format. Expected A.BB.C or A.BB.C-preview.D"
+            exit 1
+          fi
   build:
+    needs:
+      - validate
     strategy:
       fail-fast: false
       matrix:
@@ -93,9 +107,11 @@ jobs:
           verbose: true
 
       - name: Create release
+        if: inputs.production == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.version }}
           target_commitish: ${{ github.sha }}
           draft: false
-          prerelease: ${{ !inputs.production }}
+          # A.BB.Cのみを正式リリースとする
+          prerelease: ${{ contains(inputs.version, '-') }}
