@@ -398,4 +398,3 @@ impl Kanalizer {
         self.inner.infer(&input, options).into_iter().collect()
     }
 }
-
