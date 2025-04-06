@@ -97,7 +97,9 @@ fn convert(
 ) -> PyResult<String> {
     let strategy = extract_strategy(strategy, kwargs)?;
     Ok(kanalizer::convert(word)
-        .with_max_length(max_length)
+        .with_max_length(max_length.try_into().map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err("max_length must be a positive integer")
+        })?)
         .with_strategy(&strategy)
         .perform())
 }
