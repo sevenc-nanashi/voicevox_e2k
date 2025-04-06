@@ -4,6 +4,7 @@ use itertools::Itertools;
 use std::{collections::HashMap, hash::Hash};
 
 #[derive(Clone, Debug)]
+/// [Kanalizer::convert]のオプション。
 pub struct ConvertOptions {
     /// デコードの最大長。
     pub max_length: usize,
@@ -397,3 +398,4 @@ impl Kanalizer {
         self.inner.infer(&input, options).into_iter().collect()
     }
 }
+

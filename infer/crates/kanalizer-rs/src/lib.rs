@@ -1,6 +1,6 @@
 //! # kanalizer-rs
 //!
-//! [Patchethium氏のkanalizer](https://github.com/Patchethium/kanalizer)をRustに移植したものです。
+//! [Patchethium氏のe2k](https://github.com/Patchethium/e2k)をRustに移植したものです。
 //!
 //! ## 使い方
 //!
@@ -34,6 +34,7 @@ pub use inference::*;
 
 static KANALIZER: LazyLock<Kanalizer> = LazyLock::new(Kanalizer::new);
 
+/// 推論を行うためのオプションを指定する構造体。
 pub struct ConvertBuilder {
     input: String,
     options: ConvertOptions,
