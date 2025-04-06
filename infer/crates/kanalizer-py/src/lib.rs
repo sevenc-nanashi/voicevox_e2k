@@ -87,42 +87,27 @@ fn extract_strategy(
     }
 }
 
-#[pyclass(frozen)]
-struct Kanalizer {
-    inner: std::sync::RwLock<kanalizer::Kanalizer>,
-}
-
-#[pymethods]
-impl Kanalizer {
-    #[new]
-    #[pyo3(signature = (max_length = 32, strategy = "greedy", **kwargs))]
-    fn new(
-        max_length: usize,
-        strategy: &str,
-        kwargs: Option<&Bound<'_, PyDict>>,
-    ) -> PyResult<Self> {
-        let strategy = extract_strategy(strategy, kwargs)?;
-        Ok(Self {
-            inner: std::sync::RwLock::new(
-                kanalizer::Kanalizer::new()
-                    .with_max_length(max_length)
-                    .with_strategy(strategy),
-            ),
-        })
-    }
-
-    fn convert(&self, src: &str) -> String {
-        self.inner.read().unwrap().convert(src)
-    }
+#[pyfunction]
+#[pyo3(signature = (word, /, *, max_length = 32, strategy = "greedy", **kwargs))]
+fn convert(
+    word: &str,
+    max_length: usize,
+    strategy: &str,
+    kwargs: Option<&Bound<'_, PyDict>>,
+) -> PyResult<String> {
+    let strategy = extract_strategy(strategy, kwargs)?;
+    Ok(kanalizer::convert(word)
+        .with_max_length(max_length)
+        .with_strategy(&strategy)
+        .perform())
 }
 
 #[pymodule(name = "kanalizer")]
 fn init_kanalizer(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<Kanalizer>()?;
-
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     m.add("KANAS", kanalizer::KANAS)?;
     m.add("ASCII_ENTRIES", kanalizer::ASCII_ENTRIES)?;
+    m.add_function(wrap_pyfunction!(convert, m)?)?;
 
     Ok(())
 }

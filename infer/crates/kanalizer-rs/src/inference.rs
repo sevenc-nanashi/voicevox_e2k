@@ -3,6 +3,24 @@ use educe::Educe;
 use itertools::Itertools;
 use std::{collections::HashMap, hash::Hash};
 
+#[derive(Clone, Debug)]
+/// [Kanalizer::convert]のオプション。
+pub struct ConvertOptions {
+    /// デコードの最大長。
+    pub max_length: usize,
+    /// デコードに使うアルゴリズム。
+    pub strategy: Strategy,
+}
+
+impl Default for ConvertOptions {
+    fn default() -> Self {
+        Self {
+            max_length: 32,
+            strategy: Strategy::default(),
+        }
+    }
+}
+
 /// デコードに使うアルゴリズム。
 ///
 /// [StrategyTopK] 、 [StrategyTopP] も参照。
@@ -77,9 +95,6 @@ struct S2s {
     post_decoder: layers::Gru,
     attn: layers::Mha,
     fc: layers::Linear,
-    max_length: usize,
-
-    strategy: Strategy,
 }
 
 fn get_array_f16<E, D>(
@@ -101,7 +116,7 @@ where
 }
 
 impl S2s {
-    fn new(weights: safetensors::SafeTensors, max_length: usize) -> Self {
+    fn new(weights: safetensors::SafeTensors) -> Self {
         let e_emb = layers::Embedding::new(get_array_f16(&weights, "e_emb.weight"));
         let k_emb = layers::Embedding::new(get_array_f16(&weights, "k_emb.weight"));
         let encoder = layers::Gru::new(
@@ -155,7 +170,6 @@ impl S2s {
             get_array_f16(&weights, "fc.weight"),
             get_array_f16(&weights, "fc.bias"),
         );
-        let strategy = Strategy::Greedy;
         Self {
             e_emb,
             k_emb,
@@ -166,8 +180,6 @@ impl S2s {
             post_decoder,
             attn,
             fc,
-            max_length,
-            strategy,
         }
     }
 
@@ -208,8 +220,8 @@ impl S2s {
         candidates[random % candidates.len()]
     }
 
-    fn decode(&self, x: &ndarray::ArrayView1<f32>) -> usize {
-        match &self.strategy {
+    fn decode(&self, x: &ndarray::ArrayView1<f32>, strategy: &Strategy) -> usize {
+        match strategy {
             Strategy::Greedy => self.greedy(x),
             Strategy::TopK(StrategyTopK { k }) => self.top_k(x, *k),
             Strategy::TopP(StrategyTopP { top_p, temperature }) => {
@@ -218,7 +230,11 @@ impl S2s {
         }
     }
 
-    fn forward(&self, source: &ndarray::Array1<usize>) -> ndarray::Array1<usize> {
+    fn forward(
+        &self,
+        source: &ndarray::Array1<usize>,
+        options: &ConvertOptions,
+    ) -> ndarray::Array1<usize> {
         let e_emb = self.e_emb.forward(source);
         let (enc_out, _) = self.encoder.forward(&e_emb.view(), None);
         let (enc_out_rev, _) = self.encoder_reverse.forward(&e_emb.view(), None);
@@ -232,7 +248,7 @@ impl S2s {
         let mut result = vec![constants::SOS_IDX];
         let mut h1: Option<ndarray::Array1<f32>> = None;
         let mut h2: Option<ndarray::Array1<f32>> = None;
-        for _ in 0..self.max_length {
+        for _ in 0..options.max_length {
             let dec_emb = self
                 .k_emb
                 .forward(&ndarray::Array1::from_elem(1, *result.last().unwrap()));
@@ -256,7 +272,7 @@ impl S2s {
             h2 = Some(h2_);
             let x = self.fc.forward_2d(&x.view());
             let x = x.index_axis(ndarray::Axis(0), 0);
-            result.push(self.decode(&x));
+            result.push(self.decode(&x.view(), &options.strategy));
             if result.last().unwrap() == &constants::EOS_IDX {
                 break;
             }
@@ -277,15 +293,14 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
         tensors: safetensors::SafeTensors,
         in_table: HashMap<I, usize>,
         out_table: HashMap<usize, O>,
-        max_length: usize,
     ) -> Self {
         Self {
-            s2s: S2s::new(tensors, max_length),
+            s2s: S2s::new(tensors),
             in_table,
             out_table,
         }
     }
-    fn infer(&self, input: &[I]) -> Vec<O> {
+    fn infer(&self, input: &[I], options: &ConvertOptions) -> Vec<O> {
         let source = input
             .iter()
             .filter_map(|c| self.in_table.get(c).copied())
@@ -298,7 +313,7 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
             .chain(source)
             .chain([constants::EOS_IDX]);
         let source = ndarray::Array1::from_iter(source);
-        let target = self.s2s.forward(&source);
+        let target = self.s2s.forward(&source, options);
         target
             .iter()
             .skip(1)
@@ -306,17 +321,11 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
             .map(|&x| self.out_table[&x].clone())
             .collect()
     }
-
-    fn set_decode_strategy(&mut self, strategy: Strategy) {
-        self.s2s.strategy = strategy;
-    }
-
-    fn set_max_length(&mut self, max_length: usize) {
-        self.s2s.max_length = max_length;
-    }
 }
 
 /// 英単語 -> カタカナの変換器。
+/// 基本的にはこの構造体は使用しません。
+/// [crate::convert]を使用してください。
 pub struct Kanalizer {
     inner: BaseE2k<String, char>,
 }
@@ -335,11 +344,6 @@ impl Default for Kanalizer {
 
 impl Kanalizer {
     /// 新しいインスタンスを生成する。
-    ///
-    /// # See also
-    ///
-    /// [with_length]
-    /// [with_strategy]
     pub fn new() -> Self {
         static MODEL: std::sync::LazyLock<Vec<u8>> = std::sync::LazyLock::new(|| {
             cfg_elif::expr::cfg!(if (docsrs) {
@@ -365,7 +369,7 @@ impl Kanalizer {
             })
         });
         let weights = safetensors::SafeTensors::deserialize(&MODEL).expect("Model is corrupted");
-        let mut inner = BaseE2k::new(
+        let inner = BaseE2k::new(
             weights,
             constants::ASCII_ENTRIES
                 .iter()
@@ -384,32 +388,13 @@ impl Kanalizer {
                     )
                 })
                 .collect(),
-            32,
         );
-        inner.set_decode_strategy(Strategy::default());
         Self { inner }
     }
 
-    /// 読みの最大長を変更する。
-    pub fn with_max_length(mut self, max_length: usize) -> Self {
-        self.inner.set_max_length(max_length);
-        self
-    }
-
-    /// アルゴリズムを設定する。
-    pub fn with_strategy(mut self, strategy: Strategy) -> Self {
-        self.inner.set_decode_strategy(strategy);
-        self
-    }
-
     /// 推論を行う。
-    pub fn convert(&self, input: &str) -> String {
+    pub fn convert(&self, input: &str, options: &ConvertOptions) -> String {
         let input = input.chars().map(|c| c.to_string()).collect::<Vec<_>>();
-        self.inner.infer(&input).into_iter().collect()
-    }
-
-    /// アルゴリズムを設定する。
-    pub fn set_decode_strategy(&mut self, strategy: Strategy) {
-        self.inner.set_decode_strategy(strategy);
+        self.inner.infer(&input, options).into_iter().collect()
     }
 }

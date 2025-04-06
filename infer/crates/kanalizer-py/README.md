@@ -7,9 +7,7 @@
 
 ```py
 # 文字列をカタカナに変換する例
-from kanalizer import Kanalizer
-
-kanalizer = Kanalizer()
+import kanalizer
 
 word = "kanalizer"
 print(kanalizer.convert(word)) # => カナライザー

@@ -1,14 +1,13 @@
 //! # kanalizer-rs
 //!
-//! [Patchethium氏のkanalizer](https://github.com/Patchethium/kanalizer)をRustに移植したものです。
+//! [Patchethium氏のe2k](https://github.com/Patchethium/e2k)をRustに移植したものです。
 //!
 //! ## 使い方
 //!
 //! ```rust
 //! // 文字列をカタカナに変換する例
 //! let src = "kanalizer";
-//! let kanalizer = kanalizer::Kanalizer::new();
-//! let dst = kanalizer.convert(src);
+//! let dst = kanalizer::convert(src).perform();
 //!
 //! assert_eq!(dst, "カナライザー");
 //! ```
@@ -28,5 +27,46 @@ mod constants;
 mod inference;
 mod layers;
 
+use std::sync::LazyLock;
+
 pub use constants::{ASCII_ENTRIES, KANAS};
 pub use inference::*;
+
+static KANALIZER: LazyLock<Kanalizer> = LazyLock::new(Kanalizer::new);
+
+/// 推論を行うためのオプションを指定する構造体。
+pub struct ConvertBuilder {
+    word: String,
+    options: ConvertOptions,
+}
+
+impl ConvertBuilder {
+    fn new(word: &str) -> Self {
+        Self {
+            word: word.to_string(),
+            options: ConvertOptions::default(),
+        }
+    }
+
+    /// デコードの最大長を指定する。
+    pub fn with_max_length(mut self, max_length: usize) -> Self {
+        self.options.max_length = max_length;
+        self
+    }
+
+    /// デコードに使うアルゴリズムを指定する。
+    pub fn with_strategy(mut self, strategy: &Strategy) -> Self {
+        self.options.strategy = strategy.clone();
+        self
+    }
+
+    /// 推論を行う。
+    pub fn perform(self) -> String {
+        KANALIZER.convert(&self.word, &self.options)
+    }
+}
+
+/// 推論を行う。
+pub fn convert(word: &str) -> ConvertBuilder {
+    ConvertBuilder::new(word)
+}
