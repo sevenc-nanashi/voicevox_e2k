@@ -88,15 +88,15 @@ fn extract_strategy(
 }
 
 #[pyfunction]
-#[pyo3(signature = (input, /, *, max_length = 32, strategy = "greedy", **kwargs))]
+#[pyo3(signature = (word, /, *, max_length = 32, strategy = "greedy", **kwargs))]
 fn convert(
-    input: &str,
+    word: &str,
     max_length: usize,
     strategy: &str,
     kwargs: Option<&Bound<'_, PyDict>>,
 ) -> PyResult<String> {
     let strategy = extract_strategy(strategy, kwargs)?;
-    Ok(kanalizer::convert(input)
+    Ok(kanalizer::convert(word)
         .with_max_length(max_length)
         .with_strategy(&strategy)
         .perform())

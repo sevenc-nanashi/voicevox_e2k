@@ -13,7 +13,7 @@ Strategy = Literal["greedy", "top_k", "top_p"]
 
 @overload
 def convert(
-    input: str,
+    word: str,
     /,
     *,
     max_length: int = 32,
@@ -21,7 +21,7 @@ def convert(
 ) -> str: ...
 @overload
 def convert(
-    input: str,
+    word: str,
     /,
     *,
     max_length: int = 32,
@@ -30,7 +30,7 @@ def convert(
 ) -> str: ...
 @overload
 def convert(
-    input: str,
+    word: str,
     /,
     *,
     max_length: int = 32,
@@ -39,14 +39,14 @@ def convert(
     t: float = 1.0,
 ) -> str: ...
 def convert(
-    input: str, /, *, max_length: int = 32, strategy: Strategy = "greedy", **kwargs
+    word: str, /, *, max_length: int = 32, strategy: Strategy = "greedy", **kwargs
 ) -> str:
     """
     推論を行う。
 
     Parameters
     ----------
-    input : str
+    word : str
         英単語。
     max_length : int, default 32
         最大の出力長。

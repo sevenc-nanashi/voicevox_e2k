@@ -36,14 +36,14 @@ static KANALIZER: LazyLock<Kanalizer> = LazyLock::new(Kanalizer::new);
 
 /// 推論を行うためのオプションを指定する構造体。
 pub struct ConvertBuilder {
-    input: String,
+    word: String,
     options: ConvertOptions,
 }
 
 impl ConvertBuilder {
-    fn new(input: &str) -> Self {
+    fn new(word: &str) -> Self {
         Self {
-            input: input.to_string(),
+            word: word.to_string(),
             options: ConvertOptions::default(),
         }
     }
@@ -62,11 +62,11 @@ impl ConvertBuilder {
 
     /// 推論を行う。
     pub fn perform(self) -> String {
-        KANALIZER.convert(&self.input, &self.options)
+        KANALIZER.convert(&self.word, &self.options)
     }
 }
 
 /// 推論を行う。
-pub fn convert(input: &str) -> ConvertBuilder {
-    ConvertBuilder::new(input)
+pub fn convert(word: &str) -> ConvertBuilder {
+    ConvertBuilder::new(word)
 }
