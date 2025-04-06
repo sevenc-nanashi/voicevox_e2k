@@ -52,7 +52,7 @@ def convert(
         最大の出力長。
     validate_input : bool, default True
         入力の検証を行うかどうか。
-        Falseの場合、無効な文字が含まれていてもエラーを出しません。
+        Falseの場合、無効な文字は無視されます。
     strategy : Strategy, default "greedy"
         デコードのアルゴリズム。
     k : int, default 10
