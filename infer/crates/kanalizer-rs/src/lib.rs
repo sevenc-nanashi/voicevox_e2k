@@ -7,8 +7,7 @@
 //! ```rust
 //! // 文字列をカタカナに変換する例
 //! let src = "kanalizer";
-//! let kanalizer = kanalizer::Kanalizer::new();
-//! let dst = kanalizer.convert(src);
+//! let dst = kanalizer::convert(src).perform();
 //!
 //! assert_eq!(dst, "カナライザー");
 //! ```
@@ -28,5 +27,45 @@ mod constants;
 mod inference;
 mod layers;
 
+use std::sync::LazyLock;
+
 pub use constants::{ASCII_ENTRIES, KANAS};
 pub use inference::*;
+
+static KANALIZER: LazyLock<Kanalizer> = LazyLock::new(Kanalizer::new);
+
+pub struct ConvertBuilder {
+    input: String,
+    options: ConvertOptions,
+}
+
+impl ConvertBuilder {
+    fn new(input: &str) -> Self {
+        Self {
+            input: input.to_string(),
+            options: ConvertOptions::default(),
+        }
+    }
+
+    /// デコードの最大長を指定する。
+    pub fn with_max_length(mut self, max_length: usize) -> Self {
+        self.options.max_length = max_length;
+        self
+    }
+
+    /// デコードに使うアルゴリズムを指定する。
+    pub fn with_strategy(mut self, strategy: &Strategy) -> Self {
+        self.options.strategy = strategy.clone();
+        self
+    }
+
+    /// 推論を行う。
+    pub fn perform(self) -> String {
+        KANALIZER.convert(&self.input, &self.options)
+    }
+}
+
+/// 推論を行う。
+pub fn convert(input: &str) -> ConvertBuilder {
+    ConvertBuilder::new(input)
+}

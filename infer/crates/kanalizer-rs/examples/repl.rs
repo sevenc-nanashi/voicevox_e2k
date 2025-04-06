@@ -54,17 +54,16 @@ fn main() {
         }
     };
 
-    let kanalizer = kanalizer::Kanalizer::new()
-        .with_strategy(strategy)
-        .with_max_length(args.max_length);
-
     println!("Ctrl-C で終了します。");
     loop {
         let line = dialoguer::Input::<String>::new()
             .with_prompt("Input")
             .interact()
             .unwrap();
-        let dst = kanalizer.convert(&line);
+        let dst = kanalizer::convert(&line)
+            .with_max_length(args.max_length)
+            .with_strategy(&strategy)
+            .perform();
         println!("{} -> {}", line, dst);
     }
 }
