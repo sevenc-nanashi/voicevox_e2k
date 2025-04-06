@@ -39,7 +39,7 @@ def convert(
     t: float = 1.0,
 ) -> str: ...
 def convert(
-    input: str, *, max_length: int = 32, strategy: Strategy = "greedy", **kwargs
+    input: str, /, *, max_length: int = 32, strategy: Strategy = "greedy", **kwargs
 ) -> str:
     """
     推論を行う。
