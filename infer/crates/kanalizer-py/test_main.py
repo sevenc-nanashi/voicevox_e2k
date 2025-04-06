@@ -1,8 +1,6 @@
-from kanalizer import Kanalizer
+import kanalizer
 
 
 def test_kanalizer():
-    kanalizer = Kanalizer()
-
     word = "kanalizer"
     assert kanalizer.convert(word) == "カナライザー"
