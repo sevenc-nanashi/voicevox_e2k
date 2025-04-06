@@ -27,7 +27,7 @@ mod constants;
 mod inference;
 mod layers;
 
-use std::sync::LazyLock;
+use std::{num::NonZero, sync::LazyLock};
 
 pub use constants::{ASCII_ENTRIES, KANAS};
 pub use inference::*;
@@ -49,7 +49,7 @@ impl ConvertBuilder {
     }
 
     /// デコードの最大長を指定する。
-    pub fn with_max_length(mut self, max_length: usize) -> Self {
+    pub fn with_max_length(mut self, max_length: NonZero<usize>) -> Self {
         self.options.max_length = max_length;
         self
     }

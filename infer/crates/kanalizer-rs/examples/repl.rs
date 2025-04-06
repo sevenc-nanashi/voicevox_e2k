@@ -61,7 +61,7 @@ fn main() {
             .interact()
             .unwrap();
         let dst = kanalizer::convert(&line)
-            .with_max_length(args.max_length)
+            .with_max_length(args.max_length.try_into().unwrap())
             .with_strategy(&strategy)
             .perform();
         println!("{} -> {}", line, dst);

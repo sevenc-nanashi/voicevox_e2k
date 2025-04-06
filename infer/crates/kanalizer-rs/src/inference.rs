@@ -1,13 +1,13 @@
 use crate::{constants, layers};
 use educe::Educe;
 use itertools::Itertools;
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap, hash::Hash, num::NonZero};
 
 #[derive(Clone, Debug)]
 /// [Kanalizer::convert]のオプション。
 pub struct ConvertOptions {
     /// デコードの最大長。
-    pub max_length: usize,
+    pub max_length: NonZero<usize>,
     /// デコードに使うアルゴリズム。
     pub strategy: Strategy,
 }
@@ -15,7 +15,7 @@ pub struct ConvertOptions {
 impl Default for ConvertOptions {
     fn default() -> Self {
         Self {
-            max_length: 32,
+            max_length: 32.try_into().unwrap(),
             strategy: Strategy::default(),
         }
     }
@@ -248,7 +248,7 @@ impl S2s {
         let mut result = vec![constants::SOS_IDX];
         let mut h1: Option<ndarray::Array1<f32>> = None;
         let mut h2: Option<ndarray::Array1<f32>> = None;
-        for _ in 0..options.max_length {
+        for _ in 0..options.max_length.into() {
             let dec_emb = self
                 .k_emb
                 .forward(&ndarray::Array1::from_elem(1, *result.last().unwrap()));

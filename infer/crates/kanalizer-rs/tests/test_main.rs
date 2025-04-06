@@ -24,14 +24,14 @@ fn test_kanalizer_long() {
     let unlimited_dst = kanalizer.convert(
         src,
         &kanalizer::ConvertOptions {
-            max_length: 32,
+            max_length: 32.try_into().unwrap(),
             ..Default::default()
         },
     );
     let limited_dst = kanalizer.convert(
         src,
         &kanalizer::ConvertOptions {
-            max_length: 10,
+            max_length: 10.try_into().unwrap(),
             ..Default::default()
         },
     );
