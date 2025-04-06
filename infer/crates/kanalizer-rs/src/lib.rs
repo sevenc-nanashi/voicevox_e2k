@@ -64,8 +64,8 @@ impl ConvertBuilder {
 
     /// 入力を検証するかどうかを指定する。
     /// falseの場合、無効な文字は無視されます。
-    pub fn with_validate_input(mut self, validate: bool) -> Self {
-        self.options.validate_input = validate;
+    pub fn with_strict(mut self, strict: bool) -> Self {
+        self.options.strict = strict;
         self
     }
 
