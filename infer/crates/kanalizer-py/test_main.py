@@ -20,7 +20,10 @@ def test_empty_word():
         kanalizer.convert(word)
 
 
-def test_invalid_chars():
-    word = "あ"
+@pytest.mark.parametrize(
+    "word",
+    [("あ"), ("A")],
+)
+def test_invalid_chars(word: str):
     with pytest.raises(ValueError):
         kanalizer.convert(word)
