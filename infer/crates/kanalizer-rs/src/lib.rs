@@ -26,7 +26,7 @@
 mod inference;
 mod layers;
 
-use std::{num::NonZero, sync::LazyLock};
+use std::{collections::HashSet, num::NonZero, sync::LazyLock};
 
 pub use inference::*;
 
@@ -68,3 +68,9 @@ impl ConvertBuilder {
 pub fn convert(word: &str) -> ConvertBuilder {
     ConvertBuilder::new(word)
 }
+
+/// Kanalizerの入力に使える文字の一覧。
+pub static INPUT_CHARS: LazyLock<HashSet<String>> = LazyLock::new(|| KANALIZER.input_chars());
+
+/// Kanalizerで出力されうる文字の一覧。
+pub static OUTPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| KANALIZER.output_chars());

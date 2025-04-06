@@ -107,8 +107,8 @@ fn convert(
 #[pymodule(name = "kanalizer")]
 fn init_kanalizer(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
-    m.add("KANAS", kanalizer::KANAS)?;
-    m.add("ASCII_ENTRIES", kanalizer::ASCII_ENTRIES)?;
+    m.add("INPUT_CHARS", kanalizer::INPUT_CHARS.clone())?;
+    m.add("OUTPUT_CHARS", kanalizer::OUTPUT_CHARS.clone())?;
     m.add_function(wrap_pyfunction!(convert, m)?)?;
 
     Ok(())

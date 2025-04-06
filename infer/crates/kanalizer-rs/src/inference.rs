@@ -426,11 +426,23 @@ impl Kanalizer {
 
     /// Kanalizerの入力に使える文字の一覧を取得する。
     pub fn input_chars(&self) -> HashSet<String> {
-        self.inner.in_table.keys().cloned().sorted().collect()
+        self.inner
+            .in_table
+            .keys()
+            .cloned()
+            .sorted()
+            .filter(|c| !c.starts_with('<')) // 制御文字は除外する
+            .collect()
     }
 
     /// Kanalizerで出力されうる文字の一覧を取得する。
     pub fn output_chars(&self) -> HashSet<char> {
-        self.inner.out_table.values().cloned().sorted().collect()
+        self.inner
+            .out_table
+            .values()
+            .cloned()
+            .sorted()
+            .filter(|&c| c != '<') // 制御文字は除外する
+            .collect()
     }
 }
