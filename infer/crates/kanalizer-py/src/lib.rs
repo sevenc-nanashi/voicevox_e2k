@@ -96,12 +96,21 @@ fn convert(
     kwargs: Option<&Bound<'_, PyDict>>,
 ) -> PyResult<String> {
     let strategy = extract_strategy(strategy, kwargs)?;
-    Ok(kanalizer::convert(word)
+    let result = kanalizer::convert(word)
         .with_max_length(max_length.try_into().map_err(|_| {
             pyo3::exceptions::PyValueError::new_err("max_length must be a positive integer")
         })?)
         .with_strategy(&strategy)
-        .perform())
+        .perform();
+
+    match result {
+        Ok(dst) => Ok(dst),
+        Err(err) => match err {
+            err @ kanalizer::Error::EmptyInput | err @ kanalizer::Error::InvalidChars { .. } => {
+                Err(pyo3::exceptions::PyValueError::new_err(err.to_string()))
+            }
+        },
+    }
 }
 
 #[pymodule(name = "kanalizer")]

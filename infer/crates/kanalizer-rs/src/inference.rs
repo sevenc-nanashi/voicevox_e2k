@@ -15,6 +15,7 @@ pub struct ConvertOptions {
     /// デコードに使うアルゴリズム。
     pub strategy: Strategy,
     /// 入力を検証する。
+    /// falseの場合、無効な文字は無視されます。
     pub validate_input: bool,
 }
 

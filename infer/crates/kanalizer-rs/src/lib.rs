@@ -62,6 +62,13 @@ impl ConvertBuilder {
         self
     }
 
+    /// 入力を検証するかどうかを指定する。
+    /// falseの場合、無効な文字は無視されます。
+    pub fn with_validate_input(mut self, validate: bool) -> Self {
+        self.options.validate_input = validate;
+        self
+    }
+
     /// 推論を行う。
     pub fn perform(self) -> Result<String> {
         KANALIZER.convert(&self.word, &self.options)

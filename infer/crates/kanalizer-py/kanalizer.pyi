@@ -50,6 +50,9 @@ def convert(
         英単語。
     max_length : int, default 32
         最大の出力長。
+    validate_input : bool, default True
+        入力の検証を行うかどうか。
+        Falseの場合、無効な文字が含まれていてもエラーを出しません。
     strategy : Strategy, default "greedy"
         デコードのアルゴリズム。
     k : int, default 10
@@ -58,5 +61,12 @@ def convert(
         strategy="top_p"のときのみ有効。Top-PアルゴリズムのP。
     t : float, default 1.0
         strategy="top_p"のときのみ有効。Top-PアルゴリズムのTemperature。
+
+    Raises
+    ------
+    ValueError
+        - validate_inputがTrue、かつ`word`が空文字列の場合。
+        - validate_inputがTrue、かつ`word`にKanalizerの入力に使えない文字が含まれている場合。
+        - `max_length`が0以下の場合。
     """
     ...
