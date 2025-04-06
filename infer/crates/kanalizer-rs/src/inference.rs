@@ -1,4 +1,8 @@
-use crate::{constants, layers};
+use crate::{
+    constants,
+    error::{Error, Result},
+    layers,
+};
 use educe::Educe;
 use itertools::Itertools;
 use std::{collections::HashMap, hash::Hash, num::NonZero};
@@ -10,6 +14,8 @@ pub struct ConvertOptions {
     pub max_length: NonZero<usize>,
     /// デコードに使うアルゴリズム。
     pub strategy: Strategy,
+    /// 入力を検証する。
+    pub validate_input: bool,
 }
 
 impl Default for ConvertOptions {
@@ -17,6 +23,7 @@ impl Default for ConvertOptions {
         Self {
             max_length: 32.try_into().unwrap(),
             strategy: Strategy::default(),
+            validate_input: true,
         }
     }
 }
@@ -393,8 +400,29 @@ impl Kanalizer {
     }
 
     /// 推論を行う。
-    pub fn convert(&self, input: &str, options: &ConvertOptions) -> String {
+    pub fn convert(&self, input: &str, options: &ConvertOptions) -> Result<String> {
+        if options.validate_input {
+            self.validate_input(input)?;
+        }
         let input = input.chars().map(|c| c.to_string()).collect::<Vec<_>>();
-        self.inner.infer(&input, options).into_iter().collect()
+        Ok(self.inner.infer(&input, options).into_iter().collect())
+    }
+
+    fn validate_input(&self, input: &str) -> Result<()> {
+        if input.is_empty() {
+            return Err(Error::EmptyInput);
+        }
+        let mut invalid_chars = vec![];
+        for c in input.chars() {
+            if !self.inner.in_table.contains_key(&c.to_string()) {
+                invalid_chars.push(c);
+            }
+        }
+        if !invalid_chars.is_empty() {
+            return Err(Error::InvalidChars {
+                chars: invalid_chars,
+            });
+        }
+        Ok(())
     }
 }

@@ -7,7 +7,7 @@
 //! ```rust
 //! // 文字列をカタカナに変換する例
 //! let src = "kanalizer";
-//! let dst = kanalizer::convert(src).perform();
+//! let dst = kanalizer::convert(src).perform().unwrap();
 //!
 //! assert_eq!(dst, "カナライザー");
 //! ```
@@ -24,12 +24,14 @@
 //!
 
 mod constants;
+mod error;
 mod inference;
 mod layers;
 
 use std::{num::NonZero, sync::LazyLock};
 
 pub use constants::{ASCII_ENTRIES, KANAS};
+pub use error::*;
 pub use inference::*;
 
 static KANALIZER: LazyLock<Kanalizer> = LazyLock::new(Kanalizer::new);
@@ -61,7 +63,7 @@ impl ConvertBuilder {
     }
 
     /// 推論を行う。
-    pub fn perform(self) -> String {
+    pub fn perform(self) -> Result<String> {
         KANALIZER.convert(&self.word, &self.options)
     }
 }
