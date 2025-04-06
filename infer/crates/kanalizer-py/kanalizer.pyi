@@ -18,7 +18,7 @@ def convert(
     *,
     max_length: int = 32,
     strategy: Literal["greedy"] = "greedy",
-) -> None: ...
+) -> str: ...
 @overload
 def convert(
     input: str,
@@ -27,7 +27,7 @@ def convert(
     max_length: int = 32,
     strategy: Literal["top_k"],
     k: int = 10,
-) -> None: ...
+) -> str: ...
 @overload
 def convert(
     input: str,
@@ -37,10 +37,10 @@ def convert(
     strategy: Literal["top_p"],
     p: float = 0.9,
     t: float = 1.0,
-) -> None: ...
+) -> str: ...
 def convert(
     input: str, *, max_length: int = 32, strategy: Strategy = "greedy", **kwargs
-) -> None:
+) -> str:
     """
     推論を行う。
 
