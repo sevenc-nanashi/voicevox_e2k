@@ -18,3 +18,8 @@
 - リリース時の挙動を確認したいときはTestPyPIに上げる。
 - メインPyPIはプレリリース（rc）含めユーザーが使っていいものにする。
 - GitHubのReleases下はメインPyPIと同じようにする。
+
+## PyPIの管理
+
+- メインPyPIのkanalizerは[VOICEVOX Org](https://pypi.org/org/VOICEVOX/)で管理しています。
+- TestPyPIのkanalizerは[@sevenc-nanashi](https://test.pypi.org/user/sevenc-nanashi/)が管理しています。
