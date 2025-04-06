@@ -1,7 +1,11 @@
-use crate::{constants, layers};
+use crate::layers;
 use educe::Educe;
 use itertools::Itertools;
-use std::{collections::HashMap, hash::Hash, num::NonZero};
+use std::{
+    collections::{HashMap, HashSet},
+    hash::Hash,
+    num::NonZero,
+};
 
 #[derive(Clone, Debug)]
 /// [Kanalizer::convert]のオプション。
@@ -95,6 +99,9 @@ struct S2s {
     post_decoder: layers::Gru,
     attn: layers::Mha,
     fc: layers::Linear,
+
+    sos_idx: usize,
+    eos_idx: usize,
 }
 
 fn get_array_f16<E, D>(
@@ -116,7 +123,7 @@ where
 }
 
 impl S2s {
-    fn new(weights: safetensors::SafeTensors) -> Self {
+    fn new(weights: safetensors::SafeTensors, sos_idx: usize, eos_idx: usize) -> Self {
         let e_emb = layers::Embedding::new(get_array_f16(&weights, "e_emb.weight"));
         let k_emb = layers::Embedding::new(get_array_f16(&weights, "k_emb.weight"));
         let encoder = layers::Gru::new(
@@ -180,6 +187,9 @@ impl S2s {
             post_decoder,
             attn,
             fc,
+
+            sos_idx,
+            eos_idx,
         }
     }
 
@@ -245,7 +255,7 @@ impl S2s {
         .unwrap();
         let enc_out = self.encoder_fc.forward_2d(&enc_out.view());
         let enc_out = enc_out.mapv(|x| x.tanh());
-        let mut result = vec![constants::SOS_IDX];
+        let mut result = vec![self.sos_idx];
         let mut h1: Option<ndarray::Array1<f32>> = None;
         let mut h2: Option<ndarray::Array1<f32>> = None;
         for _ in 0..options.max_length.into() {
@@ -273,7 +283,7 @@ impl S2s {
             let x = self.fc.forward_2d(&x.view());
             let x = x.index_axis(ndarray::Axis(0), 0);
             result.push(self.decode(&x.view(), &options.strategy));
-            if result.last().unwrap() == &constants::EOS_IDX {
+            if result.last().unwrap() == &self.eos_idx {
                 break;
             }
         }
@@ -293,9 +303,11 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
         tensors: safetensors::SafeTensors,
         in_table: HashMap<I, usize>,
         out_table: HashMap<usize, O>,
+        sos_idx: usize,
+        eos_idx: usize,
     ) -> Self {
         Self {
-            s2s: S2s::new(tensors),
+            s2s: S2s::new(tensors, sos_idx, eos_idx),
             in_table,
             out_table,
         }
@@ -308,16 +320,16 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
         if source.is_empty() {
             return Vec::new();
         }
-        let source = [constants::SOS_IDX]
+        let source = [self.s2s.sos_idx]
             .into_iter()
             .chain(source)
-            .chain([constants::EOS_IDX]);
+            .chain([self.s2s.eos_idx]);
         let source = ndarray::Array1::from_iter(source);
         let target = self.s2s.forward(&source, options);
         target
             .iter()
             .skip(1)
-            .take_while(|&&x| x != constants::EOS_IDX)
+            .take_while(|&&x| x != self.s2s.eos_idx)
             .map(|&x| self.out_table[&x].clone())
             .collect()
     }
@@ -368,18 +380,26 @@ impl Kanalizer {
                 .to_vec()
             })
         });
-        let weights = safetensors::SafeTensors::deserialize(&MODEL).expect("Model is corrupted");
+        let metadata = safetensors::SafeTensors::read_metadata(&MODEL)
+            .expect("Model is corrupted: Failed to parse");
+        let metadata = metadata
+            .1
+            .metadata()
+            .as_ref()
+            .expect("Model is corrupted: Metadata is missing");
+        let weights = safetensors::SafeTensors::deserialize(&MODEL)
+            .expect("Model is corrupted: Failed to parse");
         let inner = BaseE2k::new(
             weights,
-            constants::ASCII_ENTRIES
-                .iter()
+            metadata["in_table"]
+                .split('\x00')
                 .enumerate()
-                .map(|(i, &c)| (c.to_string(), i))
+                .map(|(i, c)| (c.to_string(), i))
                 .collect(),
-            constants::KANAS
-                .iter()
+            metadata["out_table"]
+                .split('\x00')
                 .enumerate()
-                .map(|(i, &c)| {
+                .map(|(i, c)| {
                     (
                         i,
                         c.chars()
@@ -388,6 +408,12 @@ impl Kanalizer {
                     )
                 })
                 .collect(),
+            metadata["sos_idx"]
+                .parse::<usize>()
+                .expect("Model is corrupted: invalid sos_idx"),
+            metadata["eos_idx"]
+                .parse::<usize>()
+                .expect("Model is corrupted: invalid sos_idx"),
         );
         Self { inner }
     }
@@ -396,5 +422,15 @@ impl Kanalizer {
     pub fn convert(&self, input: &str, options: &ConvertOptions) -> String {
         let input = input.chars().map(|c| c.to_string()).collect::<Vec<_>>();
         self.inner.infer(&input, options).into_iter().collect()
+    }
+
+    /// Kanalizerの入力に使える文字の一覧を取得する。
+    pub fn input_chars(&self) -> HashSet<String> {
+        self.inner.in_table.keys().cloned().sorted().collect()
+    }
+
+    /// Kanalizerで出力されうる文字の一覧を取得する。
+    pub fn output_chars(&self) -> HashSet<char> {
+        self.inner.out_table.values().cloned().sorted().collect()
     }
 }

@@ -23,13 +23,11 @@
 //! オフの場合、Hashと適当な値を使用してサンプリングします。
 //!
 
-mod constants;
 mod inference;
 mod layers;
 
 use std::{num::NonZero, sync::LazyLock};
 
-pub use constants::{ASCII_ENTRIES, KANAS};
 pub use inference::*;
 
 static KANALIZER: LazyLock<Kanalizer> = LazyLock::new(Kanalizer::new);

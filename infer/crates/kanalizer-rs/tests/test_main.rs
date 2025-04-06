@@ -31,10 +31,10 @@ fn test_kanalizer_long() {
     let limited_dst = kanalizer.convert(
         src,
         &kanalizer::ConvertOptions {
-            max_length: 10.try_into().unwrap(),
+            max_length: 5.try_into().unwrap(),
             ..Default::default()
         },
     );
     assert_ne!(unlimited_dst, limited_dst);
-    assert_eq!(limited_dst.chars().count(), 10);
+    assert_eq!(limited_dst.chars().count(), 5);
 }

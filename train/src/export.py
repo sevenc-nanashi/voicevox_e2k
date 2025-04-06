@@ -2,13 +2,16 @@
 Exports the torch weights
 """
 
-import torch
-from safetensors.numpy import save_file as save_safetensors
 import argparse
 from pathlib import Path
+
+from safetensors.numpy import save_file as save_safetensors
+import torch
 import yaml
-from train import Model
+
 from config import Config
+from constants import kanas, ascii_entries, SOS_IDX, EOS_IDX
+from train import Model
 
 parser = argparse.ArgumentParser()
 
@@ -41,4 +44,17 @@ for name, param in model.named_parameters():
 
 print(f"Saving to {args.output}")
 
-save_safetensors(weights, args.output)
+save_safetensors(
+    weights,
+    args.output,
+    # NOTE: Metadataはdict[str, str]である必要がある。
+    # そのため、
+    # - list[str]はnull文字区切りで結合する。
+    # - intはstrに変換する。
+    metadata={
+        "in_table": "\x00".join(ascii_entries),
+        "out_table": "\x00".join(kanas),
+        "sos_idx": str(SOS_IDX),
+        "eos_idx": str(EOS_IDX),
+    },
+)
