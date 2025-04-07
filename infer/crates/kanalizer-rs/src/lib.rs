@@ -27,9 +27,8 @@ mod constants;
 mod inference;
 mod layers;
 
-use std::{num::NonZero, sync::LazyLock};
+use std::{collections::HashSet, num::NonZero, sync::LazyLock};
 
-pub use constants::{ASCII_ENTRIES, KANAS};
 pub use inference::*;
 
 static KANALIZER: LazyLock<Kanalizer> = LazyLock::new(Kanalizer::new);
@@ -70,3 +69,21 @@ impl ConvertBuilder {
 pub fn convert(word: &str) -> ConvertBuilder {
     ConvertBuilder::new(word)
 }
+
+/// Kanalizerの入力に使える文字の一覧。
+pub static INPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| {
+    constants::KANAS
+        .iter()
+        .filter(|s| !s.starts_with("<")) // 制御文字は除外
+        .map(|s| s.chars().next().unwrap())
+        .collect()
+});
+
+/// Kanalizerから出力されうる文字の一覧。
+pub static OUTPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| {
+    constants::ASCII_ENTRIES
+        .iter()
+        .filter(|s| !s.starts_with("<")) // 制御文字は除外
+        .map(|s| s.chars().next().unwrap())
+        .collect()
+});
