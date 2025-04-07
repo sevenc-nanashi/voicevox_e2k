@@ -66,10 +66,10 @@ fn main() {
             .perform()
         {
             Ok(dst) => {
-                println!("{} -> {}", line, dst);
+                println!("{line} -> {dst}");
             }
             Err(e) => {
-                eprintln!("Error: {}", e);
+                eprintln!("Error: {e}");
             }
         }
     }
