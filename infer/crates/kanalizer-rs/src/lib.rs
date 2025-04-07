@@ -30,6 +30,7 @@ mod layers;
 use std::{collections::HashSet, num::NonZero, sync::LazyLock};
 
 pub use inference::*;
+use itertools::Itertools;
 
 static KANALIZER: LazyLock<Kanalizer> = LazyLock::new(Kanalizer::new);
 
@@ -74,8 +75,17 @@ pub fn convert(word: &str) -> ConvertBuilder {
 pub static INPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| {
     constants::KANAS
         .iter()
-        .filter(|s| !s.starts_with("<")) // 制御文字は除外
-        .map(|s| s.chars().next().unwrap())
+        .flat_map(|s| {
+            let c = s.chars().exactly_one();
+            if c.is_err() {
+                // 制御文字は除外
+                assert!(
+                    s.starts_with('<') && s.ends_with('>'),
+                    "unexpected character: {s:?}",
+                );
+            }
+            c
+        })
         .collect()
 });
 
@@ -83,7 +93,16 @@ pub static INPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| {
 pub static OUTPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| {
     constants::ASCII_ENTRIES
         .iter()
-        .filter(|s| !s.starts_with("<")) // 制御文字は除外
-        .map(|s| s.chars().next().unwrap())
+        .flat_map(|s| {
+            let c = s.chars().exactly_one();
+            if c.is_err() {
+                // 制御文字は除外
+                assert!(
+                    s.starts_with('<') && s.ends_with('>'),
+                    "unexpected character: {s:?}",
+                );
+            }
+            c
+        })
         .collect()
 });
