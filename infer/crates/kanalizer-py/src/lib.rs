@@ -105,11 +105,9 @@ fn convert(
 
     match result {
         Ok(dst) => Ok(dst),
-        Err(err) => match err {
-            err @ kanalizer::Error::EmptyInput | err @ kanalizer::Error::InvalidChars { .. } => {
-                Err(pyo3::exceptions::PyValueError::new_err(err.to_string()))
-            }
-        },
+        Err(err @ (kanalizer::Error::EmptyInput | kanalizer::Error::InvalidChars { .. })) => {
+            Err(pyo3::exceptions::PyValueError::new_err(err.to_string()))
+        }
     }
 }
 
