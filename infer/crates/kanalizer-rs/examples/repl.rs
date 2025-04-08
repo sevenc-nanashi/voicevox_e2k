@@ -60,10 +60,17 @@ fn main() {
             .with_prompt("Input")
             .interact()
             .unwrap();
-        let dst = kanalizer::convert(&line)
+        match kanalizer::convert(&line)
             .with_max_length(args.max_length.try_into().unwrap())
             .with_strategy(&strategy)
-            .perform();
-        println!("{} -> {}", line, dst);
+            .perform()
+        {
+            Ok(dst) => {
+                println!("{line} -> {dst}");
+            }
+            Err(e) => {
+                eprintln!("Error: {e}");
+            }
+        }
     }
 }
