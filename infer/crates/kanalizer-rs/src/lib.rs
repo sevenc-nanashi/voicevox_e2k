@@ -95,3 +95,26 @@ pub static OUTPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| {
     .copied()
     .collect()
 });
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_input_chars() {
+        assert!(
+            INPUT_CHARS
+                .iter()
+                .all(|&c| constants::ASCII_ENTRIES.contains(&c.to_string().as_str()))
+        );
+    }
+
+    #[test]
+    fn test_output_chars() {
+        assert!(
+            OUTPUT_CHARS
+                .iter()
+                .all(|&c| constants::KANAS.contains(&c.to_string().as_str()))
+        );
+    }
+}
