@@ -88,10 +88,12 @@ fn extract_strategy(
 }
 
 #[pyfunction]
-#[pyo3(signature = (word, /, *, max_length = 32, strategy = "greedy", **kwargs))]
+#[pyo3(signature = (word, /, *, max_length = 32, strict = true, error_on_incomplete = true, strategy = "greedy", **kwargs))]
 fn convert(
     word: &str,
     max_length: usize,
+    strict: bool,
+    error_on_incomplete: bool,
     strategy: &str,
     kwargs: Option<&Bound<'_, PyDict>>,
 ) -> PyResult<String> {
@@ -101,6 +103,8 @@ fn convert(
             pyo3::exceptions::PyValueError::new_err("max_length must be a positive integer")
         })?)
         .with_strategy(&strategy)
+        .with_strict(strict)
+        .with_error_on_incomplete(error_on_incomplete)
         .perform();
 
     match result {
@@ -108,7 +112,18 @@ fn convert(
         Err(err @ (kanalizer::Error::EmptyInput | kanalizer::Error::InvalidChars { .. })) => {
             Err(pyo3::exceptions::PyValueError::new_err(err.to_string()))
         }
+        Err(kanalizer::Error::InferenceNotFinished { incomplete_output }) => {
+            Err(pyo3::exceptions::PyValueError::new_err(IncompleteError {
+                incomplete_output,
+            }))
+        }
     }
+}
+
+#[pyclass]
+struct IncompleteError {
+    #[pyo3(get)]
+    incomplete_output: String,
 }
 
 #[pymodule(name = "kanalizer")]
