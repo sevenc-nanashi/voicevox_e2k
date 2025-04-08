@@ -85,8 +85,6 @@ kanas = [
     "ロ",
     "ヮ",
     "ワ",
-    "ヰ",
-    "ヱ",
     "ヲ",
     "ン",
     "ヴ",
@@ -165,7 +163,7 @@ en_phones = [
     "ZH",
 ]
 
-ascii_entries = ["<pad>", "<sos>", "<eos>"] + list(ascii_lowercase) + [" ", "'"]
+ascii_entries = ["<pad>", "<sos>", "<eos>"] + list(ascii_lowercase)
 
 kanas = ["<pad>", "<sos>", "<eos>"] + kanas
 en_phones = ["<pad>", "<sos>", "<eos>"] + en_phones + [" ", "'"]
