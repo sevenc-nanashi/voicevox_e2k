@@ -6,6 +6,8 @@ pub enum Error {
     EmptyInput,
     #[error("無効な文字が含まれています：{chars:?}")]
     InvalidChars { chars: Vec<char> },
+    #[error("推論が終了しませんでした")]
+    InferenceNotFinished { incomplete_output: String },
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
