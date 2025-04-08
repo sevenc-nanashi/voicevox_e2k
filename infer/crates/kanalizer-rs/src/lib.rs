@@ -30,7 +30,6 @@ mod layers;
 use std::{collections::HashSet, num::NonZero, sync::LazyLock};
 
 pub use inference::*;
-use itertools::Itertools;
 
 static KANALIZER: LazyLock<Kanalizer> = LazyLock::new(Kanalizer::new);
 
@@ -73,36 +72,26 @@ pub fn convert(word: &str) -> ConvertBuilder {
 
 /// Kanalizerの入力に使える文字の一覧。
 pub static INPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| {
-    constants::KANAS
-        .iter()
-        .flat_map(|s| {
-            let c = s.chars().exactly_one();
-            if c.is_err() {
-                // 制御文字は除外
-                assert!(
-                    s.starts_with('<') && s.ends_with('>'),
-                    "unexpected character: {s:?}",
-                );
-            }
-            c
-        })
-        .collect()
+    [
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+        's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    ]
+    .iter()
+    .copied()
+    .collect()
 });
 
 /// Kanalizerから出力されうる文字の一覧。
 pub static OUTPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| {
-    constants::ASCII_ENTRIES
-        .iter()
-        .flat_map(|s| {
-            let c = s.chars().exactly_one();
-            if c.is_err() {
-                // 制御文字は除外
-                assert!(
-                    s.starts_with('<') && s.ends_with('>'),
-                    "unexpected character: {s:?}",
-                );
-            }
-            c
-        })
-        .collect()
+    [
+        'ァ', 'ア', 'ィ', 'イ', 'ゥ', 'ウ', 'ェ', 'エ', 'ォ', 'オ', 'カ', 'ガ', 'キ', 'ギ', 'ク',
+        'グ', 'ケ', 'ゲ', 'コ', 'ゴ', 'サ', 'ザ', 'シ', 'ジ', 'ス', 'ズ', 'セ', 'ゼ', 'ソ', 'ゾ',
+        'タ', 'ダ', 'チ', 'ヂ', 'ッ', 'ツ', 'ヅ', 'テ', 'デ', 'ト', 'ド', 'ナ', 'ニ', 'ヌ', 'ネ',
+        'ノ', 'ハ', 'バ', 'パ', 'ヒ', 'ビ', 'ピ', 'フ', 'ブ', 'プ', 'ヘ', 'ベ', 'ペ', 'ホ', 'ボ',
+        'ポ', 'マ', 'ミ', 'ム', 'メ', 'モ', 'ャ', 'ヤ', 'ュ', 'ユ', 'ョ', 'ヨ', 'ラ', 'リ', 'ル',
+        'レ', 'ロ', 'ヮ', 'ワ', 'ヰ', 'ヱ', 'ヲ', 'ン', 'ヴ', 'ー',
+    ]
+    .iter()
+    .copied()
+    .collect()
 });
