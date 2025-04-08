@@ -86,9 +86,7 @@ pub static INPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| {
         'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
         's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
     ]
-    .iter()
-    .copied()
-    .collect()
+    .into()
 });
 
 /// Kanalizerから出力されうる文字の一覧。
@@ -101,9 +99,7 @@ pub static OUTPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| {
         'ポ', 'マ', 'ミ', 'ム', 'メ', 'モ', 'ャ', 'ヤ', 'ュ', 'ユ', 'ョ', 'ヨ', 'ラ', 'リ', 'ル',
         'レ', 'ロ', 'ヮ', 'ワ', 'ヰ', 'ヱ', 'ヲ', 'ン', 'ヴ', 'ー',
     ]
-    .iter()
-    .copied()
-    .collect()
+    .into()
 });
 
 #[cfg(test)]
