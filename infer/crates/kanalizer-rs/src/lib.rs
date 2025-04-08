@@ -113,20 +113,29 @@ mod tests {
     #[test]
     fn test_input_chars() {
         // INPUT_CHARSがASCII_ENTRIESのサブセットであることを確認する。
+        let ascii_entries: HashSet<_> = constants::ASCII_ENTRIES
+            .iter()
+            .map(|&c| c.to_string())
+            .collect();
         assert!(
             INPUT_CHARS
                 .iter()
-                .all(|&c| constants::ASCII_ENTRIES.contains(&c.to_string().as_str()))
+                .map(|&c| c.to_string())
+                .collect::<HashSet<_>>()
+                .is_subset(&ascii_entries)
         );
     }
 
     #[test]
     fn test_output_chars() {
         // OUTPUT_CHARSがKANASのサブセットであることを確認する。
+        let kana_entries: HashSet<_> = constants::KANAS.iter().map(|&c| c.to_string()).collect();
         assert!(
             OUTPUT_CHARS
                 .iter()
-                .all(|&c| constants::KANAS.contains(&c.to_string().as_str()))
+                .map(|&c| c.to_string())
+                .collect::<HashSet<_>>()
+                .is_subset(&kana_entries)
         );
     }
 }
