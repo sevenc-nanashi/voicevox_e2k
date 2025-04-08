@@ -102,6 +102,7 @@ mod tests {
 
     #[test]
     fn test_input_chars() {
+        // INPUT_CHARSがASCII_ENTRIESのサブセットであることを確認する。
         assert!(
             INPUT_CHARS
                 .iter()
@@ -111,6 +112,7 @@ mod tests {
 
     #[test]
     fn test_output_chars() {
+        // OUTPUT_CHARSがKANASのサブセットであることを確認する。
         assert!(
             OUTPUT_CHARS
                 .iter()
