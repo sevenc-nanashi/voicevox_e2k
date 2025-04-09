@@ -1,8 +1,8 @@
 from string import ascii_lowercase
 
 
-SOS_IDX = 1
-EOS_IDX = 2
+SOS_IDX = 0
+EOS_IDX = 1
 
 kanas = [
     "ァ",
