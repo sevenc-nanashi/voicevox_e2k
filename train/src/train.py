@@ -21,7 +21,7 @@ from tqdm.auto import tqdm
 import yaml
 
 from config import Config
-from constants import EOS_IDX, PAD_IDX, SOS_IDX, ascii_entries, en_phones, kanas
+from constants import EOS_IDX, SOS_IDX, ascii_entries, en_phones, kanas
 from evaluator import Evaluator
 
 
@@ -105,7 +105,6 @@ class MyDataset(Dataset):
         self.eng_dict = {c: i for i, c in enumerate(en_phones)}
         self.c_dict = {c: i for i, c in enumerate(ascii_entries)}
         self.kata_dict = {c: i for i, c in enumerate(kanas)}
-        self.pad_idx = PAD_IDX
         self.sos_idx = SOS_IDX
         self.eos_idx = EOS_IDX
         self.cache_en = {}
