@@ -3,10 +3,10 @@ from typing import Final, Literal, overload
 __version__: Final[str]
 """バージョン。"""
 
-KANAS: Final[list[str]]
+INPUT_CHARS: Final[set[str]]
 """Kanalizerの入力に使える文字の一覧。"""
-ASCII_ENTRIES: Final[list[str]]
-"""Kanalizerで出力される文字の一覧。"""
+OUTPUT_CHARS: Final[set[str]]
+"""Kanalizerから出力されうる文字の一覧。"""
 
 Strategy = Literal["greedy", "top_k", "top_p"]
 """デコードのアルゴリズム。"""
