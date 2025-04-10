@@ -113,12 +113,11 @@ mod tests {
             .iter()
             .map(|&c| c.to_string())
             .collect();
+        let input_chars: HashSet<_> = INPUT_CHARS.iter().map(|&c| c.to_string()).collect();
+        let extra_entries: HashSet<_> = input_chars.difference(&ascii_entries).cloned().collect();
         assert!(
-            INPUT_CHARS
-                .iter()
-                .map(|&c| c.to_string())
-                .collect::<HashSet<_>>()
-                .is_subset(&ascii_entries)
+            extra_entries.is_empty(),
+            "INPUT_CHARS should be a superset of ASCII_ENTRIES. Extra entries: {extra_entries:?}"
         );
     }
 
@@ -126,12 +125,11 @@ mod tests {
     fn test_output_chars() {
         // OUTPUT_CHARSがKANASのサブセットであることを確認する。
         let kana_entries: HashSet<_> = constants::KANAS.iter().map(|&c| c.to_string()).collect();
+        let output_chars: HashSet<_> = OUTPUT_CHARS.iter().map(|&c| c.to_string()).collect();
+        let extra_entries: HashSet<_> = output_chars.difference(&kana_entries).cloned().collect();
         assert!(
-            OUTPUT_CHARS
-                .iter()
-                .map(|&c| c.to_string())
-                .collect::<HashSet<_>>()
-                .is_subset(&kana_entries)
+            extra_entries.is_empty(),
+            "OUTPUT_CHARS should be a superset of KANAS. Extra entries: {extra_entries:?}"
         );
     }
 }

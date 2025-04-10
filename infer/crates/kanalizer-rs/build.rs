@@ -76,16 +76,31 @@ fn prepare_huggingface_model() -> anyhow::Result<PathBuf> {
 }
 
 fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
-    let response = ureq::get(url).call()?;
+    static NUM_ATTEMPTS: usize = 5;
+
     let temp_path = path.with_extra_extension("tmp");
     let mut file = std::fs::File::create(&temp_path)?;
-    std::io::copy(&mut response.into_body().into_reader(), &mut file)?;
-    if path.try_exists()? {
-        std::fs::remove_file(path)?;
-    }
-    std::fs::rename(&temp_path, path)?;
+    for _ in 0..NUM_ATTEMPTS {
+        let response = match ureq::get(url).call() {
+            Ok(response) => response,
+            Err(err) => {
+                eprintln!("Failed to download model: {err}");
+                continue;
+            }
+        };
+        std::io::copy(&mut response.into_body().into_reader(), &mut file)?;
+        if path.try_exists()? {
+            std::fs::remove_file(path)?;
+        }
+        std::fs::rename(&temp_path, path)?;
 
-    Ok(())
+        return Ok(());
+    }
+
+    std::fs::remove_file(&temp_path)?;
+    Err(anyhow::anyhow!(
+        "Failed to download model after {NUM_ATTEMPTS} attempts"
+    ))
 }
 
 fn compress_model(path: &Path) -> anyhow::Result<()> {
