@@ -97,7 +97,7 @@ pub static OUTPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| {
         'タ', 'ダ', 'チ', 'ヂ', 'ッ', 'ツ', 'ヅ', 'テ', 'デ', 'ト', 'ド', 'ナ', 'ニ', 'ヌ', 'ネ',
         'ノ', 'ハ', 'バ', 'パ', 'ヒ', 'ビ', 'ピ', 'フ', 'ブ', 'プ', 'ヘ', 'ベ', 'ペ', 'ホ', 'ボ',
         'ポ', 'マ', 'ミ', 'ム', 'メ', 'モ', 'ャ', 'ヤ', 'ュ', 'ユ', 'ョ', 'ヨ', 'ラ', 'リ', 'ル',
-        'レ', 'ロ', 'ヮ', 'ワ', 'ヰ', 'ヱ', 'ヲ', 'ン', 'ヴ', 'ー',
+        'レ', 'ロ', 'ヮ', 'ワ', 'ヲ', 'ン', 'ヴ', 'ー',
     ]
     .into()
 });
@@ -113,11 +113,12 @@ mod tests {
             .iter()
             .map(|&c| c.to_string())
             .collect();
-        let input_chars: HashSet<_> = INPUT_CHARS.iter().map(|&c| c.to_string()).collect();
-        let extra_entries: HashSet<_> = input_chars.difference(&ascii_entries).cloned().collect();
         assert!(
-            extra_entries.is_empty(),
-            "INPUT_CHARS should be a superset of ASCII_ENTRIES. Extra entries: {extra_entries:?}"
+            INPUT_CHARS
+                .iter()
+                .map(|&c| c.to_string())
+                .collect::<HashSet<_>>()
+                .is_subset(&ascii_entries)
         );
     }
 
@@ -125,11 +126,12 @@ mod tests {
     fn test_output_chars() {
         // OUTPUT_CHARSがKANASのサブセットであることを確認する。
         let kana_entries: HashSet<_> = constants::KANAS.iter().map(|&c| c.to_string()).collect();
-        let output_chars: HashSet<_> = OUTPUT_CHARS.iter().map(|&c| c.to_string()).collect();
-        let extra_entries: HashSet<_> = output_chars.difference(&kana_entries).cloned().collect();
         assert!(
-            extra_entries.is_empty(),
-            "OUTPUT_CHARS should be a superset of KANAS. Extra entries: {extra_entries:?}"
+            OUTPUT_CHARS
+                .iter()
+                .map(|&c| c.to_string())
+                .collect::<HashSet<_>>()
+                .is_subset(&kana_entries)
         );
     }
 }
