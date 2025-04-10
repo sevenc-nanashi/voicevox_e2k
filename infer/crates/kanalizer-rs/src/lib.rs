@@ -28,7 +28,7 @@ mod error;
 mod inference;
 mod layers;
 
-use std::{num::NonZero, sync::LazyLock};
+use std::{collections::HashSet, num::NonZero, sync::LazyLock};
 
 pub use constants::{ASCII_ENTRIES, KANAS};
 pub use error::*;
@@ -84,4 +84,60 @@ impl ConvertBuilder {
 /// 推論を行う。
 pub fn convert(word: &str) -> ConvertBuilder {
     ConvertBuilder::new(word)
+}
+
+/// Kanalizerの入力に使える文字の一覧。
+pub static INPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| {
+    [
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+        's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    ]
+    .into()
+});
+
+/// Kanalizerから出力されうる文字の一覧。
+pub static OUTPUT_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| {
+    [
+        'ァ', 'ア', 'ィ', 'イ', 'ゥ', 'ウ', 'ェ', 'エ', 'ォ', 'オ', 'カ', 'ガ', 'キ', 'ギ', 'ク',
+        'グ', 'ケ', 'ゲ', 'コ', 'ゴ', 'サ', 'ザ', 'シ', 'ジ', 'ス', 'ズ', 'セ', 'ゼ', 'ソ', 'ゾ',
+        'タ', 'ダ', 'チ', 'ヂ', 'ッ', 'ツ', 'ヅ', 'テ', 'デ', 'ト', 'ド', 'ナ', 'ニ', 'ヌ', 'ネ',
+        'ノ', 'ハ', 'バ', 'パ', 'ヒ', 'ビ', 'ピ', 'フ', 'ブ', 'プ', 'ヘ', 'ベ', 'ペ', 'ホ', 'ボ',
+        'ポ', 'マ', 'ミ', 'ム', 'メ', 'モ', 'ャ', 'ヤ', 'ュ', 'ユ', 'ョ', 'ヨ', 'ラ', 'リ', 'ル',
+        'レ', 'ロ', 'ヮ', 'ワ', 'ヰ', 'ヱ', 'ヲ', 'ン', 'ヴ', 'ー',
+    ]
+    .into()
+});
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_input_chars() {
+        // INPUT_CHARSがASCII_ENTRIESのサブセットであることを確認する。
+        let ascii_entries: HashSet<_> = constants::ASCII_ENTRIES
+            .iter()
+            .map(|&c| c.to_string())
+            .collect();
+        assert!(
+            INPUT_CHARS
+                .iter()
+                .map(|&c| c.to_string())
+                .collect::<HashSet<_>>()
+                .is_subset(&ascii_entries)
+        );
+    }
+
+    #[test]
+    fn test_output_chars() {
+        // OUTPUT_CHARSがKANASのサブセットであることを確認する。
+        let kana_entries: HashSet<_> = constants::KANAS.iter().map(|&c| c.to_string()).collect();
+        assert!(
+            OUTPUT_CHARS
+                .iter()
+                .map(|&c| c.to_string())
+                .collect::<HashSet<_>>()
+                .is_subset(&kana_entries)
+        );
+    }
 }
