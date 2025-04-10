@@ -102,7 +102,6 @@ fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
         let body = response.into_body().read_to_string()?;
         eprintln!("Failed to download model: {status} {body:?}");
         std::thread::sleep(std::time::Duration::from_secs((i + 1) as u64));
-        continue;
     }
 
     std::fs::remove_file(&temp_path)?;
