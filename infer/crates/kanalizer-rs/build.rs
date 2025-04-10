@@ -76,7 +76,7 @@ fn prepare_huggingface_model() -> anyhow::Result<PathBuf> {
 }
 
 fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
-    static NUM_ATTEMPTS: usize = 5;
+    static NUM_ATTEMPTS: usize = 6;
 
     let temp_path = path.with_extra_extension("tmp");
     let mut file = std::fs::File::create(&temp_path)?;
@@ -85,7 +85,7 @@ fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
         if success {
             return Ok(());
         }
-        std::thread::sleep(std::time::Duration::from_secs((i + 1) as u64));
+        std::thread::sleep(std::time::Duration::from_secs((i + 1) as u64 * 5));
     }
 
     std::fs::remove_file(&temp_path)?;
