@@ -78,17 +78,14 @@ fn prepare_huggingface_model() -> anyhow::Result<PathBuf> {
 fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
     static NUM_ATTEMPTS: usize = 6;
 
-    let temp_path = path.with_extra_extension("tmp");
-    let mut file = std::fs::File::create(&temp_path)?;
     for i in 0..NUM_ATTEMPTS {
-        let success = download(url, path, &temp_path, &mut file)?;
+        let success = download(url, path)?;
         if success {
             return Ok(());
         }
         std::thread::sleep(std::time::Duration::from_secs((i + 1) as u64 * 5));
     }
 
-    std::fs::remove_file(&temp_path)?;
     return Err(anyhow::anyhow!(
         "Failed to download model after {NUM_ATTEMPTS} attempts"
     ));
@@ -96,9 +93,8 @@ fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
     fn download(
         url: &str,
         path: &Path,
-        temp_path: &PathBuf,
-        file: &mut std::fs::File,
     ) -> anyhow::Result<bool> {
+        let mut file = tempfile::NamedTempFile::new_in(path.parent().unwrap())?;
         let response = ureq::get(url)
             .config()
             .http_status_as_error(false)
@@ -106,11 +102,11 @@ fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
             .call()?;
         match response.status().as_u16() {
             200 => {
-                std::io::copy(&mut response.into_body().into_reader(), file)?;
+                std::io::copy(&mut response.into_body().into_reader(), &mut file)?;
                 if path.try_exists()? {
                     std::fs::remove_file(path)?;
                 }
-                std::fs::rename(temp_path, path)?;
+                file.persist(path)?;
                 Ok(true)
             }
             404 => Err(anyhow::anyhow!("Model not found: {url}")),
