@@ -83,7 +83,7 @@ def convert(
         - strictがTrue、かつ`word`が空文字列の場合。
         - strictがTrue、かつ`word`にKanalizerの入力に使えない文字が含まれている場合。
         - `max_length`が0以下の場合。
-    IncompleteError
+    InferenceNotFinishedError
         - `error_on_incomplete`がTrue、かつ推論が終了しなかった場合。
     """
     ...
