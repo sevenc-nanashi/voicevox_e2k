@@ -90,10 +90,7 @@ fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
         "Failed to download model after {NUM_ATTEMPTS} attempts"
     ));
 
-    fn download(
-        url: &str,
-        path: &Path,
-    ) -> anyhow::Result<bool> {
+    fn download(url: &str, path: &Path) -> anyhow::Result<bool> {
         let mut file = tempfile::NamedTempFile::new_in(path.parent().unwrap())?;
         let response = ureq::get(url)
             .config()
