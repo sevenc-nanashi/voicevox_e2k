@@ -27,3 +27,11 @@ def test_empty_word():
 def test_invalid_chars(word: str):
     with pytest.raises(ValueError):
         kanalizer.convert(word)
+
+
+def test_inference_not_finished_error():
+    word = "phosphoribosylaminoimidazolesuccinocarboxamide"
+    with pytest.raises(
+        kanalizer.InferenceNotFinishedError, match=r"Inference not finished: .*"
+    ):
+        kanalizer.convert(word, max_length=5)

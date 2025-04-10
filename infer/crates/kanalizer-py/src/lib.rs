@@ -87,6 +87,8 @@ fn extract_strategy(
     }
 }
 
+pyo3::import_exception!(kanalizer._error, InferenceNotFinishedError);
+
 #[pyfunction]
 #[pyo3(signature = (word, /, *, max_length = 32, strict = true, error_on_incomplete = true, strategy = "greedy", **kwargs))]
 fn convert(
@@ -113,20 +115,12 @@ fn convert(
             Err(pyo3::exceptions::PyValueError::new_err(err.to_string()))
         }
         Err(kanalizer::Error::InferenceNotFinished { incomplete_output }) => {
-            Err(pyo3::exceptions::PyValueError::new_err(IncompleteError {
-                incomplete_output,
-            }))
+            Err(InferenceNotFinishedError::new_err((incomplete_output,)))
         }
     }
 }
 
-#[pyclass]
-struct IncompleteError {
-    #[pyo3(get)]
-    incomplete_output: String,
-}
-
-#[pymodule(name = "kanalizer")]
+#[pymodule(name = "_rust")]
 fn init_kanalizer(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     m.add("INPUT_CHARS", &*kanalizer::INPUT_CHARS)?;

@@ -87,10 +87,3 @@ def convert(
         - `error_on_incomplete`がTrue、かつ推論が終了しなかった場合。
     """
     ...
-
-class IncompleteError(Exception):
-    """
-    推論が終了しなかった場合に発生するエラー。
-    """
-
-    incomplete_output: str
