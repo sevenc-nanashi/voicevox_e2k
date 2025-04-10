@@ -245,7 +245,7 @@ impl S2s {
         &self,
         source: &ndarray::Array1<usize>,
         options: &ConvertOptions,
-    ) -> E2kResult<usize> {
+    ) -> E2kOutput<usize> {
         let e_emb = self.e_emb.forward(source);
         let (enc_out, _) = self.encoder.forward(&e_emb.view(), None);
         let (enc_out_rev, _) = self.encoder_reverse.forward(&e_emb.view(), None);
@@ -290,7 +290,7 @@ impl S2s {
         }
 
         let finished = result.last().unwrap() == &constants::EOS_IDX;
-        E2kResult {
+        E2kOutput {
             output: result,
             finished,
         }
@@ -303,7 +303,7 @@ struct BaseE2k<I: Hash + Eq, O: Clone> {
     out_table: HashMap<usize, O>,
 }
 
-struct E2kResult<O> {
+struct E2kOutput<O> {
     output: Vec<O>,
     finished: bool,
 }
@@ -320,13 +320,13 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
             out_table,
         }
     }
-    fn infer(&self, input: &[I], options: &ConvertOptions) -> E2kResult<O> {
+    fn infer(&self, input: &[I], options: &ConvertOptions) -> E2kOutput<O> {
         let source = input
             .iter()
             .filter_map(|c| self.in_table.get(c).copied())
             .collect_vec();
         if source.is_empty() {
-            return E2kResult {
+            return E2kOutput {
                 output: vec![],
                 finished: true,
             };
@@ -337,7 +337,7 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
             .chain([constants::EOS_IDX]);
         let source = ndarray::Array1::from_iter(source);
         let result = self.s2s.forward(&source, options);
-        E2kResult {
+        E2kOutput {
             output: result
                 .output
                 .iter()
