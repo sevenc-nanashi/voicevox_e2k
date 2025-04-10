@@ -81,19 +81,37 @@ fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
     let temp_path = path.with_extra_extension("tmp");
     let mut file = std::fs::File::create(&temp_path)?;
     for i in 0..NUM_ATTEMPTS {
+        let success = download(url, path, &temp_path, &mut file)?;
+        if success {
+            return Ok(());
+        }
+        std::thread::sleep(std::time::Duration::from_secs((i + 1) as u64));
+    }
+
+    std::fs::remove_file(&temp_path)?;
+    return Err(anyhow::anyhow!(
+        "Failed to download model after {NUM_ATTEMPTS} attempts"
+    ));
+
+    fn download(
+        url: &str,
+        path: &Path,
+        temp_path: &PathBuf,
+        file: &mut std::fs::File,
+    ) -> anyhow::Result<bool> {
         let response = ureq::get(url)
             .config()
             .http_status_as_error(false)
             .build()
             .call()?;
         if response.status() == 200 {
-            std::io::copy(&mut response.into_body().into_reader(), &mut file)?;
+            std::io::copy(&mut response.into_body().into_reader(), file)?;
             if path.try_exists()? {
                 std::fs::remove_file(path)?;
             }
-            std::fs::rename(&temp_path, path)?;
+            std::fs::rename(temp_path, path)?;
 
-            return Ok(());
+            return Ok(true);
         }
         if response.status() == 404 {
             return Err(anyhow::anyhow!("Model not found: {url}"));
@@ -101,13 +119,8 @@ fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
         let status = response.status();
         let body = response.into_body().read_to_string()?;
         eprintln!("Failed to download model: {status} {body:?}");
-        std::thread::sleep(std::time::Duration::from_secs((i + 1) as u64));
+        Ok(false)
     }
-
-    std::fs::remove_file(&temp_path)?;
-    Err(anyhow::anyhow!(
-        "Failed to download model after {NUM_ATTEMPTS} attempts"
-    ))
 }
 
 fn compress_model(path: &Path) -> anyhow::Result<()> {
