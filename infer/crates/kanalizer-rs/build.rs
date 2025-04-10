@@ -104,22 +104,22 @@ fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
             .http_status_as_error(false)
             .build()
             .call()?;
-        if response.status() == 200 {
-            std::io::copy(&mut response.into_body().into_reader(), file)?;
-            if path.try_exists()? {
-                std::fs::remove_file(path)?;
+        match response.status().as_u16() {
+            200 => {
+                std::io::copy(&mut response.into_body().into_reader(), file)?;
+                if path.try_exists()? {
+                    std::fs::remove_file(path)?;
+                }
+                std::fs::rename(temp_path, path)?;
+                Ok(true)
             }
-            std::fs::rename(temp_path, path)?;
-
-            return Ok(true);
+            404 => Err(anyhow::anyhow!("Model not found: {url}")),
+            status => {
+                let body = response.into_body().read_to_string()?;
+                eprintln!("Failed to download model: {status} {body:?}");
+                Ok(false)
+            }
         }
-        if response.status() == 404 {
-            return Err(anyhow::anyhow!("Model not found: {url}"));
-        }
-        let status = response.status();
-        let body = response.into_body().read_to_string()?;
-        eprintln!("Failed to download model: {status} {body:?}");
-        Ok(false)
     }
 }
 
