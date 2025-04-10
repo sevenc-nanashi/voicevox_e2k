@@ -80,11 +80,12 @@ fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
 
     let temp_path = path.with_extra_extension("tmp");
     let mut file = std::fs::File::create(&temp_path)?;
-    for _ in 0..NUM_ATTEMPTS {
+    for i in 0..NUM_ATTEMPTS {
         let response = match ureq::get(url).call() {
             Ok(response) => response,
             Err(err) => {
                 eprintln!("Failed to download model: {err}");
+                std::thread::sleep(std::time::Duration::from_secs((i + 1) as u64));
                 continue;
             }
         };
