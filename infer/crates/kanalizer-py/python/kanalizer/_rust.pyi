@@ -17,8 +17,8 @@ def convert(
     /,
     *,
     max_length: int = 32,
-    error_on_incomplete: bool = True,
     strict: bool = True,
+    error_on_incomplete: bool = True,
     strategy: Literal["greedy"] = "greedy",
 ) -> str: ...
 @overload
@@ -27,8 +27,8 @@ def convert(
     /,
     *,
     max_length: int = 32,
-    error_on_incomplete: bool = True,
     strict: bool = True,
+    error_on_incomplete: bool = True,
     strategy: Literal["top_k"],
     k: int = 10,
 ) -> str: ...
@@ -38,8 +38,8 @@ def convert(
     /,
     *,
     max_length: int = 32,
-    error_on_incomplete: bool = True,
     strict: bool = True,
+    error_on_incomplete: bool = True,
     strategy: Literal["top_p"],
     p: float = 0.9,
     t: float = 1.0,
@@ -50,8 +50,8 @@ def convert(
     *,
     max_length: int = 32,
     strategy: Strategy = "greedy",
-    error_on_incomplete: bool = True,
     strict: bool = True,
+    error_on_incomplete: bool = True,
     **kwargs,
 ) -> str:
     """
