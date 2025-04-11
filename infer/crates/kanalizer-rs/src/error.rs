@@ -6,7 +6,7 @@ pub enum Error {
     EmptyInput,
     #[error("無効な文字が含まれています：{chars:?}")]
     InvalidChars { chars: Vec<char> },
-    #[error("推論が終了しませんでした")]
+    #[error("推論が終了しませんでした：{incomplete_output:?}")]
     InferenceNotFinished { incomplete_output: String },
 }
 
