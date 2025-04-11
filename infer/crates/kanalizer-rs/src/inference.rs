@@ -432,7 +432,7 @@ impl Kanalizer {
             .map(|c| c.to_string())
             .collect::<String>();
         if !infer_result.finished && options.error_on_incomplete {
-            return Err(Error::InferenceNotFinished {
+            return Err(Error::IncompleteConversion {
                 incomplete_output: output,
             });
         }

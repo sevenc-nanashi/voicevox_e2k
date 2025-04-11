@@ -87,7 +87,7 @@ fn extract_strategy(
     }
 }
 
-pyo3::import_exception!(kanalizer._error, InferenceNotFinishedError);
+pyo3::import_exception!(kanalizer._error, IncompleteConversionError);
 
 #[pyfunction]
 #[pyo3(signature = (word, /, *, max_length = 32, strict = true, error_on_incomplete = true, strategy = "greedy", **kwargs))]
@@ -114,9 +114,14 @@ fn convert(
         Err(err @ (kanalizer::Error::EmptyInput | kanalizer::Error::InvalidChars { .. })) => {
             Err(pyo3::exceptions::PyValueError::new_err(err.to_string()))
         }
-        Err(kanalizer::Error::InferenceNotFinished { incomplete_output }) => {
-            Err(InferenceNotFinishedError::new_err((incomplete_output,)))
-        }
+        Err(
+            ref err @ kanalizer::Error::IncompleteConversion {
+                ref incomplete_output,
+            },
+        ) => Err(IncompleteConversionError::new_err((
+            err.to_string(),
+            incomplete_output.to_owned(),
+        ))),
     }
 }
 

@@ -52,7 +52,7 @@ fn test_kanalizer_long_error() {
         .unwrap_err();
     assert!(matches!(
         limited_dst,
-        kanalizer::Error::InferenceNotFinished { .. }
+        kanalizer::Error::IncompleteConversion { .. }
     ));
 }
 

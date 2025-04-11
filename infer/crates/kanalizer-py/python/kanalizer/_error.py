@@ -1,6 +1,6 @@
-class InferenceNotFinishedError(Exception):
+class IncompleteConversionError(Exception):
     """
-    推論が終了しなかった場合に発生するエラー。
+    変換が終了しなかった場合に発生するエラー。
 
     Attributes
     ----------
@@ -10,6 +10,6 @@ class InferenceNotFinishedError(Exception):
 
     incomplete_output: str
 
-    def __init__(self, incomplete_output: str):
-        super().__init__(f"Inference not finished: {incomplete_output}")
+    def __init__(self, message: str, incomplete_output: str):
+        super().__init__(message)
         self.incomplete_output = incomplete_output
