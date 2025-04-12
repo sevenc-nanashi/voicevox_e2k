@@ -426,11 +426,7 @@ impl Kanalizer {
         }
         let input = input.chars().map(|c| c.to_string()).collect::<Vec<_>>();
         let infer_result = self.inner.infer(&input, options);
-        let output = infer_result
-            .output
-            .iter()
-            .map(|c| c.to_string())
-            .collect::<String>();
+        let output = infer_result.output.iter().collect();
         if !infer_result.finished && options.error_on_incomplete {
             return Err(Error::IncompleteConversion {
                 incomplete_output: output,
