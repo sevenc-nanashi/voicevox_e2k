@@ -106,7 +106,7 @@ fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
                 file.persist(path)?;
                 Ok(true)
             }
-            404 => Err(anyhow::anyhow!("Model not found: {url}")),
+            404 => anyhow::bail!("Model not found: {url}"),
             status => {
                 let body = response.into_body().read_to_string()?;
                 eprintln!("Failed to download model: {status} {body:?}");
