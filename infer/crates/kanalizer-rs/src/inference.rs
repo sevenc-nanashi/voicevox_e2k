@@ -282,7 +282,7 @@ impl S2s {
 
             // 1文字目の場合は、終了トークンが出力されないようにする。
             if i == 0 {
-                x[(0, constants::EOS_IDX,)] = 0.0;
+                x[(0, constants::EOS_IDX)] = 0.0;
             }
 
             let x = x.index_axis(ndarray::Axis(0), 0);
