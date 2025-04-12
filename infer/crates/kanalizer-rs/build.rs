@@ -91,7 +91,6 @@ fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
     ));
 
     fn download(url: &str, path: &Path) -> anyhow::Result<bool> {
-        let mut file = tempfile::NamedTempFile::new_in(path.parent().unwrap())?;
         let response = ureq::get(url)
             .config()
             .http_status_as_error(false)
@@ -99,6 +98,7 @@ fn download_to(url: &str, path: &Path) -> anyhow::Result<()> {
             .call()?;
         match response.status().as_u16() {
             200 => {
+                let mut file = tempfile::NamedTempFile::new_in(path.parent().unwrap())?;
                 std::io::copy(&mut response.into_body().into_reader(), &mut file)?;
                 if path.try_exists()? {
                     std::fs::remove_file(path)?;
