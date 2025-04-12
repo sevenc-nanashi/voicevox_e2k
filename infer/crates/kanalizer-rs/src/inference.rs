@@ -256,7 +256,7 @@ impl S2s {
         let mut result = vec![constants::SOS_IDX];
         let mut h1: Option<ndarray::Array1<f32>> = None;
         let mut h2: Option<ndarray::Array1<f32>> = None;
-        for _ in 0..options.max_length.into() {
+        for i in 0..options.max_length.into() {
             let dec_emb = self
                 .k_emb
                 .forward(&ndarray::Array1::from_elem(1, *result.last().unwrap()));
@@ -278,7 +278,13 @@ impl S2s {
                 None => self.post_decoder.forward(&x.view(), None),
             };
             h2 = Some(h2_);
-            let x = self.fc.forward_2d(&x.view());
+            let mut x = self.fc.forward_2d(&x.view());
+
+            // 1文字目の場合は、終了トークンが出力されないようにする。
+            if i == 0 {
+                x[(0, constants::EOS_IDX)] = f32::MIN;
+            }
+
             let x = x.index_axis(ndarray::Axis(0), 0);
             result.push(self.decode(&x.view(), &options.strategy));
             if result.last().unwrap() == &constants::EOS_IDX {
