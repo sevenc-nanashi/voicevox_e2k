@@ -11,6 +11,7 @@
 - `./src/layers.rs`：全部分
 - `./src/inference.rs`：BaseE2k
 
-## `infer`（推論）/ `convert`（変換）の使い分け
+## APIの名付け
 
-外部に露出するAPIは`convert`にし、それ以外のAPIは`infer`を使ってください。
+外部に露出するAPIは「何をしているか」ではなく「何をするか」で名付けるようにしています。\
+例えば、`kanalizer::convert`は内部では推論を行っていますが、この関数は「変換する」関数であるため、`convert`と名付けています。
