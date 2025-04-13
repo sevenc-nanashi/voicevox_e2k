@@ -64,7 +64,7 @@ def convert(
     max_length : int, default 32
         最大の出力長。
     error_on_invalid_input : bool, default True
-        入力の検証を行うかどうか。
+        入力に無効な文字が含まれていた場合にエラーを返すかどうか。
         Falseの場合、無効な文字は無視されます。
     error_on_incomplete : bool, default True
         変換が終了しなかった場合にエラーを返すかどうか。

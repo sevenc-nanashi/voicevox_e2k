@@ -14,7 +14,7 @@ pub struct ConvertOptions {
     pub max_length: NonZero<usize>,
     /// デコードに使うアルゴリズム。
     pub strategy: Strategy,
-    /// 入力を検証する。
+    /// 入力に無効な文字が含まれている場合にエラーを返すかどうか。
     /// falseの場合、無効な文字は無視されます。
     pub error_on_invalid_input: bool,
     /// 変換が終了しなかった場合にエラーを返す。
