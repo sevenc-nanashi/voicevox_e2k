@@ -55,7 +55,7 @@ def convert(
     **kwargs,
 ) -> str:
     """
-    推論を行う。
+    変換を行う。
 
     Parameters
     ----------
@@ -67,7 +67,7 @@ def convert(
         入力の検証を行うかどうか。
         Falseの場合、無効な文字は無視されます。
     error_on_incomplete : bool, default True
-        推論が終了しなかった場合にエラーを返すかどうか。
+        変換が終了しなかった場合にエラーを返すかどうか。
     strategy : Strategy, default "greedy"
         デコードのアルゴリズム。
     k : int, default 10
@@ -84,6 +84,6 @@ def convert(
         - strictがTrue、かつ`word`にKanalizerの入力に使えない文字が含まれている場合。
         - `max_length`が0以下の場合。
     IncompleteConversionError
-        - `error_on_incomplete`がTrue、かつ推論が終了しなかった場合。
+        - `error_on_incomplete`がTrue、かつ変換が終了しなかった場合。
     """
     ...

@@ -36,7 +36,7 @@ pub use inference::*;
 
 static KANALIZER: LazyLock<Kanalizer> = LazyLock::new(Kanalizer::new);
 
-/// 推論を行うためのオプションを指定する構造体。
+/// 変換を行うためのオプションを指定する構造体。
 pub struct ConvertBuilder {
     word: String,
     options: ConvertOptions,
@@ -69,19 +69,19 @@ impl ConvertBuilder {
         self
     }
 
-    /// 推論が終了しなかった場合にエラーを返すかどうかを指定する。
+    /// 変換が終了しなかった場合にエラーを返すかどうかを指定する。
     pub fn with_error_on_incomplete(mut self, error_on_incomplete: bool) -> Self {
         self.options.error_on_incomplete = error_on_incomplete;
         self
     }
 
-    /// 推論を行う。
+    /// 変換を行う。
     pub fn perform(self) -> Result<String> {
         KANALIZER.convert(&self.word, &self.options)
     }
 }
 
-/// 推論を行う。
+/// 変換を行う。
 pub fn convert(word: &str) -> ConvertBuilder {
     ConvertBuilder::new(word)
 }
