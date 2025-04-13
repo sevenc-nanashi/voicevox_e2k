@@ -17,7 +17,7 @@ pub struct ConvertOptions {
     /// 入力を検証する。
     /// falseの場合、無効な文字は無視されます。
     pub strict: bool,
-    /// 推論が終了しなかった場合にエラーを返す。
+    /// 変換が終了しなかった場合にエラーを返す。
     pub error_on_incomplete: bool,
 }
 
@@ -425,7 +425,7 @@ impl Kanalizer {
         Self { inner }
     }
 
-    /// 推論を行う。
+    /// 変換を行う。
     pub fn convert(&self, input: &str, options: &ConvertOptions) -> Result<String> {
         if options.strict {
             self.validate_input(input)?;

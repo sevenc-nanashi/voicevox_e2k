@@ -1,6 +1,6 @@
 # kanalizer
 
-英単語から読みを推論するライブラリ。
+英単語から読みへの変換を行うライブラリ。\
 [kanalizer](https://github.com/VOICEVOX/kanalizer/tree/main/infer/crates/kanalizer-rs)のPythonバインディングです。
 
 ## 使い方

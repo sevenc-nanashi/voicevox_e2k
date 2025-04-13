@@ -10,3 +10,7 @@
 
 - `./src/layers.rs`：全部分
 - `./src/inference.rs`：BaseE2k
+
+## `infer`（推論）/ `convert`（変換）の使い分け
+
+外部に露出するAPIは`convert`にし、それ以外のAPIは`infer`を使ってください。
