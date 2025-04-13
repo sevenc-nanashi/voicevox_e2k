@@ -17,7 +17,7 @@ def convert(
     /,
     *,
     max_length: int = 32,
-    strict: bool = True,
+    error_on_invalid_input: bool = True,
     error_on_incomplete: bool = True,
     strategy: Literal["greedy"] = "greedy",
 ) -> str: ...
@@ -27,7 +27,7 @@ def convert(
     /,
     *,
     max_length: int = 32,
-    strict: bool = True,
+    error_on_invalid_input: bool = True,
     error_on_incomplete: bool = True,
     strategy: Literal["top_k"],
     k: int = 10,
@@ -38,7 +38,7 @@ def convert(
     /,
     *,
     max_length: int = 32,
-    strict: bool = True,
+    error_on_invalid_input: bool = True,
     error_on_incomplete: bool = True,
     strategy: Literal["top_p"],
     p: float = 0.9,
@@ -50,7 +50,7 @@ def convert(
     *,
     max_length: int = 32,
     strategy: Strategy = "greedy",
-    strict: bool = True,
+    error_on_invalid_input: bool = True,
     error_on_incomplete: bool = True,
     **kwargs,
 ) -> str:
@@ -63,7 +63,7 @@ def convert(
         英単語。
     max_length : int, default 32
         最大の出力長。
-    strict : bool, default True
+    error_on_invalid_input : bool, default True
         入力の検証を行うかどうか。
         Falseの場合、無効な文字は無視されます。
     error_on_incomplete : bool, default True
@@ -80,8 +80,8 @@ def convert(
     Raises
     ------
     ValueError
-        - strictがTrue、かつ`word`が空文字列の場合。
-        - strictがTrue、かつ`word`にKanalizerの入力に使えない文字が含まれている場合。
+        - error_on_invalid_inputがTrue、かつ`word`が空文字列の場合。
+        - error_on_invalid_inputがTrue、かつ`word`にKanalizerの入力に使えない文字が含まれている場合。
         - `max_length`が0以下の場合。
     IncompleteConversionError
         - `error_on_incomplete`がTrue、かつ変換が終了しなかった場合。
