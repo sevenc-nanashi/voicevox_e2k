@@ -14,7 +14,8 @@
 ## Hugging Face
 
 Hugging Face にて、データセットと学習済みモデルを公開しています。\
-<https://huggingface.co/VOICEVOX/kanalizer>
+- データセット：<https://huggingface.co/datasets/VOICEVOX/kanalizer-dataset>
+- モデル：<https://huggingface.co/VOICEVOX/kanalizer-model>
 
 ## ライセンス
 
