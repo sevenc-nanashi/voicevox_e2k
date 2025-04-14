@@ -1,17 +1,29 @@
 # メンテナンスガイドライン
 
-## モデル/データセットの更新
+## データセットの更新
 
-モデルやデータセットを更新する場合は、以下の手順に従ってください。
+データセットを更新する場合は、以下の手順に従ってください。
 
 1. Hugging Faceを更新する
-  1. [VOICEVOX/kanalizer](https://huggingface.co/VOICEVOX/kanalizer)をcloneする。
-  2. モデル/データセットの更新を行う。
-  3. PRを作成し、マージする。
-  4. `git tag v{バージョン番号}`でタグを打つ。
-  5. `git push origin v{バージョン番号}`でタグをpushする。
-2. Githubを更新する
-  1. `infer/crates/kanalizer-rs/build.rs`の`MODEL_TAG`を更新する。
+   1. [VOICEVOX/kanalizer-dataset](https://huggingface.co/datasets/VOICEVOX/kanalizer-dataset)をcloneする。
+   2. データセットの更新を行う。
+   3. PRを作成し、マージする。
+   4. `git tag v{バージョン番号}`でタグを打つ。
+   5. `git push origin v{バージョン番号}`でタグをpushする。
+2. 必要に応じて、モデルの学習を回す。
+
+## モデルの更新
+
+モデルを更新する場合は、以下の手順に従ってください。
+
+1. Hugging Faceを更新する
+   1. [VOICEVOX/kanalizer-model](https://huggingface.co/VOICEVOX/kanalizer-model)をcloneする。
+   2. モデルの更新を行う。
+   3. PRを作成し、マージする。
+   4. `git tag v{バージョン番号}`でタグを打つ。
+   5. `git push origin v{バージョン番号}`でタグをpushする。
+1. Githubを更新する
+   1. `infer/crates/kanalizer-rs/build.rs`の`MODEL_TAG`を更新する。
 
 ## リリース先の方針
 
