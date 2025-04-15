@@ -1,6 +1,6 @@
 import { SourceProvider } from "./index.ts";
 
-// すべてのアルファベットと、それを2つ組み合わせたものを生成する
+/** すべてのアルファベットと、それを2つ組み合わせたものを生成する */
 export class AllShortWordsSourceProvider extends SourceProvider {
   async getWords() {
     const words = [];

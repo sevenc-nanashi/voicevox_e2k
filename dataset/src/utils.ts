@@ -90,7 +90,7 @@ export class ExhaustiveError extends Error {
   }
 }
 
-// 単語をアルファベット読みに変換する
+/** 単語をアルファベット読み（エービーシー）に変換する */
 export const wordToAlphabetPronunciation = (word: string): string => {
   return word
     .split("")
