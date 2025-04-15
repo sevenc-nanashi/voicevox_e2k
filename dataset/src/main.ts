@@ -1,14 +1,14 @@
-import { load as loadYaml } from "js-yaml";
 import * as fs from "node:fs/promises";
+import { load as loadYaml } from "js-yaml";
 import { type Config, configSchema } from "./config.ts";
 import { DummyInferenceProvider } from "./inference/dummy.ts";
 import { GeminiInferenceProvider } from "./inference/gemini.ts";
 import type { InferenceProvider } from "./inference/index.ts";
 import { OpenAiInferenceProvider } from "./inference/openai.ts";
 import { Random } from "./random.ts";
+import { AllShortWordsSourceProvider } from "./source/allShortWords.ts";
 import { CmuDictSourceProvider } from "./source/cmudict.ts";
 import type { SourceProvider } from "./source/index.ts";
-import { AllShortWordsSourceProvider } from "./source/allShortWords.ts";
 import {
   ExhaustiveError,
   Throttle,
