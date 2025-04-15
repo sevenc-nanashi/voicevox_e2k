@@ -22,7 +22,7 @@
    3. PRを作成し、マージする。
    4. `git tag v{バージョン番号}`でタグを打つ。
    5. `git push origin v{バージョン番号}`でタグをpushする。
-1. Githubを更新する
+2. Githubを更新する
    1. `infer/crates/kanalizer-rs/build.rs`の`MODEL_TAG`を更新する。
 
 ## リリース先の方針
