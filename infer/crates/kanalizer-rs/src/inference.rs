@@ -14,9 +14,9 @@ pub struct ConvertOptions {
     pub max_length: NonZero<usize>,
     /// デコードに使うアルゴリズム。
     pub strategy: Strategy,
-    /// 入力を検証する。
+    /// 入力に無効な文字が含まれている場合にエラーを返すかどうか。
     /// falseの場合、無効な文字は無視されます。
-    pub strict: bool,
+    pub error_on_invalid_input: bool,
     /// 変換が終了しなかった場合にエラーを返す。
     pub error_on_incomplete: bool,
 }
@@ -26,7 +26,7 @@ impl Default for ConvertOptions {
         Self {
             max_length: 32.try_into().unwrap(),
             strategy: Strategy::default(),
-            strict: true,
+            error_on_invalid_input: true,
             error_on_incomplete: true,
         }
     }
@@ -427,7 +427,7 @@ impl Kanalizer {
 
     /// 変換を行う。
     pub fn convert(&self, input: &str, options: &ConvertOptions) -> Result<String> {
-        if options.strict {
+        if options.error_on_invalid_input {
             self.validate_input(input)?;
         }
         let input = input.chars().map(|c| c.to_string()).collect::<Vec<_>>();

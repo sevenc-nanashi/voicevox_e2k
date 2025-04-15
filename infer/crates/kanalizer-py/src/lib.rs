@@ -90,11 +90,11 @@ fn extract_strategy(
 pyo3::import_exception!(kanalizer._error, IncompleteConversionError);
 
 #[pyfunction]
-#[pyo3(signature = (word, /, *, max_length = 32, strict = true, error_on_incomplete = true, strategy = "greedy", **kwargs))]
+#[pyo3(signature = (word, /, *, max_length = 32, error_on_invalid_input = true, error_on_incomplete = true, strategy = "greedy", **kwargs))]
 fn convert(
     word: &str,
     max_length: usize,
-    strict: bool,
+    error_on_invalid_input: bool,
     error_on_incomplete: bool,
     strategy: &str,
     kwargs: Option<&Bound<'_, PyDict>>,
@@ -105,7 +105,7 @@ fn convert(
             pyo3::exceptions::PyValueError::new_err("max_length must be a positive integer")
         })?)
         .with_strategy(&strategy)
-        .with_strict(strict)
+        .with_error_on_invalid_input(error_on_invalid_input)
         .with_error_on_incomplete(error_on_incomplete)
         .perform();
 
