@@ -159,22 +159,25 @@ async function loadWords(params: {
   maxNumWords: number | "all";
   random: Random;
 }) {
-  let words = [];
+  const words = new Set<string>();
   for (const provider of params.sourceProviders) {
     const providerWords = await provider.getWords();
-    words.push(...providerWords);
+    for (const word of providerWords) {
+      words.add(word);
+    }
     console.log(
       `Loaded ${providerWords.length} words from ${provider.constructor.name}`,
     );
   }
-  console.log(`Loaded ${words.length} words`);
+  console.log(`Loaded ${words.size} words`);
 
+  let wordsArray: string[] = [...words];
   if (params.maxNumWords !== "all") {
     console.log(`Shuffling and limiting to ${params.maxNumWords} words...`);
-    words = params.random.shuffle(words).slice(0, params.maxNumWords);
+    wordsArray = params.random.shuffle(wordsArray).slice(0, params.maxNumWords);
   }
 
-  return words;
+  return wordsArray;
 }
 
 async function findMaxBatchSize(params: {
