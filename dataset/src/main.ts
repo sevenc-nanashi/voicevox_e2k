@@ -1,5 +1,5 @@
-import * as fs from "node:fs/promises";
 import { load as loadYaml } from "js-yaml";
+import * as fs from "node:fs/promises";
 import { type Config, configSchema } from "./config.ts";
 import { DummyInferenceProvider } from "./inference/dummy.ts";
 import { GeminiInferenceProvider } from "./inference/gemini.ts";
@@ -8,6 +8,7 @@ import { OpenAiInferenceProvider } from "./inference/openai.ts";
 import { Random } from "./random.ts";
 import { CmuDictSourceProvider } from "./source/cmudict.ts";
 import type { SourceProvider } from "./source/index.ts";
+import { AllShortWordsSourceProvider } from "./source/allShortWords.ts";
 import {
   ExhaustiveError,
   Throttle,
@@ -19,15 +20,20 @@ import {
 async function main() {
   const config = await loadConfig();
 
-  let sourceProvider: SourceProvider;
-  switch (config.source.provider) {
-    case "cmudict":
-      sourceProvider = new CmuDictSourceProvider();
-      break;
-    default:
-      throw new ExhaustiveError(config.source.provider);
+  const sourceProviders: SourceProvider[] = [];
+  for (const provider of config.source.providers) {
+    switch (provider) {
+      case "cmudict":
+        sourceProviders.push(new CmuDictSourceProvider());
+        break;
+      case "allShortWords":
+        sourceProviders.push(new AllShortWordsSourceProvider());
+        break;
+      default:
+        throw new ExhaustiveError(provider);
+    }
   }
-  console.log(`Source provider: ${config.source.provider}`);
+  console.log(`Source providers: ${config.source.providers.join(", ")}`);
 
   let inferenceProvider: InferenceProvider;
   switch (config.inference.provider) {
@@ -49,7 +55,7 @@ async function main() {
 
   console.log("1: Loading words...");
   const words = await loadWords({
-    sourceProvider,
+    sourceProviders,
     maxNumWords: config.source.maxNumWords,
     random,
   });
@@ -131,11 +137,18 @@ async function loadConfig() {
 }
 
 async function loadWords(params: {
-  sourceProvider: SourceProvider;
+  sourceProviders: SourceProvider[];
   maxNumWords: number | "all";
   random: Random;
 }) {
-  let words = await params.sourceProvider.getWords();
+  let words = [];
+  for (const provider of params.sourceProviders) {
+    const providerWords = await provider.getWords();
+    words.push(...providerWords);
+    console.log(
+      `Loaded ${providerWords.length} words from ${provider.constructor.name}`,
+    );
+  }
   console.log(`Loaded ${words.length} words`);
   if (params.maxNumWords !== "all") {
     console.log(`Shuffling and limiting to ${params.maxNumWords} words...`);

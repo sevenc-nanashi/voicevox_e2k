@@ -6,17 +6,20 @@ properties:
   source:
     type: object
     properties:
-      provider:
-        type: string
-        enum:
-          - cmudict
+      providers:
+        type: array
+        items:
+          type: string
+          enum:
+            - cmudict
+            - allShortWords
       maxNumWords:
         anyOf:
           - type: number
           - type: string
             const: all
     required:
-      - provider
+      - providers
       - maxNumWords
     additionalProperties: false
   inference:

@@ -1,4 +1,5 @@
 import { Mutex } from "@core/asyncutil";
+import {alphabetMap} from "./inference/dummy.ts";
 
 export const bisectMax = async (
   min: number,
@@ -47,6 +48,11 @@ export const filterPronunciations = (
   for (const [word, pronunciation] of Object.entries(pronunciations)) {
     const normalized = normalizeOrNull(pronunciation);
     if (normalized == null) {
+      console.error(`Invalid pronunciation: ${word} -> ${pronunciation}`);
+      continue;
+    }
+    const simplePronunciation = word.split("").map((c) => alphabetMap[c]).join("");
+    if (simplePronunciation === normalized) {
       console.error(`Invalid pronunciation: ${word} -> ${pronunciation}`);
       continue;
     }

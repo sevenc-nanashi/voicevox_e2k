@@ -30,7 +30,7 @@ export class DummyInferenceProvider extends InferenceProvider {
   }
 }
 
-const alphabetMap = {
+export const alphabetMap = {
   a: "エー",
   b: "ビー",
   c: "シー",
