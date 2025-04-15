@@ -45,19 +45,20 @@ export const filterPronunciations = (
 ) => {
   const filtered: Record<string, string> = {};
   for (const [word, pronunciation] of Object.entries(pronunciations)) {
+    // 読みを正規化し、それでも無効な読み方だったらスキップ
     const normalized = normalizeOrNull(pronunciation);
     if (normalized == null) {
       console.error(`Invalid pronunciation: ${word} -> ${pronunciation}`);
       continue;
     }
-    const simplePronunciation = word
-      .split("")
-      .map((c) => alphabetMap[c as keyof typeof alphabetMap])
-      .join("");
-    if (simplePronunciation === normalized) {
-      console.error(`Invalid pronunciation: ${word} -> ${pronunciation}`);
+
+    // アルファベット読みと一致する場合はスキップ
+    const alphabetPronunciation = wordToAlphabetPronunciation(word);
+    if (alphabetPronunciation === normalized) {
+      console.error(`Pronunciation is too simple: ${word} -> ${pronunciation}`);
       continue;
     }
+
     filtered[word] = normalized;
   }
   return filtered;
@@ -88,6 +89,14 @@ export class ExhaustiveError extends Error {
     super(message ?? `Unexpected value: ${JSON.stringify(value, null, 2)}`);
   }
 }
+
+// 単語をアルファベット読みに変換する
+export const wordToAlphabetPronunciation = (word: string): string => {
+  return word
+    .split("")
+    .map((c) => alphabetMap[c.toLowerCase() as keyof typeof alphabetMap])
+    .join("");
+};
 
 export const alphabetMap = {
   a: "エー",
