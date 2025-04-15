@@ -3,7 +3,9 @@
 randomSeed: 0
 
 source:
-  provider: cmudict
+  providers:
+    - cmudict
+    - allShortWords
   maxNumWords: "all"
 
 inference:
