@@ -20,36 +20,13 @@ import {
 async function main() {
   const config = await loadConfig();
 
-  const sourceProviders: SourceProvider[] = [];
-  for (const provider of config.source.providers) {
-    switch (provider) {
-      case "cmudict":
-        sourceProviders.push(new CmuDictSourceProvider());
-        break;
-      case "allShortWords":
-        sourceProviders.push(new AllShortWordsSourceProvider());
-        break;
-      default:
-        throw new ExhaustiveError(provider);
-    }
-  }
-  console.log(`Source providers: ${config.source.providers.join(", ")}`);
-
-  let inferenceProvider: InferenceProvider;
-  switch (config.inference.provider) {
-    case "gemini":
-      inferenceProvider = new GeminiInferenceProvider(config);
-      break;
-    case "openai":
-      inferenceProvider = new OpenAiInferenceProvider(config);
-      break;
-    case "dummy":
-      inferenceProvider = new DummyInferenceProvider(config);
-      break;
-    default:
-      throw new ExhaustiveError(config.inference.provider);
-  }
-  console.log(`Inference provider: ${config.inference.provider}`);
+  const sourceProviders = await prepareSourceProviders(
+    config.source.providers,
+  );
+  const inferenceProvider = await prepareInferenceProvider(
+    config.inference.provider,
+    config,
+  );
 
   const random = new Random(config.randomSeed);
 
@@ -95,6 +72,49 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
+async function prepareSourceProviders(
+  sourceProviderNames: Config["source"]["providers"],
+) {
+  const sourceProviders: SourceProvider[] = [];
+  for (const provider of sourceProviderNames) {
+    switch (provider) {
+      case "cmudict":
+        sourceProviders.push(new CmuDictSourceProvider());
+        break;
+      case "allShortWords":
+        sourceProviders.push(new AllShortWordsSourceProvider());
+        break;
+      default:
+        throw new ExhaustiveError(provider);
+    }
+  }
+
+  console.log(`Source providers: ${sourceProviderNames.join(", ")}`);
+  return sourceProviders;
+}
+
+async function prepareInferenceProvider(
+  inferenceProviderName: Config["inference"]["provider"],
+  config: Config,
+) {
+  let inferenceProvider: InferenceProvider;
+  switch (inferenceProviderName) {
+    case "gemini":
+      inferenceProvider = new GeminiInferenceProvider(config);
+      break;
+    case "openai":
+      inferenceProvider = new OpenAiInferenceProvider(config);
+      break;
+    case "dummy":
+      inferenceProvider = new DummyInferenceProvider(config);
+      break;
+    default:
+      throw new ExhaustiveError(inferenceProviderName);
+  }
+  console.log(`Inference provider: ${inferenceProviderName}`);
+  return inferenceProvider;
+}
 
 async function determineBatchSize(params: {
   batchConfig: Config["inference"]["batch"];
@@ -150,6 +170,7 @@ async function loadWords(params: {
     );
   }
   console.log(`Loaded ${words.length} words`);
+
   if (params.maxNumWords !== "all") {
     console.log(`Shuffling and limiting to ${params.maxNumWords} words...`);
     words = params.random.shuffle(words).slice(0, params.maxNumWords);
