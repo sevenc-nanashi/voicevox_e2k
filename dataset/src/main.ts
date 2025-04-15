@@ -20,9 +20,7 @@ import {
 async function main() {
   const config = await loadConfig();
 
-  const sourceProviders = await prepareSourceProviders(
-    config.source.providers,
-  );
+  const sourceProviders = await prepareSourceProviders(config.source.providers);
   const inferenceProvider = await prepareInferenceProvider(
     config.inference.provider,
     config,
