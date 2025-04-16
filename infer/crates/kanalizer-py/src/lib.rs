@@ -96,7 +96,8 @@ fn convert(
 
     fn do_warn<T: pyo3::PyTypeInfo>(py: Python, err: &kanalizer::Error) -> PyResult<()> {
         let pyerr = py.get_type::<T>();
-        let message_cstr = std::ffi::CString::new(err.to_string()).expect("should not contain nul byte");
+        let message_cstr =
+            std::ffi::CString::new(err.to_string()).expect("should not contain nul byte");
         pyo3::PyErr::warn(py, &pyerr, &message_cstr, 0)
     }
 }
