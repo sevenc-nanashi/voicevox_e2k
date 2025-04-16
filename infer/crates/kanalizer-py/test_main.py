@@ -16,7 +16,7 @@ def test_invalid_max_length():
 
 def test_empty_word():
     word = ""
-    with pytest.raises(ValueError):
+    with pytest.raises(kanalizer.EmptyInputError):
         kanalizer.convert(word)
 
 
@@ -25,7 +25,7 @@ def test_empty_word():
     [("あ"), ("A")],
 )
 def test_invalid_chars(word: str):
-    with pytest.raises(ValueError):
+    with pytest.raises(kanalizer.InvalidCharsError):
         kanalizer.convert(word)
 
 
