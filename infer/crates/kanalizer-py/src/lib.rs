@@ -1,38 +1,86 @@
 mod converter;
 use crate::converter::extract_strategy;
+use converter::ErrorMode;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
 pyo3::import_exception!(kanalizer._error, IncompleteConversionError);
 pyo3::import_exception!(kanalizer._error, InvalidCharsError);
 pyo3::import_exception!(kanalizer._error, EmptyInputError);
+pyo3::import_exception!(kanalizer._error, IncompleteConversionWarning);
+pyo3::import_exception!(kanalizer._error, InvalidCharsWarning);
+pyo3::import_exception!(kanalizer._error, EmptyInputWarning);
 
 #[pyfunction]
-#[pyo3(signature = (word, /, *, max_length = 32, error_on_invalid_input = true, error_on_incomplete = true, strategy = "greedy", **kwargs))]
+#[pyo3(signature = (word, /, *, max_length = 32, on_invalid_input = ErrorMode::Error, on_incomplete = ErrorMode::Warning, strategy = "greedy", **kwargs))]
 fn convert(
+    py: Python,
     word: &str,
     max_length: usize,
-    error_on_invalid_input: bool,
-    error_on_incomplete: bool,
+    on_invalid_input: ErrorMode,
+    on_incomplete: ErrorMode,
     strategy: &str,
     kwargs: Option<&Bound<'_, PyDict>>,
 ) -> PyResult<String> {
-    let strategy = extract_strategy(strategy, kwargs)?;
+    let rust_strategy = extract_strategy(strategy, kwargs)?;
     let result = kanalizer::convert(word)
         .with_max_length(max_length.try_into().map_err(|_| {
             pyo3::exceptions::PyValueError::new_err("max_length must be a positive integer")
         })?)
-        .with_strategy(&strategy)
-        .with_error_on_invalid_input(error_on_invalid_input)
-        .with_error_on_incomplete(error_on_incomplete)
+        .with_strategy(&rust_strategy)
+        .with_error_on_invalid_input(on_invalid_input != ErrorMode::Ignore)
+        .with_error_on_incomplete(on_incomplete != ErrorMode::Ignore)
         .perform();
 
-    match result {
+    return match result {
         Ok(dst) => Ok(dst),
+        Err(err @ kanalizer::Error::EmptyInput) if on_invalid_input == ErrorMode::Warning => {
+            do_warn::<EmptyInputWarning>(py, &err)?;
+
+            convert(
+                py,
+                word,
+                max_length,
+                ErrorMode::Ignore,
+                on_incomplete,
+                strategy,
+                kwargs,
+            )
+        }
         Err(err @ kanalizer::Error::EmptyInput) => Err(EmptyInputError::new_err(err.to_string())),
+        Err(err @ kanalizer::Error::InvalidChars { .. })
+            if on_invalid_input == ErrorMode::Warning =>
+        {
+            do_warn::<InvalidCharsWarning>(py, &err)?;
+
+            convert(
+                py,
+                word,
+                max_length,
+                ErrorMode::Ignore,
+                on_incomplete,
+                strategy,
+                kwargs,
+            )
+        }
         Err(ref err @ kanalizer::Error::InvalidChars { ref chars }) => Err(
             InvalidCharsError::new_err((err.to_string(), chars.to_vec())),
         ),
+        Err(err @ kanalizer::Error::IncompleteConversion { .. })
+            if on_incomplete == ErrorMode::Warning =>
+        {
+            do_warn::<IncompleteConversionWarning>(py, &err)?;
+
+            convert(
+                py,
+                word,
+                max_length,
+                on_invalid_input,
+                ErrorMode::Ignore,
+                strategy,
+                kwargs,
+            )
+        }
         Err(
             ref err @ kanalizer::Error::IncompleteConversion {
                 ref incomplete_output,
@@ -41,6 +89,12 @@ fn convert(
             err.to_string(),
             incomplete_output.to_owned(),
         ))),
+    };
+
+    fn do_warn<T: pyo3::PyTypeInfo>(py: Python, err: &kanalizer::Error) -> PyResult<()> {
+        let pyerr = py.get_type::<T>();
+        let message_cstr = std::ffi::CString::new(err.to_string()).unwrap();
+        pyo3::PyErr::warn(py, &pyerr, &message_cstr, 0)
     }
 }
 

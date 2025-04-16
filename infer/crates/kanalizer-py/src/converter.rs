@@ -1,5 +1,7 @@
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
+use std::str::FromStr;
+use strum::VariantNames;
 
 pub fn extract_strategy(
     strategy: &str,
@@ -84,5 +86,30 @@ pub fn extract_strategy(
             }
         }
         Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, strum::EnumString, strum::Display, strum::VariantNames)]
+#[strum(serialize_all = "snake_case")]
+pub enum ErrorMode {
+    Error,
+    Warning,
+    Ignore,
+}
+
+impl pyo3::FromPyObject<'_> for ErrorMode {
+    fn extract_bound(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+        let s: String = ob.extract()?;
+        ErrorMode::from_str(&s).map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err(format!(
+                "Invalid error mode: {}. Must be one of '{}'",
+                s,
+                ErrorMode::VARIANTS
+                    .iter()
+                    .map(|s| s.to_string())
+                    .collect::<Vec<_>>()
+                    .join("', '")
+            ))
+        })
     }
 }

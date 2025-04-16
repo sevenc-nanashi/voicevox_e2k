@@ -11,14 +11,23 @@ OUTPUT_CHARS: Final[set[str]]
 Strategy = Literal["greedy", "top_k", "top_p"]
 """デコードのアルゴリズム。"""
 
+ErrorMode = Literal["error", "warning", "ignore"]
+"""
+エラー処理のモード。
+
+- "error" : エラーを発生させる。
+- "warning" : 警告を表示する。
+- "ignore" : エラーを無視する。
+"""
+
 @overload
 def convert(
     word: str,
     /,
     *,
     max_length: int = 32,
-    error_on_invalid_input: bool = True,
-    error_on_incomplete: bool = True,
+    on_invalid_input: ErrorMode = "error",
+    on_incomplete: ErrorMode = "warning",
     strategy: Literal["greedy"] = "greedy",
 ) -> str: ...
 @overload
@@ -27,8 +36,8 @@ def convert(
     /,
     *,
     max_length: int = 32,
-    error_on_invalid_input: bool = True,
-    error_on_incomplete: bool = True,
+    on_invalid_input: ErrorMode = "error",
+    on_incomplete: ErrorMode = "warning",
     strategy: Literal["top_k"],
     k: int = 10,
 ) -> str: ...
@@ -38,8 +47,8 @@ def convert(
     /,
     *,
     max_length: int = 32,
-    error_on_invalid_input: bool = True,
-    error_on_incomplete: bool = True,
+    on_invalid_input: ErrorMode = "error",
+    on_incomplete: ErrorMode = "warning",
     strategy: Literal["top_p"],
     p: float = 0.9,
     t: float = 1.0,
@@ -50,8 +59,8 @@ def convert(
     *,
     max_length: int = 32,
     strategy: Strategy = "greedy",
-    error_on_invalid_input: bool = True,
-    error_on_incomplete: bool = True,
+    on_invalid_input: ErrorMode = "error",
+    on_incomplete: ErrorMode = "warning",
     **kwargs,
 ) -> str:
     """
@@ -63,11 +72,11 @@ def convert(
         英単語。
     max_length : int, default 32
         最大の出力長。
-    error_on_invalid_input : bool, default True
-        入力に無効な文字が含まれていた場合にエラーを返すかどうか。
-        Falseの場合、無効な文字は無視されます。
-    error_on_incomplete : bool, default True
-        変換が終了しなかった場合にエラーを返すかどうか。
+    on_invalid_input : ErrorMode, default "error"
+        入力に無効な文字が含まれていた場合の挙動。
+        "error"以外の場合は、無効な文字を無視して変換を続行する。
+    on_incomplete : ErrorMode, default "warning"
+        変換が終了しなかった場合の挙動。
     strategy : Strategy, default "greedy"
         デコードのアルゴリズム。
     k : int, default 10
