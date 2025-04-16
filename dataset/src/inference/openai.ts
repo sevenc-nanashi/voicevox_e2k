@@ -1,5 +1,6 @@
 import { OpenAI as OpenAIClient } from "openai";
 import type { Config } from "../config.ts";
+import { createPrompt } from "./common/llm.ts";
 import { InferenceProvider } from "./index.ts";
 
 type OpenRouterError = {
@@ -24,14 +25,7 @@ export class OpenAiInferenceProvider extends InferenceProvider {
   }
 
   async infer(words: string[]) {
-    const prompt = [
-      "Estimate Japanese-style pronunciation of these words, and output in the specified format. Don't include any other texts.",
-      "Words:",
-      ...words,
-      "Format:",
-      "word=ワード",
-      "helmet=ヘルメット",
-    ].join("\n");
+    const prompt = createPrompt(words);
 
     const completion = await this.client.chat.completions.create({
       model: this.config.inference.openai.modelName,

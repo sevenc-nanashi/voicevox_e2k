@@ -5,7 +5,9 @@ randomSeed: 0
 
 source:
   # 英単語の取得方法を指定します。
-  provider: cmudict
+  providers:
+    - cmudict
+    - allShortWords
 
   # 最大の単語数。"all"で全ての単語を取得します。
   maxNumWords: "all"

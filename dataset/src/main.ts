@@ -6,6 +6,7 @@ import { GeminiInferenceProvider } from "./inference/gemini.ts";
 import type { InferenceProvider } from "./inference/index.ts";
 import { OpenAiInferenceProvider } from "./inference/openai.ts";
 import { Random } from "./random.ts";
+import { AllShortWordsSourceProvider } from "./source/allShortWords.ts";
 import { CmuDictSourceProvider } from "./source/cmudict.ts";
 import type { SourceProvider } from "./source/index.ts";
 import {
@@ -19,37 +20,17 @@ import {
 async function main() {
   const config = await loadConfig();
 
-  let sourceProvider: SourceProvider;
-  switch (config.source.provider) {
-    case "cmudict":
-      sourceProvider = new CmuDictSourceProvider();
-      break;
-    default:
-      throw new ExhaustiveError(config.source.provider);
-  }
-  console.log(`Source provider: ${config.source.provider}`);
-
-  let inferenceProvider: InferenceProvider;
-  switch (config.inference.provider) {
-    case "gemini":
-      inferenceProvider = new GeminiInferenceProvider(config);
-      break;
-    case "openai":
-      inferenceProvider = new OpenAiInferenceProvider(config);
-      break;
-    case "dummy":
-      inferenceProvider = new DummyInferenceProvider(config);
-      break;
-    default:
-      throw new ExhaustiveError(config.inference.provider);
-  }
-  console.log(`Inference provider: ${config.inference.provider}`);
+  const sourceProviders = await prepareSourceProviders(config.source.providers);
+  const inferenceProvider = await prepareInferenceProvider(
+    config.inference.provider,
+    config,
+  );
 
   const random = new Random(config.randomSeed);
 
   console.log("1: Loading words...");
   const words = await loadWords({
-    sourceProvider,
+    sourceProviders,
     maxNumWords: config.source.maxNumWords,
     random,
   });
@@ -89,6 +70,49 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
+async function prepareSourceProviders(
+  sourceProviderNames: Config["source"]["providers"],
+) {
+  const sourceProviders: SourceProvider[] = [];
+  for (const provider of sourceProviderNames) {
+    switch (provider) {
+      case "cmudict":
+        sourceProviders.push(new CmuDictSourceProvider());
+        break;
+      case "allShortWords":
+        sourceProviders.push(new AllShortWordsSourceProvider());
+        break;
+      default:
+        throw new ExhaustiveError(provider);
+    }
+  }
+
+  console.log(`Source providers: ${sourceProviderNames.join(", ")}`);
+  return sourceProviders;
+}
+
+async function prepareInferenceProvider(
+  inferenceProviderName: Config["inference"]["provider"],
+  config: Config,
+) {
+  let inferenceProvider: InferenceProvider;
+  switch (inferenceProviderName) {
+    case "gemini":
+      inferenceProvider = new GeminiInferenceProvider(config);
+      break;
+    case "openai":
+      inferenceProvider = new OpenAiInferenceProvider(config);
+      break;
+    case "dummy":
+      inferenceProvider = new DummyInferenceProvider(config);
+      break;
+    default:
+      throw new ExhaustiveError(inferenceProviderName);
+  }
+  console.log(`Inference provider: ${inferenceProviderName}`);
+  return inferenceProvider;
+}
 
 async function determineBatchSize(params: {
   batchConfig: Config["inference"]["batch"];
@@ -131,18 +155,29 @@ async function loadConfig() {
 }
 
 async function loadWords(params: {
-  sourceProvider: SourceProvider;
+  sourceProviders: SourceProvider[];
   maxNumWords: number | "all";
   random: Random;
 }) {
-  let words = await params.sourceProvider.getWords();
-  console.log(`Loaded ${words.length} words`);
+  const words = new Set<string>();
+  for (const provider of params.sourceProviders) {
+    const providerWords = await provider.getWords();
+    for (const word of providerWords) {
+      words.add(word);
+    }
+    console.log(
+      `Loaded ${providerWords.length} words from ${provider.constructor.name}`,
+    );
+  }
+  console.log(`Loaded ${words.size} words`);
+
+  let wordsArray: string[] = [...words];
   if (params.maxNumWords !== "all") {
     console.log(`Shuffling and limiting to ${params.maxNumWords} words...`);
-    words = params.random.shuffle(words).slice(0, params.maxNumWords);
+    wordsArray = params.random.shuffle(wordsArray).slice(0, params.maxNumWords);
   }
 
-  return words;
+  return wordsArray;
 }
 
 async function findMaxBatchSize(params: {

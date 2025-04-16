@@ -3,7 +3,7 @@ import * as z from "zod";
 export const configSchema = z.object({
   randomSeed: z.number(),
   source: z.object({
-    provider: z.enum(["cmudict"]),
+    providers: z.enum(["cmudict", "allShortWords"]).array(),
     maxNumWords: z.union([z.number(), z.literal("all")]),
   }),
   inference: z.object({

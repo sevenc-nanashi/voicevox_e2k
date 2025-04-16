@@ -3,6 +3,7 @@ import {
   GoogleGenerativeAI,
 } from "@google/generative-ai";
 import type { Config } from "../config.ts";
+import { createPrompt } from "./common/llm.ts";
 import { InferenceProvider } from "./index.ts";
 
 export class GeminiInferenceProvider extends InferenceProvider {
@@ -23,14 +24,7 @@ export class GeminiInferenceProvider extends InferenceProvider {
   }
 
   async infer(words: string[]) {
-    const prompt = [
-      "Estimate Japanese-style pronunciation of these words, and output in the specified format. Don't include any other texts.",
-      "Words:",
-      ...words,
-      "Format:",
-      "word=ワード",
-      "helmet=ヘルメット",
-    ].join("\n");
+    const prompt = createPrompt(words);
 
     const response = await this.model
       .generateContent(prompt)

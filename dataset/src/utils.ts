@@ -45,11 +45,20 @@ export const filterPronunciations = (
 ) => {
   const filtered: Record<string, string> = {};
   for (const [word, pronunciation] of Object.entries(pronunciations)) {
+    // 読みを正規化し、それでも無効な読み方だったらスキップ
     const normalized = normalizeOrNull(pronunciation);
     if (normalized == null) {
       console.error(`Invalid pronunciation: ${word} -> ${pronunciation}`);
       continue;
     }
+
+    // アルファベット読みと一致する場合はスキップ
+    const alphabetPronunciation = wordToAlphabetPronunciation(word);
+    if (alphabetPronunciation === normalized) {
+      console.error(`Pronunciation is too simple: ${word} -> ${pronunciation}`);
+      continue;
+    }
+
     filtered[word] = normalized;
   }
   return filtered;
@@ -80,3 +89,40 @@ export class ExhaustiveError extends Error {
     super(message ?? `Unexpected value: ${JSON.stringify(value, null, 2)}`);
   }
 }
+
+/** 単語をアルファベット読み（エービーシー）に変換する */
+export const wordToAlphabetPronunciation = (word: string): string => {
+  return word
+    .split("")
+    .map((c) => alphabetMap[c.toLowerCase() as keyof typeof alphabetMap])
+    .join("");
+};
+
+const alphabetMap = {
+  a: "エー",
+  b: "ビー",
+  c: "シー",
+  d: "ディー",
+  e: "イー",
+  f: "エフ",
+  g: "ジー",
+  h: "エイチ",
+  i: "アイ",
+  j: "ジェー",
+  k: "ケー",
+  l: "エル",
+  m: "エム",
+  n: "エヌ",
+  o: "オー",
+  p: "ピー",
+  q: "キュー",
+  r: "アール",
+  s: "エス",
+  t: "ティー",
+  u: "ユー",
+  v: "ブイ",
+  w: "ダブリュー",
+  x: "エックス",
+  y: "ワイ",
+  z: "ゼット",
+};
