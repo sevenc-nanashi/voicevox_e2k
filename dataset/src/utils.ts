@@ -98,7 +98,7 @@ export const wordToAlphabetPronunciation = (word: string): string => {
     .join("");
 };
 
-export const alphabetMap = {
+const alphabetMap = {
   a: "エー",
   b: "ビー",
   c: "シー",
