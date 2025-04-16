@@ -7,7 +7,6 @@ pyo3::import_exception!(kanalizer._error, IncompleteConversionError);
 pyo3::import_exception!(kanalizer._error, InvalidCharsError);
 pyo3::import_exception!(kanalizer._error, EmptyInputError);
 
-
 #[pyfunction]
 #[pyo3(signature = (word, /, *, max_length = 32, strict = true, error_on_incomplete = true, strategy = "greedy", **kwargs))]
 fn convert(
@@ -30,15 +29,10 @@ fn convert(
 
     match result {
         Ok(dst) => Ok(dst),
-        Err(err @ kanalizer::Error::EmptyInput) => {
-            Err(EmptyInputError::new_err(err.to_string()))
-        }
-        Err(ref err @ kanalizer::Error::InvalidChars { ref chars }) => {
-            Err(InvalidCharsError::new_err((
-                err.to_string(),
-                chars.to_vec(),
-            )))
-        }
+        Err(err @ kanalizer::Error::EmptyInput) => Err(EmptyInputError::new_err(err.to_string())),
+        Err(ref err @ kanalizer::Error::InvalidChars { ref chars }) => Err(
+            InvalidCharsError::new_err((err.to_string(), chars.to_vec())),
+        ),
         Err(
             ref err @ kanalizer::Error::IncompleteConversion {
                 ref incomplete_output,
