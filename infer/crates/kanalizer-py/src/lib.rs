@@ -22,6 +22,8 @@ fn convert(
     strategy: &str,
     kwargs: Option<&Bound<'_, PyDict>>,
 ) -> PyResult<String> {
+    // NOTE:
+    // ErrorMode::Warningを指定している場合は、エラーを吐くようにし、Warningを吐いてからErrorMode::Ignoreにして再度呼び出す
     let rust_strategy = extract_strategy(strategy, kwargs)?;
     let result = kanalizer::convert(word)
         .with_max_length(max_length.try_into().map_err(|_| {
@@ -32,6 +34,7 @@ fn convert(
         .with_error_on_incomplete(on_incomplete != ErrorMode::Ignore)
         .perform();
 
+    // TODO: このmatch文をすっきりさせる
     return match result {
         Ok(dst) => Ok(dst),
         Err(err @ kanalizer::Error::EmptyInput) if on_invalid_input == ErrorMode::Warning => {
