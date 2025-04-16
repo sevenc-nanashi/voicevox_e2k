@@ -17,7 +17,7 @@ class IncompleteConversionError(Exception):
 
 class InvalidInputError(ValueError):
     """
-    入力に無効な文字が含まれていた場合に発生するエラー。
+    無効な入力が与えられた場合に発生するエラー。
     """
 
     def __init__(self, message: str):
@@ -47,11 +47,3 @@ class InvalidCharsError(InvalidInputError):
         super().__init__(message)
         self.invalid_chars = invalid_chars
 
-
-class IncompleteConversionWarning(UserWarning):
-    """
-    変換が終了しなかった場合に発生する警告。
-    """
-
-    def __init__(self, message: str):
-        super().__init__(message)
