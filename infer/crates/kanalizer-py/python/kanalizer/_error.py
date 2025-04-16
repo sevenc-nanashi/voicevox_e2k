@@ -17,11 +17,15 @@ class IncompleteConversionError(Exception):
 
 class InvalidInputError(ValueError):
     """
-    無効な入力が与えられた場合に発生するエラー。
-    """
+    無効な入力が与えられた場合に発生するエラーの基底クラス。
 
-    def __init__(self, message: str):
-        super().__init__(message)
+    See Also
+    --------
+    InvalidCharsError
+        無効な文字が含まれている場合に発生するエラー。
+    EmptyInputError
+        入力が空文字列の場合に発生するエラー。
+    """
 
 
 class EmptyInputError(InvalidInputError):
@@ -46,4 +50,3 @@ class InvalidCharsError(InvalidInputError):
     def __init__(self, message: str, invalid_chars: list[str]):
         super().__init__(message)
         self.invalid_chars = invalid_chars
-
