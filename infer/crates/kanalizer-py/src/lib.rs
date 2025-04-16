@@ -6,9 +6,6 @@ use pyo3::types::PyDict;
 pyo3::import_exception!(kanalizer._error, IncompleteConversionError);
 pyo3::import_exception!(kanalizer._error, InvalidCharsError);
 pyo3::import_exception!(kanalizer._error, EmptyInputError);
-pyo3::import_exception!(kanalizer._error, IncompleteConversionWarning);
-pyo3::import_exception!(kanalizer._error, InvalidCharsWarning);
-pyo3::import_exception!(kanalizer._error, EmptyInputWarning);
 
 
 #[pyfunction]
