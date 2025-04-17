@@ -104,7 +104,9 @@ export const isAlphabetPronunciation = (
 ) => {
   const pattern = `^(?:${word
     .split("")
-    .map((c) => alphabetMap[c.toLowerCase() as keyof typeof alphabetMap].join("|"))
+    .map((c) =>
+      alphabetMap[c.toLowerCase() as keyof typeof alphabetMap].join("|"),
+    )
     .join(")(?:")})$`;
   const regex = new RegExp(pattern);
   return regex.test(pronunciation);
