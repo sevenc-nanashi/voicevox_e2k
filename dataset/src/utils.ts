@@ -102,13 +102,10 @@ export const isAlphabetPronunciation = (
   word: string,
   pronunciation: string,
 ) => {
-  const pattern =
-    "^(?:" +
-    word
-      .split("")
-      .map((c) => alphabetMap[c as keyof typeof alphabetMap].join("|"))
-      .join(")(?:") +
-    ")$";
+  const pattern = `^(?:${word
+    .split("")
+    .map((c) => alphabetMap[c as keyof typeof alphabetMap].join("|"))
+    .join(")(?:")})$`;
   const regex = new RegExp(pattern);
   return regex.test(pronunciation);
 };
