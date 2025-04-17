@@ -113,7 +113,7 @@ export const isAlphabetPronunciation = (
 };
 
 const alphabetMap = {
-  a: ["エー", "エィ", "エイ"],
+  a: ["エー", "エィ", "エイ", "エエ"],
   b: ["ビー", "ビィ", "ビイ"],
   c: ["シー", "スィー", "シイ"],
   d: ["ディー", "デー", "デイ"],
