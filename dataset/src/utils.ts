@@ -52,9 +52,8 @@ export const filterPronunciations = (
       continue;
     }
 
-    // アルファベット読みと一致する場合はスキップ
-    const alphabetPronunciation = wordToAlphabetPronunciation(word);
-    if (alphabetPronunciation === normalized) {
+    // アルファベット読みならスキップ
+    if (isAlphabetPronunciation(word, normalized)) {
       console.error(`Pronunciation is too simple: ${word} -> ${pronunciation}`);
       continue;
     }
@@ -94,35 +93,50 @@ export class ExhaustiveError extends Error {
 export const wordToAlphabetPronunciation = (word: string): string => {
   return word
     .split("")
-    .map((c) => alphabetMap[c.toLowerCase() as keyof typeof alphabetMap])
+    .map((c) => alphabetMap[c.toLowerCase() as keyof typeof alphabetMap][0])
     .join("");
 };
 
+/** 単語がアルファベット読み（エービーシー）かどうかを判定する */
+export const isAlphabetPronunciation = (
+  word: string,
+  pronunciation: string,
+) => {
+  const pattern = `^(?:${word
+    .split("")
+    .map((c) =>
+      alphabetMap[c.toLowerCase() as keyof typeof alphabetMap].join("|"),
+    )
+    .join(")(?:")})$`;
+  const regex = new RegExp(pattern);
+  return regex.test(pronunciation);
+};
+
 const alphabetMap = {
-  a: "エー",
-  b: "ビー",
-  c: "シー",
-  d: "ディー",
-  e: "イー",
-  f: "エフ",
-  g: "ジー",
-  h: "エイチ",
-  i: "アイ",
-  j: "ジェー",
-  k: "ケー",
-  l: "エル",
-  m: "エム",
-  n: "エヌ",
-  o: "オー",
-  p: "ピー",
-  q: "キュー",
-  r: "アール",
-  s: "エス",
-  t: "ティー",
-  u: "ユー",
-  v: "ブイ",
-  w: "ダブリュー",
-  x: "エックス",
-  y: "ワイ",
-  z: "ゼット",
+  a: ["エー", "エィ", "エイ", "エエ"],
+  b: ["ビー", "ビィ", "ビイ"],
+  c: ["シー", "スィー", "シイ"],
+  d: ["ディー", "デー", "デイ"],
+  e: ["イー", "イィ", "イイ"],
+  f: ["エフ"],
+  g: ["ジー", "ジィ", "ジイ"],
+  h: ["エイチ", "エッチ"],
+  i: ["アイ"],
+  j: ["ジェー", "ジェイ"],
+  k: ["ケー", "ケイ"],
+  l: ["エル"],
+  m: ["エム"],
+  n: ["エヌ", "エン"],
+  o: ["オー", "オウ", "オオ"],
+  p: ["ピー", "ピイ"],
+  q: ["キュー", "キウ"],
+  r: ["アール"],
+  s: ["エス"],
+  t: ["ティー", "ティイ"],
+  u: ["ユー", "ユウ"],
+  v: ["ブイ", "ヴイ", "ヴィ", "ヴィー", "ヴィイ"],
+  w: ["ダブリュー", "ダブル", "ワブリュー", "ダブリュ", "ダブリュウ"],
+  x: ["エックス", "エクス"],
+  y: ["ワイ"],
+  z: ["ゼット", "ズィー", "ゼッド", "ジー", "ズィイ", "ジイ"],
 };
