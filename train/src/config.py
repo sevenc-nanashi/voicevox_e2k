@@ -14,6 +14,9 @@ def migrate(config: dict):
     if "exponential_lr_scheduler_gamma" in config:
         del config["exponential_lr_scheduler_gamma"]
 
+    if "use_layernorm" not in config:
+        config["use_layernorm"] = False
+
     return config
 
 
@@ -28,6 +31,7 @@ class Config:
     num_best_models_to_keep: int
     seed: int
     optimizer_lr: float
+    use_layernorm: bool
 
     @classmethod
     def from_dict(cls, config: dict):
