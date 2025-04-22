@@ -3,6 +3,7 @@ version = "0.0.0"
 edition = "2024"
 description = "英単語から読みへの変換を行うライブラリ"
 repository = "https://github.com/VOICEVOX/kanalizer"
+license = "MIT"
 
 [workspace]
 members = ["crates/kanalizer-rs", "crates/kanalizer-py"]
