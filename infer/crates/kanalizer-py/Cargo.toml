@@ -1,8 +1,9 @@
 [package]
 name = "kanalizer-py"
+publish = false
 version.workspace = true
 edition.workspace = true
-publish = false
+license.workspace = true
 description.workspace = true
 repository.workspace = true
 
