@@ -17,6 +17,9 @@ def migrate(config: dict):
     if "use_layernorm" not in config:
         config["use_layernorm"] = False
 
+    if "weight_decay" not in config:
+        config["weight_decay"] = 0
+
     return config
 
 
@@ -32,6 +35,7 @@ class Config:
     seed: int
     optimizer_lr: float
     use_layernorm: bool
+    weight_decay: float
 
     @classmethod
     def from_dict(cls, config: dict):

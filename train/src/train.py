@@ -282,7 +282,9 @@ def train():
     )
 
     criterion = nn.CrossEntropyLoss(ignore_index=0)
-    optimizer = RAdamScheduleFree(model.parameters(), lr=config.optimizer_lr)
+    optimizer = RAdamScheduleFree(
+        model.parameters(), lr=config.optimizer_lr, weight_decay=config.weight_decay
+    )
     writer = SummaryWriter(log_dir=output_dir)
     evaluator = Evaluator(eval_dataset)
     epochs = config.max_epochs
