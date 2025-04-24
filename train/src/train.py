@@ -239,8 +239,14 @@ def train():
         torch.backends.cuda.matmul.allow_tf32 = True
 
     model = Model(config).to(device)
-    train_dataset = MyDataset(config.train_data, device, max_words=None)
-    eval_dataset = MyDataset(config.eval_data, device, max_words=config.eval_max_words)
+    all_train_dataset = MyDataset(config.train_data, device, max_words=None)
+    train_dataset, eval_dataset = torch.utils.data.random_split(
+        all_train_dataset,
+        [
+            1.0 - config.eval_ratio,
+            config.eval_ratio,
+        ],
+    )
     batch_size = 256
     print(f"Batch size: {batch_size}")
 
