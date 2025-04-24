@@ -1,5 +1,5 @@
 train_data: ./datasets/dummy_dataset.jsonl
-eval_ratio: 0.1
+eval_ratio: 0.01
 dim: 16
 max_epochs: 10
 num_last_models_to_keep: 2
