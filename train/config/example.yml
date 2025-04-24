@@ -1,7 +1,7 @@
 # 学習に使うデータ。
 train_data: ./vendor/data.jsonl
 # 評価に使うデータの割合。
-eval_ratio: 0.1
+eval_ratio: 0.01
 # モデルの次元数。
 dim: 256
 # 学習するエポック数。
