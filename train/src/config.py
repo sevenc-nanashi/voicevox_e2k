@@ -20,11 +20,8 @@ def migrate(config: dict):
     if "weight_decay" not in config:
         config["weight_decay"] = 0
 
-    if "eval_data" in config:
-        del config["eval_data"]
-
-    if "eval_max_words" in config:
-        del config["eval_max_words"]
+    if "test_ratio" not in config:
+        config["test_ratio"] = 0.01
 
     return config
 
@@ -32,7 +29,9 @@ def migrate(config: dict):
 @dataclass
 class Config:
     train_data: str
-    eval_ratio: float
+    test_ratio: float
+    eval_data: str
+    eval_max_words: int
     dim: int
     max_epochs: int
     num_last_models_to_keep: int
