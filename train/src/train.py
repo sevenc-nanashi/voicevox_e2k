@@ -364,7 +364,7 @@ def calculate_bleu(
     evaluator: Evaluator,
     epoch: int,
     writer: SummaryWriter,
-    ) -> Tensor:
+) -> Tensor:
     eval_bleu = evaluator.evaluate(model)
     writer.add_scalar(f"BLEU/{label}", eval_bleu, epoch)
     print(f"Epoch {epoch} {label} BLEU: {eval_bleu}")
