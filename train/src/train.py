@@ -324,7 +324,7 @@ def train():
         # calculate loss
         calculate_loss("test", model, criterion, test_dl, epoch, writer)
         calculate_loss("eval", model, criterion, eval_dl, epoch, writer)
-        calculate_bleu("test", model, test_evaluator, epoch, writer)
+        test_bleu = calculate_bleu("test", model, test_evaluator, epoch, writer)
         calculate_bleu("eval", model, eval_evaluator, epoch, writer)
 
         # take a sample and inference it
@@ -364,10 +364,11 @@ def calculate_bleu(
     evaluator: Evaluator,
     epoch: int,
     writer: SummaryWriter,
-):
+    ) -> Tensor:
     eval_bleu = evaluator.evaluate(model)
     writer.add_scalar(f"BLEU/{label}", eval_bleu, epoch)
     print(f"Epoch {epoch} {label} BLEU: {eval_bleu}")
+    return eval_bleu
 
 
 def save_best_models(
