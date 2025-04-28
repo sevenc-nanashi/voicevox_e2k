@@ -324,20 +324,14 @@ def train():
         # calculate loss
         calculate_loss("test", model, criterion, test_dl, epoch, writer)
         calculate_loss("eval", model, criterion, eval_dl, epoch, writer)
+        calculate_bleu("test", model, test_evaluator, epoch, writer)
+        calculate_bleu("eval", model, eval_evaluator, epoch, writer)
 
         # take a sample and inference it
         sample = test_dataset[random.randint(0, len(test_dataset) - 1)]
         src, tgt = sample
         src, pred = infer(src, model)
         print(f"Epoch {epoch} Sample: {src} -> {pred}")
-
-        test_bleu = test_evaluator.evaluate(model)
-        writer.add_scalar("BLEU/eval", test_bleu, epoch)
-        print(f"Epoch {epoch} test BLEU: {test_bleu}")
-
-        eval_bleu = eval_evaluator.evaluate(model)
-        writer.add_scalar("BLEU/test", eval_bleu, epoch)
-        print(f"Epoch {epoch} eval BLEU: {eval_bleu}")
 
         save_best_models(epoch, model, output_dir, config, best_scores, test_bleu)
         save_last_models(epoch, model, output_dir, config)
@@ -362,6 +356,18 @@ def calculate_loss(
 
     writer.add_scalar(f"Loss/{label}", total_loss / total, epoch)
     print(f"Epoch {epoch} {label} Loss: {total_loss / total}")
+
+
+def calculate_bleu(
+    label: str,
+    model: Model,
+    evaluator: Evaluator,
+    epoch: int,
+    writer: SummaryWriter,
+):
+    eval_bleu = evaluator.evaluate(model)
+    writer.add_scalar(f"BLEU/{label}", eval_bleu, epoch)
+    print(f"Epoch {epoch} {label} BLEU: {eval_bleu}")
 
 
 def save_best_models(
