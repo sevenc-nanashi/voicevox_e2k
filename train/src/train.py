@@ -239,15 +239,7 @@ def train():
         torch.backends.cuda.matmul.allow_tf32 = True
 
     model = Model(config).to(device)
-    all_train_dataset = MyDataset(config.train_data, device, max_words=None)
-    train_dataset, test_dataset = torch.utils.data.random_split(
-        all_train_dataset,
-        [
-            1.0 - config.test_ratio,
-            config.test_ratio,
-        ],
-    )
-    eval_dataset = MyDataset(config.eval_data, device, max_words=config.eval_max_words)
+    train_dataset, test_dataset, eval_dataset = prepare_datasets(config, device)
     batch_size = 256
     print(f"Batch size: {batch_size}")
 
@@ -364,6 +356,25 @@ def train():
 
         save_best_models(epoch, model, output_dir, config, best_scores, test_bleu)
         save_last_models(epoch, model, output_dir, config)
+
+
+def prepare_datasets(config: Config, device: torch.device):
+    train_and_test_dataset = MyDataset(config.train_data, device, max_words=None)
+    train_dataset, test_dataset = torch.utils.data.random_split(
+        train_and_test_dataset,
+        [
+            1.0 - config.test_ratio,
+            config.test_ratio,
+        ],
+    )
+
+    eval_dataset = MyDataset(config.eval_data, device, max_words=config.eval_max_words)
+
+    return (
+        train_dataset,
+        test_dataset,
+        eval_dataset,
+    )
 
 
 def calculate_loss(
