@@ -322,10 +322,39 @@ def train():
         optimizer.eval()
 
         # calculate loss
-        calculate_loss("test", model, criterion, test_dl, epoch, writer)
-        calculate_loss("eval", model, criterion, eval_dl, epoch, writer)
-        test_bleu = calculate_bleu("test", model, test_evaluator, epoch, writer)
-        calculate_bleu("eval", model, eval_evaluator, epoch, writer)
+        test_loss = calculate_loss("test", model, criterion, test_dl, epoch)
+        eval_loss = calculate_loss("eval", model, criterion, eval_dl, epoch)
+        test_bleu = calculate_bleu(model, test_evaluator)
+        eval_bleu = calculate_bleu(model, eval_evaluator)
+
+        write_scalar(
+            "loss",
+            "test",
+            test_loss,
+            epoch,
+            writer,
+        )
+        write_scalar(
+            "loss",
+            "eval",
+            eval_loss,
+            epoch,
+            writer,
+        )
+        write_scalar(
+            "bleu",
+            "test",
+            test_bleu,
+            epoch,
+            writer,
+        )
+        write_scalar(
+            "bleu",
+            "eval",
+            eval_bleu,
+            epoch,
+            writer,
+        )
 
         # take a sample and inference it
         sample = test_dataset[random.randint(0, len(test_dataset) - 1)]
@@ -343,7 +372,6 @@ def calculate_loss(
     criterion: nn.Module,
     dl: DataLoader,
     epoch: int,
-    writer: SummaryWriter,
 ):
     total_loss = 0
     total = 0
@@ -354,21 +382,25 @@ def calculate_loss(
             total_loss += loss.item() * len(out)
             total += len(out)
 
-    writer.add_scalar(f"Loss/{label}", total_loss / total, epoch)
-    print(f"Epoch {epoch} {label} Loss: {total_loss / total}")
+    return total_loss / total
 
 
 def calculate_bleu(
-    label: str,
     model: Model,
     evaluator: Evaluator,
+) -> Tensor:
+    return evaluator.evaluate(model)
+
+
+def write_scalar(
+    kind: str,
+    label: str,
+    value: Tensor,
     epoch: int,
     writer: SummaryWriter,
-) -> Tensor:
-    eval_bleu = evaluator.evaluate(model)
-    writer.add_scalar(f"BLEU/{label}", eval_bleu, epoch)
-    print(f"Epoch {epoch} {label} BLEU: {eval_bleu}")
-    return eval_bleu
+):
+    writer.add_scalar(f"{kind}/{label}", value, epoch)
+    print(f"Epoch {epoch} {label} {kind}: {value}")
 
 
 def save_best_models(
