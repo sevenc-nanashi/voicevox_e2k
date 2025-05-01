@@ -20,12 +20,16 @@ def migrate(config: dict):
     if "weight_decay" not in config:
         config["weight_decay"] = 0
 
+    if "test_ratio" not in config:
+        config["test_ratio"] = 0
+
     return config
 
 
 @dataclass
 class Config:
     train_data: str
+    test_ratio: float
     eval_data: str
     eval_max_words: int
     dim: int

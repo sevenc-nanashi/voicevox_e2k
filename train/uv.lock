@@ -211,8 +211,7 @@ wheels = [
 ]
 
 [[package]]
-name = "kanalizer"
-version = "0.3.0"
+name = "kanalizer-train"
 source = { virtual = "." }
 dependencies = [
     { name = "g2p-en" },

@@ -239,8 +239,7 @@ def train():
         torch.backends.cuda.matmul.allow_tf32 = True
 
     model = Model(config).to(device)
-    train_dataset = MyDataset(config.train_data, device, max_words=None)
-    eval_dataset = MyDataset(config.eval_data, device, max_words=config.eval_max_words)
+    train_dataset, test_dataset, eval_dataset = prepare_datasets(config, device)
     batch_size = 256
     print(f"Batch size: {batch_size}")
 
@@ -278,6 +277,12 @@ def train():
         collate_fn=partial(collate_fn, device=device),
         drop_last=True,
     )
+    test_dl = DataLoader(
+        test_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        collate_fn=partial(collate_fn, device=device),
+    )
     eval_dl = DataLoader(
         eval_dataset,
         batch_size=batch_size,
@@ -290,7 +295,8 @@ def train():
         model.parameters(), lr=config.optimizer_lr, weight_decay=config.weight_decay
     )
     writer = SummaryWriter(log_dir=output_dir)
-    evaluator = Evaluator(eval_dataset)
+    test_evaluator = Evaluator(test_dataset)
+    eval_evaluator = Evaluator(eval_dataset)
     epochs = config.max_epochs
     steps = 0
     for epoch in range(1, epochs + 1):
@@ -307,30 +313,105 @@ def train():
         model.eval()
         optimizer.eval()
 
-        total_loss = 0
-        total = 0
-        with torch.no_grad():
-            for eng, kata, e_mask, k_mask in tqdm(eval_dl, desc=f"Epoch {epoch} eval"):
-                out = model(eng, kata, e_mask, k_mask)
-                loss = criterion(out.transpose(1, 2), kata[:, 1:])
-                total_loss += loss.item() * len(out)
-                total += len(out)
+        # calculate loss
+        test_loss = calculate_loss("test", model, criterion, test_dl, epoch)
+        eval_loss = calculate_loss("eval", model, criterion, eval_dl, epoch)
+        test_bleu = calculate_bleu(model, test_evaluator)
+        eval_bleu = calculate_bleu(model, eval_evaluator)
 
-        writer.add_scalar("Loss/eval", total_loss / total, epoch)
-        print(f"Epoch {epoch} Loss: {total_loss / total}")
+        report_scalar(
+            "loss",
+            "test",
+            test_loss,
+            epoch,
+            writer,
+        )
+        report_scalar(
+            "loss",
+            "eval",
+            eval_loss,
+            epoch,
+            writer,
+        )
+        report_scalar(
+            "bleu",
+            "test",
+            test_bleu,
+            epoch,
+            writer,
+        )
+        report_scalar(
+            "bleu",
+            "eval",
+            eval_bleu,
+            epoch,
+            writer,
+        )
 
         # take a sample and inference it
-        sample = eval_dataset[random.randint(0, len(eval_dataset) - 1)]
+        sample = test_dataset[random.randint(0, len(test_dataset) - 1)]
         src, tgt = sample
         src, pred = infer(src, model)
         print(f"Epoch {epoch} Sample: {src} -> {pred}")
 
-        bleu = evaluator.evaluate(model)
-        writer.add_scalar("BLEU", bleu, epoch)
-        print(f"Epoch {epoch} BLEU: {bleu}")
-
-        save_best_models(epoch, model, output_dir, config, best_scores, bleu)
+        save_best_models(epoch, model, output_dir, config, best_scores, test_bleu)
         save_last_models(epoch, model, output_dir, config)
+
+
+def prepare_datasets(config: Config, device: torch.device):
+    train_and_test_dataset = MyDataset(config.train_data, device, max_words=None)
+    train_dataset, test_dataset = torch.utils.data.random_split(
+        train_and_test_dataset,
+        [
+            1.0 - config.test_ratio,
+            config.test_ratio,
+        ],
+    )
+
+    eval_dataset = MyDataset(config.eval_data, device, max_words=config.eval_max_words)
+
+    return (
+        train_dataset,
+        test_dataset,
+        eval_dataset,
+    )
+
+
+def calculate_loss(
+    label: str,
+    model: Model,
+    criterion: nn.Module,
+    dl: DataLoader,
+    epoch: int,
+):
+    total_loss = 0
+    total = 0
+    with torch.no_grad():
+        for eng, kata, e_mask, k_mask in tqdm(dl, desc=f"Epoch {epoch} {label}"):
+            out = model(eng, kata, e_mask, k_mask)
+            loss = criterion(out.transpose(1, 2), kata[:, 1:])
+            total_loss += loss.item() * len(out)
+            total += len(out)
+
+    return total_loss / total
+
+
+def calculate_bleu(
+    model: Model,
+    evaluator: Evaluator,
+) -> Tensor:
+    return evaluator.evaluate(model)
+
+
+def report_scalar(
+    kind: str,
+    label: str,
+    value: Tensor,
+    epoch: int,
+    writer: SummaryWriter,
+):
+    writer.add_scalar(f"{kind}/{label}", value, epoch)
+    print(f"Epoch {epoch} {label} {kind}: {value}")
 
 
 def save_best_models(
