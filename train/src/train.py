@@ -319,28 +319,28 @@ def train():
         test_bleu = calculate_bleu(model, test_evaluator)
         eval_bleu = calculate_bleu(model, eval_evaluator)
 
-        write_scalar(
+        report_scalar(
             "loss",
             "test",
             test_loss,
             epoch,
             writer,
         )
-        write_scalar(
+        report_scalar(
             "loss",
             "eval",
             eval_loss,
             epoch,
             writer,
         )
-        write_scalar(
+        report_scalar(
             "bleu",
             "test",
             test_bleu,
             epoch,
             writer,
         )
-        write_scalar(
+        report_scalar(
             "bleu",
             "eval",
             eval_bleu,
@@ -403,7 +403,7 @@ def calculate_bleu(
     return evaluator.evaluate(model)
 
 
-def write_scalar(
+def report_scalar(
     kind: str,
     label: str,
     value: Tensor,
