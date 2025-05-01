@@ -21,7 +21,7 @@ def migrate(config: dict):
         config["weight_decay"] = 0
 
     if "test_ratio" not in config:
-        config["test_ratio"] = 0.01
+        config["test_ratio"] = 0
 
     return config
 
