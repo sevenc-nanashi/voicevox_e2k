@@ -38,9 +38,11 @@ def infer_main(model: Model, words: list[str], device: torch.device):
 
 
 def repl_main(model: Model, device: torch.device):
-    print("Ctrl+C to exit")
+    print("Ctrl+C or empty input to exit.")
     while True:
         word = input("Enter a word: ")
+        if not word:
+            break
         src_tensor = word_to_tensor(word, device)
         katakana = infer_katakana(model, src_tensor)
         print(f"Katakana: {''.join(katakana)}")
