@@ -417,7 +417,7 @@ def train():
         # save the model
         latest_keeper.step(epoch, epoch)
         bleu_keeper.step(epoch, float(test_bleu))
-        loss_keeper.step(epoch, eval_loss)
+        loss_keeper.step(epoch, test_loss)
 
 
 def prepare_datasets(config: Config, device: torch.device):
