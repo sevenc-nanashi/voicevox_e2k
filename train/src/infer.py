@@ -19,7 +19,8 @@ from train import Model, word_to_tensor
 
 def main():
     args = parse_args()
-    device = get_device()    config = load_config(args.model_path.parent)
+    device = get_device()
+    config = load_config(args.model_path.parent)
     model = load_model(args.model_path, config, device)
     words = args.words
     if not words:
