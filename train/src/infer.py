@@ -1,8 +1,12 @@
 """
-英単語列からカタカナ列を推論し、trainデータと同じjsonl形式で出力するスクリプト。
-各単語ごとに {"word": ..., "kata": [...]} 形式のjsonを1行ずつ標準出力する。
+英単語列からカタカナ列を推論するスクリプト。
+- 引数に単語を指定するとtrainデータと同じjsonl形式で出力する。
+  各単語ごとに {"word": ..., "kata": [...]} 形式のjsonを1行ずつ標準出力する。
+- 引数に単語を指定しない場合はREPLモードで動作する。
+
 例:
-    uv run src/infer.py kanalizer ./outputs/2025_03_14_23_43_01_example
+    uv run src/infer.py ./outputs/2025_03_14_23_43_01_example
+    uv run src/infer.py ./outputs/2025_03_14_23_43_01_example kanalizer neovim
 """
 
 import argparse
@@ -22,17 +26,36 @@ def main():
     device = get_device()
     config = load_config(args.model_path.parent)
     model = load_model(args.model_path, config, device)
-    for word in args.words:
+    words = args.words
+    if not words:
+        repl_main(model, device)
+    else:
+        infer_main(model, words, device)
+
+
+def infer_main(model: Model, words: list[str], device: torch.device):
+    for word in words:
         src_tensor = word_to_tensor(word, device)
         katakana = infer_katakana(model, src_tensor)
         obj = {"word": word, "kata": ["".join(katakana)]}
         print(json.dumps(obj, ensure_ascii=False))
 
 
+def repl_main(model: Model, device: torch.device):
+    print("Ctrl+C or empty input to exit.")
+    while True:
+        word = input("Enter a word: ")
+        if not word:
+            break
+        src_tensor = word_to_tensor(word, device)
+        katakana = infer_katakana(model, src_tensor)
+        print(f"Katakana: {''.join(katakana)}")
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("model_path", type=Path, help="Path to the model file")
-    parser.add_argument("words", nargs="+", help="Input word(s) to infer")
+    parser.add_argument("words", nargs="*", help="Input word(s) to infer")
     return parser.parse_args()
 
 
