@@ -37,8 +37,8 @@ class ModelKeeper:
     model: nn.Module
     output_dir: Path
     num_models_to_keep: int
-    # maxはスコアが大きいものを残す、minはスコアが小さいものを残す
     compare_mode: Literal["max", "min"]
+    """maxはスコアが大きいものを残す、minはスコアが小さいものを残す"""
 
     models: list[tuple[int, int | float]]
 
