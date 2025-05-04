@@ -71,11 +71,11 @@ class ModelKeeper:
                 print(f"[{self.label}] Will not save the current model")
                 return
             else:
-                path = self.output_dir / f"model-best-{self.label}-e{removed_epoch}.pth"
+                path = self.output_dir / f"model-{self.label}-e{removed_epoch}.pth"
                 print(f"[{self.label}] Removing {path}")
                 os.remove(path)
 
-        path = self.output_dir / f"model-best-{self.label}-e{current_epoch}.pth"
+        path = self.output_dir / f"model-{self.label}-e{current_epoch}.pth"
         print(f"[{self.label}] Saving {path}")
         torch.save(self.model.state_dict(), path)
 
@@ -307,11 +307,11 @@ def train():
     )
     # BLEUスコアが高いものを保存する
     bleu_keeper = ModelKeeper(
-        "bleu", model, output_dir, config.num_best_models_to_keep, "max"
+        "best-bleu", model, output_dir, config.num_best_models_to_keep, "max"
     )
     # Loss/evalが低いものを保存する
     loss_keeper = ModelKeeper(
-        "loss", model, output_dir, config.num_best_models_to_keep, "min"
+        "best-loss", model, output_dir, config.num_best_models_to_keep, "min"
     )
 
     shutil.copyfile(
