@@ -1,8 +1,12 @@
 """
-英単語列からカタカナ列を推論し、trainデータと同じjsonl形式で出力するスクリプト。
-各単語ごとに {"word": ..., "kata": [...]} 形式のjsonを1行ずつ標準出力する。
+英単語列からカタカナ列を推論するスクリプト。
+- 引数に単語を指定するとtrainデータと同じjsonl形式で出力する。
+  各単語ごとに {"word": ..., "kata": [...]} 形式のjsonを1行ずつ標準出力する。
+- 引数に単語を指定しない場合はREPLモードで動作する。
+
 例:
-    uv run src/infer.py kanalizer ./outputs/2025_03_14_23_43_01_example
+    uv run src/infer.py ./outputs/2025_03_14_23_43_01_example
+    uv run src/infer.py ./outputs/2025_03_14_23_43_01_example kanalizer neovim
 """
 
 import argparse
