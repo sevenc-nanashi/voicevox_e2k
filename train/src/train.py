@@ -70,10 +70,10 @@ class ModelKeeper:
             if removed_epoch == current_epoch:
                 print(f"[{self.label}] Will not save the current model")
                 return
-            else:
-                path = self.output_dir / f"model-{self.label}-e{removed_epoch}.pth"
-                print(f"[{self.label}] Removing {path}")
-                os.remove(path)
+
+            path = self.output_dir / f"model-{self.label}-e{removed_epoch}.pth"
+            print(f"[{self.label}] Removing {path}")
+            path.unlink()
 
         path = self.output_dir / f"model-{self.label}-e{current_epoch}.pth"
         print(f"[{self.label}] Saving {path}")
