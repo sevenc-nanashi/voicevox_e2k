@@ -34,7 +34,7 @@ def word_to_tensor(word: str, device: torch.device) -> torch.Tensor:
 
 class ModelKeeper:
     label: str
-    madel: nn.Module
+    model: nn.Module
     output_dir: Path
     num_models_to_keep: int
     # maxはスコアが大きいものを残す、minはスコアが小さいものを残す
