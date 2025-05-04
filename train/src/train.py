@@ -33,15 +33,6 @@ def word_to_tensor(word: str, device: torch.device) -> torch.Tensor:
 
 
 class CheckpointManager:
-    label: str
-    model: nn.Module
-    output_dir: Path
-    num_models_to_keep: int
-    compare_mode: Literal["max", "min"]
-    """maxはスコアが大きいものを残す、minはスコアが小さいものを残す"""
-
-    models: list[tuple[int, int | float]]
-
     def __init__(
         self,
         label: str,
@@ -49,35 +40,33 @@ class CheckpointManager:
         output_dir: Path,
         num_models_to_keep: int,
         compare_mode: Literal["max", "min"],
-    ):
+    ) -> None:
         self.label = label
         self.model = model
         self.output_dir = output_dir
-        self.num_models_to_keep = num_models_to_keep
-        self.compare_mode = compare_mode
-        self.models = []
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def update(
-        self,
-        current_epoch: int,
-        current_score: int | float,
-    ):
-        self.models.append((current_epoch, current_score))
-        self.models.sort(reverse=(self.compare_mode == "max"), key=lambda x: x[1])
+        self._limit = num_models_to_keep
+        self._compare_mode = compare_mode
+        self._models: dict[int, float] = {}
 
-        if len(self.models) > self.num_models_to_keep:
-            removed_epoch, _ = self.models.pop()
-            if removed_epoch == current_epoch:
-                print(f"[{self.label}] Will not save the current model")
-                return
+    def step(self, new_epoch: int, score: int | float) -> None:
+        worst_epoch = self._worst({**self._models, new_epoch: score})
 
-            path = self.output_dir / f"model-{self.label}-e{removed_epoch}.pth"
-            print(f"[{self.label}] Removing {path}")
-            path.unlink()
+        if len(self._models) < self._limit or worst_epoch != new_epoch:
+            self._models[new_epoch] = score
+            torch.save(self.model.state_dict(), self._path_for(new_epoch))
 
-        path = self.output_dir / f"model-{self.label}-e{current_epoch}.pth"
-        print(f"[{self.label}] Saving {path}")
-        torch.save(self.model.state_dict(), path)
+        if len(self._models) > self._limit:
+            self._models.pop(worst_epoch)
+            self._path_for(worst_epoch).unlink()
+
+    def _worst(self, models: dict[int, float]) -> int:
+        _factor = 1 if self._compare_mode == "max" else -1
+        return min(models.items(), key=lambda x: x[1] * _factor)[0]
+
+    def _path_for(self, epoch: int) -> Path:
+        return self.output_dir / f"model-{self.label}-e{epoch}.pth"
 
 
 class Model(nn.Module):
