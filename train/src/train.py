@@ -9,6 +9,7 @@ from pathlib import Path
 import random
 import shutil
 import subprocess
+from typing import Literal
 
 from g2p_en import G2p
 from schedulefree import RAdamScheduleFree
@@ -29,6 +30,54 @@ def word_to_tensor(word: str, device: torch.device) -> torch.Tensor:
     c_dict = {c: i for i, c in enumerate(ascii_entries)}
     indices = [SOS_IDX] + [c_dict[c] for c in word] + [EOS_IDX]
     return torch.tensor(indices, device=device)
+
+
+class ModelKeeper:
+    label: str
+    madel: nn.Module
+    output_dir: Path
+    num_models_to_keep: int
+    # maxはスコアが大きいものを残す、minはスコアが小さいものを残す
+    compare_mode: Literal["max", "min"]
+
+    models: list[tuple[int, int | float]]
+
+    def __init__(
+        self,
+        label: str,
+        model: nn.Module,
+        output_dir: Path,
+        num_models_to_keep: int,
+        compare_mode: Literal["max", "min"],
+    ):
+        self.label = label
+        self.model = model
+        self.output_dir = output_dir
+        self.num_models_to_keep = num_models_to_keep
+        self.compare_mode = compare_mode
+        self.models = []
+
+    def step(
+        self,
+        current_epoch: int,
+        current_score: int | float,
+    ):
+        self.models.append((current_epoch, current_score))
+        self.models.sort(reverse=(self.compare_mode == "max"), key=lambda x: x[1])
+
+        if len(self.models) > self.num_models_to_keep:
+            removed_epoch, _ = self.models.pop()
+            if removed_epoch == current_epoch:
+                print(f"[{self.label}] Will not save the current model")
+                return
+            else:
+                path = self.output_dir / f"model-best-{self.label}-e{removed_epoch}.pth"
+                print(f"[{self.label}] Removing {path}")
+                os.remove(path)
+
+        path = self.output_dir / f"model-best-{self.label}-e{current_epoch}.pth"
+        print(f"[{self.label}] Saving {path}")
+        torch.save(self.model.state_dict(), path)
 
 
 class Model(nn.Module):
@@ -252,7 +301,18 @@ def train():
     print(f"Output dir: {output_dir}")
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    best_scores = []
+    # 最新epochを保存する
+    latest_keeper = ModelKeeper(
+        "latest", model, output_dir, config.num_last_models_to_keep, "max"
+    )
+    # BLEUスコアが高いものを保存する
+    bleu_keeper = ModelKeeper(
+        "bleu", model, output_dir, config.num_best_models_to_keep, "max"
+    )
+    # Loss/evalが低いものを保存する
+    loss_keeper = ModelKeeper(
+        "loss", model, output_dir, config.num_best_models_to_keep, "min"
+    )
 
     shutil.copyfile(
         args.config,
@@ -354,8 +414,10 @@ def train():
         src, pred = infer(src, model)
         print(f"Epoch {epoch} Sample: {src} -> {pred}")
 
-        save_best_models(epoch, model, output_dir, config, best_scores, test_bleu)
-        save_last_models(epoch, model, output_dir, config)
+        # save the model
+        latest_keeper.step(epoch, epoch)
+        bleu_keeper.step(epoch, float(test_bleu))
+        loss_keeper.step(epoch, eval_loss)
 
 
 def prepare_datasets(config: Config, device: torch.device):
@@ -412,47 +474,6 @@ def report_scalar(
 ):
     writer.add_scalar(f"{kind}/{label}", value, epoch)
     print(f"Epoch {epoch} {label} {kind}: {value}")
-
-
-def save_best_models(
-    current_epoch: int,
-    model: Model,
-    output_dir: Path,
-    config: Config,
-    best_scores: list[tuple[int, Tensor]],
-    bleu: Tensor,
-):
-    best_scores.append((current_epoch, bleu))
-    best_scores.sort(key=lambda x: x[1], reverse=True)
-
-    removed_epoch = None
-    if len(best_scores) > config.num_best_models_to_keep:
-        removed_epoch, _ = best_scores.pop()
-
-    if removed_epoch != current_epoch:
-        torch.save(
-            model.state_dict(),
-            output_dir / f"model-best-e{current_epoch}.pth",
-        )
-        if removed_epoch is not None:
-            path = output_dir / f"model-best-e{removed_epoch}.pth"
-            print(f"Removing {path}")
-            os.remove(path)
-
-
-def save_last_models(
-    current_epoch: int, model: Model, output_dir: Path, config: Config
-):
-    torch.save(
-        model.state_dict(),
-        output_dir / f"model-e{current_epoch}.pth",
-    )
-    if current_epoch - config.num_last_models_to_keep > 0:
-        old = current_epoch - config.num_last_models_to_keep
-        old_path = output_dir / f"model-e{old}.pth"
-        if old_path.exists():
-            print(f"Removing {old_path}")
-            os.remove(old_path)
 
 
 if __name__ == "__main__":
