@@ -7,7 +7,6 @@
 
 import argparse
 import json
-import os
 from pathlib import Path
 
 import torch
@@ -20,9 +19,8 @@ from train import Model, word_to_tensor
 
 def main():
     args = parse_args()
-    device = get_device()
-    config = load_config(args.output_dir)
-    model = load_model(args.output_dir, config, device)
+    device = get_device()    config = load_config(args.model_path.parent)
+    model = load_model(args.model_path, config, device)
     words = args.words
     if not words:
         repl_main(model, device)
@@ -49,8 +47,8 @@ def repl_main(model: Model, device: torch.device):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("output_dir", help="Output directory with trained model")
-    parser.add_argument("words", nargs="*", help="Word(s) to infer, or empty for repl")
+    parser.add_argument("model_path", type=Path, help="Path to the model file")
+    parser.add_argument("words", nargs="*", help="Input word(s) to infer")
     return parser.parse_args()
 
 
@@ -66,18 +64,13 @@ def get_device():
     return device
 
 
-def load_config(output_dir: str) -> Config:
-    config_path = Path(output_dir) / "config.yml"
+def load_config(output_dir: Path) -> Config:
+    config_path = output_dir / "config.yml"
     config = Config.from_dict(yaml.safe_load(config_path.read_text()))
     return config
 
 
-def load_model(output_dir: str, config: Config, device: torch.device) -> Model:
-    models = [f for f in os.listdir(output_dir) if f.startswith("model-e")]
-    if not models:
-        raise RuntimeError("No model found in output_dir")
-    models.sort(key=lambda x: int(x.split("-")[1][1:-4]))
-    model_path = Path(output_dir) / models[-1]
+def load_model(model_path: Path, config: Config, device: torch.device) -> Model:
     model = Model(config)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
