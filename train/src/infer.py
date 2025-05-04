@@ -25,10 +25,26 @@ def main():
     model = load_model(args.output_dir, config, device)
     words = args.words
     if not words:
-        repl(model, device)
+        repl_main(model, device)
     else:
-        results = infer_words(model, words, device)
-        print(json.dumps(results, ensure_ascii=False, indent=2))
+        infer_main(model, words, device)
+
+
+def infer_main(model: Model, words: list[str], device: torch.device):
+    for word in words:
+        src_tensor = word_to_tensor(word, device)
+        katakana = infer_katakana(model, src_tensor)
+        obj = {"word": word, "kata": ["".join(katakana)]}
+        print(json.dumps(obj, ensure_ascii=False))
+
+
+def repl_main(model: Model, device: torch.device):
+    print("Ctrl+C to exit")
+    while True:
+        word = input("Enter a word: ")
+        src_tensor = word_to_tensor(word, device)
+        katakana = infer_katakana(model, src_tensor)
+        print(f"Katakana: {''.join(katakana)}")
 
 
 def parse_args():
@@ -72,24 +88,6 @@ def load_model(output_dir: str, config: Config, device: torch.device) -> Model:
 def infer_katakana(model: Model, src_tensor: torch.Tensor) -> list[str]:
     res = model.inference(src_tensor)
     return [kanas[i] for i in res if i != SOS_IDX and i != EOS_IDX]
-
-
-def infer_words(model: Model, words: list[str], device: torch.device) -> list[dict]:
-    results = []
-    for word in words:
-        src_tensor = word_to_tensor(word, device)
-        katakana = infer_katakana(model, src_tensor)
-        obj = {"word": word, "kata": ["".join(katakana)]}
-        results.append(obj)
-    return results
-
-def repl(model: Model, device: torch.device):
-    print("Ctrl+C to exit")
-    while True:
-        word = input("Enter a word: ")
-        src_tensor = word_to_tensor(word, device)
-        katakana = infer_katakana(model, src_tensor)
-        print(f"Katakana: {''.join(katakana)}")
 
 
 if __name__ == "__main__":
