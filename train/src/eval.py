@@ -1,24 +1,19 @@
 # Description: Evaluate the model on the full dataset.
 # and calculate the accuracy.
-import os
 import sys
 import torch
 import yaml
+from pathlib import Path
 from config import Config
 from evaluator import Evaluator
 from train import Model, MyDataset
 
 if len(sys.argv) < 2:
-    print("Usage: python eval.py output")
+    print("Usage: python eval.py model")
     sys.exit(1)
 
 
-output_dir = sys.argv[1]
-
-models = [f for f in os.listdir(output_dir) if f.startswith("model-e")]
-models.sort(key=lambda x: int(x.split("-")[1][1:-4]))
-model = models[-1]
-print(f"Using model: {model}")
+model_path = Path(sys.argv[1])
 
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
@@ -32,8 +27,9 @@ if use_cuda:
     torch.backends.cuda.matmul.allow_tf32 = True
 
 
-config = Config.from_dict(yaml.safe_load(f"{output_dir}/config.yml"))
-model_path = f"{output_dir}/{model}"
+config = Config.from_dict(
+    yaml.safe_load((model_path.parent / "config.yml").read_text())
+)
 
 model = Model(config)
 model.load_state_dict(torch.load(model_path, map_location=device))
