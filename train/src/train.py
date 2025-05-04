@@ -32,7 +32,7 @@ def word_to_tensor(word: str, device: torch.device) -> torch.Tensor:
     return torch.tensor(indices, device=device)
 
 
-class ModelKeeper:
+class CheckpointManager:
     label: str
     model: nn.Module
     output_dir: Path
@@ -57,7 +57,7 @@ class ModelKeeper:
         self.compare_mode = compare_mode
         self.models = []
 
-    def step(
+    def update(
         self,
         current_epoch: int,
         current_score: int | float,
@@ -302,15 +302,15 @@ def train():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # 最新epochを保存する
-    latest_keeper = ModelKeeper(
+    latest_keeper = CheckpointManager(
         "latest", model, output_dir, config.num_last_models_to_keep, "max"
     )
     # BLEUスコアが高いものを保存する
-    bleu_keeper = ModelKeeper(
+    bleu_keeper = CheckpointManager(
         "best-bleu", model, output_dir, config.num_best_models_to_keep, "max"
     )
     # Loss/evalが低いものを保存する
-    loss_keeper = ModelKeeper(
+    loss_keeper = CheckpointManager(
         "best-loss", model, output_dir, config.num_best_models_to_keep, "min"
     )
 
@@ -415,9 +415,9 @@ def train():
         print(f"Epoch {epoch} Sample: {src} -> {pred}")
 
         # save the model
-        latest_keeper.step(epoch, epoch)
-        bleu_keeper.step(epoch, float(test_bleu))
-        loss_keeper.step(epoch, test_loss)
+        latest_keeper.update(epoch, epoch)
+        bleu_keeper.update(epoch, float(test_bleu))
+        loss_keeper.update(epoch, test_loss)
 
 
 def prepare_datasets(config: Config, device: torch.device):
