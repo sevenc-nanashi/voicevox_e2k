@@ -21,6 +21,8 @@ def migrate(config: dict):
         config["test_ratio"] = 0
 
     if "use_layernorm" in config:
+        if not config["use_layernorm"]:
+            raise ValueError("use_layernorm must be True")
         del config["use_layernorm"]
 
     return config
