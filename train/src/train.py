@@ -50,7 +50,7 @@ class CheckpointManager:
         self._compare_mode = compare_mode
         self._models: dict[int, float] = {}
 
-    def step(self, new_epoch: int, score: int | float) -> None:
+    def update(self, new_epoch: int, score: int | float) -> None:
         worst_epoch = self._worst({**self._models, new_epoch: score})
 
         if len(self._models) < self._limit or worst_epoch != new_epoch:
