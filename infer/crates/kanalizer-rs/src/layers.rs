@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use ndarray::prelude::*;
+use ndarray::{IntoDimension, prelude::*};
 
 pub(crate) fn sigmoid_1d(x: Array1<f32>) -> Array1<f32> {
     x.map(|x| 1.0 / (1.0 + (-x).exp()))
@@ -255,6 +255,33 @@ impl Gru {
             outputs = outputs.slice(s![..; -1, ..]).to_owned();
         }
         (outputs, hidden.unwrap())
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct LayerNorm {
+    weight: ndarray::Array1<f32>,
+    bias: ndarray::Array1<f32>,
+    eps: f32,
+}
+
+impl LayerNorm {
+    pub(crate) fn new(weight: ndarray::Array1<f32>, bias: ndarray::Array1<f32>, eps: f32) -> Self {
+        Self { weight, bias, eps }
+    }
+
+    pub(crate) fn forward(&self, input: &ndarray::ArrayView2<f32>) -> ndarray::Array2<f32> {
+        let mean = input.mean_axis(ndarray::Axis(1)).unwrap();
+        let var = input.var_axis(ndarray::Axis(1), 0.0);
+        let std = (var + self.eps).mapv(f32::sqrt);
+
+        let mean = mean.insert_axis(ndarray::Axis(1));
+        let std = std.insert_axis(ndarray::Axis(1));
+        let norm = (input - &mean) / &std;
+        let weight = self.weight.clone().insert_axis(ndarray::Axis(0));
+        let bias = self.bias.clone().insert_axis(ndarray::Axis(0));
+
+        norm * &weight + &bias
     }
 }
 
