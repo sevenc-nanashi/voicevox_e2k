@@ -271,13 +271,16 @@ impl LayerNorm {
     }
 
     pub(crate) fn forward(&self, input: &ndarray::ArrayView2<f32>) -> ndarray::Array2<f32> {
-        let mean = input.mean_axis(ndarray::Axis(1)).unwrap();
-        let var = input.var_axis(ndarray::Axis(1), 0.0);
+        let feature_axis = ndarray::Axis(input.ndim() - 1);
+
+        let mean = input.mean_axis(feature_axis).unwrap();
+        let var = input.var_axis(feature_axis, 0.0);
         let std = (var + self.eps).mapv(f32::sqrt);
 
-        let mean = mean.insert_axis(ndarray::Axis(1));
-        let std = std.insert_axis(ndarray::Axis(1));
+        let mean = mean.insert_axis(feature_axis);
+        let std = std.insert_axis(feature_axis);
         let norm = (input - &mean) / &std;
+
         let weight = self.weight.clone().insert_axis(ndarray::Axis(0));
         let bias = self.bias.clone().insert_axis(ndarray::Axis(0));
 
