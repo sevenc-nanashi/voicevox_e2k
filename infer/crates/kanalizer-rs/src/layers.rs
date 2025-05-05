@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use ndarray::{IntoDimension, prelude::*};
+use ndarray::prelude::*;
 
 pub(crate) fn sigmoid_1d(x: Array1<f32>) -> Array1<f32> {
     x.map(|x| 1.0 / (1.0 + (-x).exp()))
