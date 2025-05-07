@@ -120,7 +120,7 @@ where
     E: ndarray_safetensors::Float16ConversionSupportedElement,
     D: ndarray::Dimension,
 {
-    ndarray_safetensors::parse_tensor_view_data(
+    ndarray_safetensors::parse_fp16_tensor_view_data(
         &weights
             .tensor(key)
             .unwrap_or_else(|e| panic!("model corrupted: {key} not found, {e:?}")),
