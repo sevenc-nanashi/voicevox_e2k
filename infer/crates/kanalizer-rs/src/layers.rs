@@ -5,7 +5,10 @@ pub(crate) fn sigmoid_1d(x: Array1<f32>) -> Array1<f32> {
     x.map(|x| 1.0 / (1.0 + (-x).exp()))
 }
 
-pub(crate) fn matmul_3d<T>(a: &ndarray::Array3<T>, b: &ndarray::Array3<T>) -> ndarray::Array3<T>
+pub(crate) fn matmul_3d<T>(
+    a: &ndarray::ArrayView3<T>,
+    b: &ndarray::ArrayView3<T>,
+) -> ndarray::Array3<T>
 where
     T: std::ops::Mul<Output = T>
         + std::ops::Add<Output = T>
@@ -24,6 +27,13 @@ where
         }
     }
     result
+}
+
+pub(crate) fn softmax_3d(x: &ndarray::ArrayView3<f32>) -> ndarray::Array3<f32> {
+    let max = x.fold(f32::NEG_INFINITY, |a, b| a.max(*b));
+    let exp_x = x.map(|x| (x - max).exp());
+    let sum = exp_x.sum_axis(ndarray::Axis(2));
+    exp_x / sum.insert_axis(ndarray::Axis(2))
 }
 
 pub(crate) fn split_ndarray<T, D: ndarray::Dimension>(
@@ -85,7 +95,7 @@ impl Embedding {
     pub fn new(weight: ndarray::Array2<f32>) -> Self {
         Self { weight }
     }
-    pub fn forward(&self, input: &ndarray::Array1<usize>) -> ndarray::Array2<f32> {
+    pub fn forward(&self, input: &ndarray::ArrayView1<usize>) -> ndarray::Array2<f32> {
         ndarray::stack(
             ndarray::Axis(0),
             &input
@@ -105,7 +115,6 @@ pub(crate) struct Mha {
     v_proj: Linear,
     out_proj: Linear,
     n_heads: usize,
-    scale: f32,
 }
 
 impl Mha {
@@ -118,51 +127,58 @@ impl Mha {
     ) -> Self {
         let (q_w, k_w, v_w) = split_ndarray!(&in_proj_weight, 3, ndarray::Axis(0));
         let (q_b, k_b, v_b) = split_ndarray!(&in_proj_bias, 3, ndarray::Axis(0));
-        let dim = q_w.shape()[q_w.ndim() - 1];
         let q_proj = Linear::new(q_w.to_owned(), q_b.to_owned());
         let k_proj = Linear::new(k_w.to_owned(), k_b.to_owned());
         let v_proj = Linear::new(v_w.to_owned(), v_b.to_owned());
         let out_proj = Linear::new(out_proj_weight, out_proj_bias);
-        let scale = (dim as f32).sqrt();
         Self {
             q_proj,
             k_proj,
             v_proj,
             out_proj,
             n_heads: num_heads,
-            scale,
         }
     }
 
     pub(crate) fn forward(
         &self,
-        query: &ndarray::ArrayView2<f32>,
-        key: &ndarray::ArrayView2<f32>,
-        value: &ndarray::ArrayView2<f32>,
+        query: &ndarray::ArrayView2<f32>, // shape: (target_seq_len, embed_dim)
+        key: &ndarray::ArrayView2<f32>,   // shape: (source_seq_len, embed_dim)
+        value: &ndarray::ArrayView2<f32>, // shape: (source_seq_len, embed_dim)
     ) -> ndarray::Array2<f32> {
+        let source_seq_len = key.shape()[0];
+        let target_seq_len = query.shape()[0];
+        let embed_dim = query.shape()[1];
+        let head_dim = embed_dim / self.n_heads;
+
         let q = self.q_proj.forward_2d(query);
+        let q = q
+            .to_shape((target_seq_len, self.n_heads, head_dim))
+            .unwrap()
+            .permuted_axes([1, 0, 2]); // (n_heads, seq_len, head_dim)
         let k = self.k_proj.forward_2d(key);
+        let k = k
+            .to_shape((source_seq_len, self.n_heads, head_dim))
+            .unwrap()
+            .permuted_axes([1, 0, 2]);
         let v = self.v_proj.forward_2d(value);
-        let q = split_ndarray(&q, self.n_heads, ndarray::Axis(q.ndim() - 1));
-        let q = ndarray::stack(ndarray::Axis(0), &q).unwrap();
-        let k = split_ndarray(&k, self.n_heads, ndarray::Axis(k.ndim() - 1));
-        let k = ndarray::stack(ndarray::Axis(0), &k).unwrap();
-        let v = split_ndarray(&v, self.n_heads, ndarray::Axis(v.ndim() - 1));
-        let v = ndarray::stack(ndarray::Axis(0), &v).unwrap();
+        let v = v
+            .to_shape((source_seq_len, self.n_heads, head_dim))
+            .unwrap()
+            .permuted_axes([1, 0, 2]);
+
         let mut transposed = k.clone();
-        transposed.swap_axes(2, 1);
-        let attn = matmul_3d(&q, &transposed);
-        let attn = attn / self.scale;
-        let attn = attn.exp();
-        let attn_sum = attn
-            .sum_axis(ndarray::Axis(attn.ndim() - 1))
-            .insert_axis(ndarray::Axis(attn.ndim() - 1));
-        let attn = attn / attn_sum;
-        let mut output = matmul_3d(&attn, &v);
-        output.swap_axes(0, 1);
+        transposed.swap_axes(1, 2); // (n_heads, head_dim, seq_len)
+        let scale = (head_dim as f32).sqrt();
+        let attn_scores = matmul_3d(&q.view(), &transposed.view()) / scale;
+        let attn_probs = softmax_3d(&attn_scores.view());
+        let mut output = matmul_3d(&attn_probs.view(), &v.view()); // (n_heads, seq_len, head_dim)
+
+        output.swap_axes(0, 1); // (seq_len, n_heads, head_dim)
         let output = output
-            .to_shape((output.shape()[0], output.shape()[1] * output.shape()[2]))
-            .unwrap();
+            .to_shape((target_seq_len, embed_dim)) // (seq_len, n_heads * head_dim)
+            .unwrap(); // (seq_len, embed_dim)
+
         self.out_proj.forward_2d(&output.view())
     }
 }
@@ -305,7 +321,7 @@ mod tests {
     fn test_embedding() {
         let embedding = Embedding::new(array![[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]);
         let input = array![1, 2, 0];
-        let output = embedding.forward(&input);
+        let output = embedding.forward(&input.view());
         assert_eq!(output, array![[3.0, 4.0], [5.0, 6.0], [1.0, 2.0]]);
     }
 
@@ -341,7 +357,7 @@ mod tests {
             [[13.0, 14.0], [15.0, 16.0], [17.0, 18.0]],
             [[19.0, 20.0], [21.0, 22.0], [23.0, 24.0]],
         ];
-        let result = matmul_3d(&a, &b);
+        let result = matmul_3d(&a.view(), &b.view());
         assert_eq!(
             result,
             array![[[94., 100.], [229., 244.]], [[508., 532.], [697., 730.]]]

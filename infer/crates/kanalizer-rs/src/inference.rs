@@ -120,7 +120,7 @@ where
     E: ndarray_safetensors::Float16ConversionSupportedElement,
     D: ndarray::Dimension,
 {
-    ndarray_safetensors::parse_fp16_tensor_view_data(
+    ndarray_safetensors::parse_tensor_view_data(
         &weights
             .tensor(key)
             .unwrap_or_else(|e| panic!("model corrupted: {key} not found, {e:?}")),
@@ -271,7 +271,7 @@ impl S2s {
 
     fn forward(
         &self,
-        source: &ndarray::Array1<usize>,
+        source: &ndarray::ArrayView1<usize>,
         options: &ConvertOptions,
     ) -> E2kOutput<usize> {
         let e_emb = self.e_emb.forward(source);
@@ -287,13 +287,11 @@ impl S2s {
         let mut h1: Option<ndarray::Array1<f32>> = None;
         let mut h2: Option<ndarray::Array1<f32>> = None;
         for i in 0..options.max_length.into() {
-            let dec_emb = self
-                .k_emb
-                .forward(&ndarray::Array1::from_elem(1, *result.last().unwrap()));
-            let (dec_out, h1_) = match h1 {
-                Some(h1) => self.pre_decoder.forward(&dec_emb.view(), Some(h1.view())),
-                None => self.pre_decoder.forward(&dec_emb.view(), None),
-            };
+            let dec = ndarray::Array1::from_elem(1, *result.last().unwrap());
+            let dec_emb = self.k_emb.forward(&dec.view());
+            let (dec_out, h1_) = self
+                .pre_decoder
+                .forward(&dec_emb.view(), h1.as_ref().map(|h| h.view()));
             h1 = Some(h1_);
             let dec_out = self.pre_dec_norm.forward(&dec_out.view());
             let attn_out = self
@@ -305,10 +303,9 @@ impl S2s {
                 &[dec_out.view(), attn_out.view()],
             )
             .unwrap();
-            let (x, h2_) = match h2 {
-                Some(h2) => self.post_decoder.forward(&x.view(), Some(h2.view())),
-                None => self.post_decoder.forward(&x.view(), None),
-            };
+            let (x, h2_) = self
+                .post_decoder
+                .forward(&x.view(), h2.as_ref().map(|h| h.view()));
             h2 = Some(h2_);
             let x = self.post_dec_norm.forward(&x.view());
             let mut x = self.fc.forward_2d(&x.view());
@@ -372,7 +369,7 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
             .chain(source)
             .chain([constants::EOS_IDX]);
         let source = ndarray::Array1::from_iter(source);
-        let result = self.s2s.forward(&source, options);
+        let result = self.s2s.forward(&source.view(), options);
         E2kOutput {
             output: result
                 .output

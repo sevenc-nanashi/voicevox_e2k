@@ -84,7 +84,7 @@ class Model(nn.Module):
         )
         self.pre_decoder = nn.GRU(config.dim, config.dim, batch_first=True)
         self.pre_dec_norm = nn.LayerNorm(config.dim)
-        self.attn = nn.MultiheadAttention(config.dim, 4, batch_first=True, dropout=0.1)
+        self.attn = nn.MultiheadAttention(config.dim, 4, batch_first=True)
         self.attn_norm = nn.LayerNorm(config.dim)
         self.post_decoder = nn.GRU(2 * config.dim, config.dim, batch_first=True)
         self.post_dec_norm = nn.LayerNorm(config.dim)
