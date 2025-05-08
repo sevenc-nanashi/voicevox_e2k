@@ -35,3 +35,11 @@
 
 - メインPyPIのkanalizerは[VOICEVOX Org](https://pypi.org/org/VOICEVOX/)で管理しています。
 - TestPyPIのkanalizerは[@sevenc-nanashi](https://test.pypi.org/user/sevenc-nanashi/)が管理しています。
+
+## モデルの選択基準
+
+kanalizerのモデルは以下の基準で選択されます。
+
+- Loss/evalが小さいもの
+- 3文字以下のすべてのアルファベット列で最大文字数をなるべくオーバーしないもの
+  - このリストはRubyで`("a".."zzz").to_a`を使って作成しています。
