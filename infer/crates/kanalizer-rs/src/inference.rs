@@ -101,10 +101,14 @@ struct S2s {
     k_emb: layers::Embedding,
     encoder: layers::Gru,
     encoder_reverse: layers::Gru,
+    encoder_norm: layers::LayerNorm,
     encoder_fc: layers::Linear,
     pre_decoder: layers::Gru,
-    post_decoder: layers::Gru,
+    pre_dec_norm: layers::LayerNorm,
     attn: layers::Mha,
+    attn_norm: layers::LayerNorm,
+    post_decoder: layers::Gru,
+    post_dec_norm: layers::LayerNorm,
     fc: layers::Linear,
 }
 
@@ -148,6 +152,11 @@ impl S2s {
             ),
             true,
         );
+        let encoder_norm = layers::LayerNorm::new(
+            get_array_f16(&weights, "encoder_norm.weight"),
+            get_array_f16(&weights, "encoder_norm.bias"),
+            1e-5,
+        );
         let encoder_fc = layers::Linear::new(
             get_array_f16(&weights, "encoder_fc.0.weight"),
             get_array_f16(&weights, "encoder_fc.0.bias"),
@@ -161,6 +170,23 @@ impl S2s {
             ),
             false,
         );
+        let pre_dec_norm = layers::LayerNorm::new(
+            get_array_f16(&weights, "pre_dec_norm.weight"),
+            get_array_f16(&weights, "pre_dec_norm.bias"),
+            1e-5,
+        );
+        let attn = layers::Mha::new(
+            get_array_f16(&weights, "attn.in_proj_weight"),
+            get_array_f16(&weights, "attn.in_proj_bias"),
+            get_array_f16(&weights, "attn.out_proj.weight"),
+            get_array_f16(&weights, "attn.out_proj.bias"),
+            4,
+        );
+        let attn_norm = layers::LayerNorm::new(
+            get_array_f16(&weights, "attn_norm.weight"),
+            get_array_f16(&weights, "attn_norm.bias"),
+            1e-5,
+        );
         let post_decoder = layers::Gru::new(
             layers::GruCell::new(
                 get_array_f16(&weights, "post_decoder.weight_ih_l0"),
@@ -170,12 +196,10 @@ impl S2s {
             ),
             false,
         );
-        let attn = layers::Mha::new(
-            get_array_f16(&weights, "attn.in_proj_weight"),
-            get_array_f16(&weights, "attn.in_proj_bias"),
-            get_array_f16(&weights, "attn.out_proj.weight"),
-            get_array_f16(&weights, "attn.out_proj.bias"),
-            4,
+        let post_dec_norm = layers::LayerNorm::new(
+            get_array_f16(&weights, "post_dec_norm.weight"),
+            get_array_f16(&weights, "post_dec_norm.bias"),
+            1e-5,
         );
         let fc = layers::Linear::new(
             get_array_f16(&weights, "fc.weight"),
@@ -186,10 +210,14 @@ impl S2s {
             k_emb,
             encoder,
             encoder_reverse,
+            encoder_norm,
             encoder_fc,
             pre_decoder,
-            post_decoder,
+            pre_dec_norm,
             attn,
+            attn_norm,
+            post_decoder,
+            post_dec_norm,
             fc,
         }
     }
@@ -243,44 +271,43 @@ impl S2s {
 
     fn forward(
         &self,
-        source: &ndarray::Array1<usize>,
+        source: &ndarray::ArrayView1<usize>,
         options: &ConvertOptions,
     ) -> E2kOutput<usize> {
         let e_emb = self.e_emb.forward(source);
-        let (enc_out, _) = self.encoder.forward(&e_emb.view(), None);
+        let (enc_out_fwd, _) = self.encoder.forward(&e_emb.view(), None);
         let (enc_out_rev, _) = self.encoder_reverse.forward(&e_emb.view(), None);
-        let enc_out = ndarray::concatenate(
-            ndarray::Axis(enc_out.ndim() - 1),
-            &[enc_out.view(), enc_out_rev.view()],
-        )
-        .unwrap();
+        let enc_out =
+            ndarray::concatenate(ndarray::Axis(1), &[enc_out_fwd.view(), enc_out_rev.view()])
+                .unwrap();
+        let enc_out = self.encoder_norm.forward(&enc_out.view());
         let enc_out = self.encoder_fc.forward_2d(&enc_out.view());
         let enc_out = enc_out.mapv(|x| x.tanh());
         let mut result = vec![constants::SOS_IDX];
         let mut h1: Option<ndarray::Array1<f32>> = None;
         let mut h2: Option<ndarray::Array1<f32>> = None;
         for i in 0..options.max_length.into() {
-            let dec_emb = self
-                .k_emb
-                .forward(&ndarray::Array1::from_elem(1, *result.last().unwrap()));
-            let (dec_out, h1_) = match h1 {
-                Some(h1) => self.pre_decoder.forward(&dec_emb.view(), Some(h1.view())),
-                None => self.pre_decoder.forward(&dec_emb.view(), None),
-            };
+            let dec = ndarray::Array1::from_elem(1, *result.last().unwrap());
+            let dec_emb = self.k_emb.forward(&dec.view());
+            let (dec_out, h1_) = self
+                .pre_decoder
+                .forward(&dec_emb.view(), h1.as_ref().map(|h| h.view()));
             h1 = Some(h1_);
+            let dec_out = self.pre_dec_norm.forward(&dec_out.view());
             let attn_out = self
                 .attn
                 .forward(&dec_out.view(), &enc_out.view(), &enc_out.view());
+            let attn_out = self.attn_norm.forward(&attn_out.view());
             let x = ndarray::concatenate(
                 ndarray::Axis(dec_out.ndim() - 1),
                 &[dec_out.view(), attn_out.view()],
             )
             .unwrap();
-            let (x, h2_) = match h2 {
-                Some(h2) => self.post_decoder.forward(&x.view(), Some(h2.view())),
-                None => self.post_decoder.forward(&x.view(), None),
-            };
+            let (x, h2_) = self
+                .post_decoder
+                .forward(&x.view(), h2.as_ref().map(|h| h.view()));
             h2 = Some(h2_);
+            let x = self.post_dec_norm.forward(&x.view());
             let mut x = self.fc.forward_2d(&x.view());
 
             // 1文字目の場合は、終了トークンが出力されないようにする。
@@ -342,7 +369,7 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
             .chain(source)
             .chain([constants::EOS_IDX]);
         let source = ndarray::Array1::from_iter(source);
-        let result = self.s2s.forward(&source, options);
+        let result = self.s2s.forward(&source.view(), options);
         E2kOutput {
             output: result
                 .output
