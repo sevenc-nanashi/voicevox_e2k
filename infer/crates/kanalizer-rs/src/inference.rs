@@ -11,7 +11,8 @@ use std::{collections::HashMap, hash::Hash, num::NonZero};
 /// [Kanalizer::convert]のオプション。
 pub struct ConvertOptions {
     /// デコードの最大長。
-    pub max_length: NonZero<usize>,
+    /// Noneの場合、入力の長さ+2になります。
+    pub max_length: Option<NonZero<usize>>,
     /// デコードに使うアルゴリズム。
     pub strategy: Strategy,
     /// 入力に無効な文字が含まれている場合にエラーを返すかどうか。
@@ -24,7 +25,7 @@ pub struct ConvertOptions {
 impl Default for ConvertOptions {
     fn default() -> Self {
         Self {
-            max_length: 32.try_into().unwrap(),
+            max_length: None,
             strategy: Strategy::default(),
             error_on_invalid_input: true,
             error_on_incomplete: true,
@@ -272,6 +273,7 @@ impl S2s {
     fn forward(
         &self,
         source: &ndarray::ArrayView1<usize>,
+        max_length: NonZero<usize>,
         options: &ConvertOptions,
     ) -> E2kOutput<usize> {
         let e_emb = self.e_emb.forward(source);
@@ -286,7 +288,8 @@ impl S2s {
         let mut result = vec![constants::SOS_IDX];
         let mut h1: Option<ndarray::Array1<f32>> = None;
         let mut h2: Option<ndarray::Array1<f32>> = None;
-        for i in 0..options.max_length.into() {
+
+        for i in 0..max_length.into() {
             let dec = ndarray::Array1::from_elem(1, *result.last().unwrap());
             let dec_emb = self.k_emb.forward(&dec.view());
             let (dec_out, h1_) = self
@@ -364,12 +367,15 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
                 finished: true,
             };
         }
+        let max_length = options
+            .max_length
+            .unwrap_or_else(|| NonZero::new(input.len() + 2).unwrap());
         let source = [constants::SOS_IDX]
             .into_iter()
             .chain(source)
             .chain([constants::EOS_IDX]);
         let source = ndarray::Array1::from_iter(source);
-        let result = self.s2s.forward(&source.view(), options);
+        let result = self.s2s.forward(&source.view(), max_length, options);
         E2kOutput {
             output: result
                 .output

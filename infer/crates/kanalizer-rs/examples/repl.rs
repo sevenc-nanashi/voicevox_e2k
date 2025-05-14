@@ -3,8 +3,8 @@ use clap::{Parser, ValueEnum};
 #[derive(Parser)]
 struct Args {
     /// 読みの最大長。
-    #[clap(short, long, default_value = "32")]
-    max_length: usize,
+    #[clap(short, long)]
+    max_length: Option<usize>,
 
     /// アルゴリズム。
     #[clap(short, long, default_value = "greedy")]
@@ -61,7 +61,7 @@ fn main() {
             .interact()
             .unwrap();
         match kanalizer::convert(&line)
-            .with_max_length(args.max_length.try_into().unwrap())
+            .with_max_length(args.max_length.map(|l| l.try_into().unwrap()))
             .with_strategy(&strategy)
             .perform()
         {

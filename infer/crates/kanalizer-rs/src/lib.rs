@@ -51,7 +51,8 @@ impl ConvertBuilder {
     }
 
     /// デコードの最大長を指定する。
-    pub fn with_max_length(mut self, max_length: NonZero<usize>) -> Self {
+    /// Noneの場合、入力長+2になります。
+    pub fn with_max_length(mut self, max_length: Option<NonZero<usize>>) -> Self {
         self.options.max_length = max_length;
         self
     }
