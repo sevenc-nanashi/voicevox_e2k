@@ -367,7 +367,7 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
                 finished: true,
             };
         }
-        let max_length = options
+        let effective_max_length = options
             .max_length
             .unwrap_or_else(|| NonZero::new(input.len() + 2).unwrap());
         let source = [constants::SOS_IDX]
@@ -375,7 +375,7 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
             .chain(source)
             .chain([constants::EOS_IDX]);
         let source = ndarray::Array1::from_iter(source);
-        let result = self.s2s.forward(&source.view(), max_length, options);
+        let result = self.s2s.forward(&source.view(), effective_max_length, options);
         E2kOutput {
             output: result
                 .output
