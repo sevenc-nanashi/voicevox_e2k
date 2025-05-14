@@ -16,7 +16,7 @@ fn test_kanalizer_long() {
         .convert(
             src,
             &kanalizer::ConvertOptions {
-                max_length: 32.try_into().unwrap(),
+                max_length: Some(100.try_into().unwrap()),
                 ..Default::default()
             },
         )
@@ -25,7 +25,7 @@ fn test_kanalizer_long() {
         .convert(
             src,
             &kanalizer::ConvertOptions {
-                max_length: 10.try_into().unwrap(),
+                max_length: Some(10.try_into().unwrap()),
                 error_on_incomplete: false,
                 ..Default::default()
             },
@@ -44,7 +44,7 @@ fn test_kanalizer_long_error() {
         .convert(
             src,
             &kanalizer::ConvertOptions {
-                max_length: 10.try_into().unwrap(),
+                max_length: Some(10.try_into().unwrap()),
                 error_on_incomplete: true,
                 ..Default::default()
             },
