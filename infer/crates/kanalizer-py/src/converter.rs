@@ -114,7 +114,7 @@ impl pyo3::FromPyObject<'_> for ErrorMode {
     }
 }
 
-pub fn extract_max_length<'py>(ob: &Bound<'py, PyAny>) -> PyResult<kanalizer::MaxLength> {
+pub fn extract_max_length(ob: &Bound<'_, PyAny>) -> PyResult<kanalizer::MaxLength> {
     return extract_integer(ob).or_else(|_| extract_auto(ob));
 
     fn extract_auto(ob: &Bound<'_, PyAny>) -> PyResult<kanalizer::MaxLength> {

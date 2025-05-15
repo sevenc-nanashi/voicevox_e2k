@@ -20,12 +20,18 @@ ErrorMode = Literal["error", "warning", "ignore"]
 - "ignore" : エラーを無視する。
 """
 
+MaxLength = int | Literal["auto"]
+"""
+最大の出力長。
+autoの場合は、入力の長さ+2を最大長とする。
+"""
+
 @overload
 def convert(
     word: str,
     /,
     *,
-    max_length: int | None = None,
+    max_length: MaxLength = "auto",
     on_invalid_input: ErrorMode = "error",
     on_incomplete: ErrorMode = "warning",
     strategy: Literal["greedy"] = "greedy",
@@ -35,7 +41,7 @@ def convert(
     word: str,
     /,
     *,
-    max_length: int | None = None,
+    max_length: MaxLength = "auto",
     on_invalid_input: ErrorMode = "error",
     on_incomplete: ErrorMode = "warning",
     strategy: Literal["top_k"],
@@ -46,7 +52,7 @@ def convert(
     word: str,
     /,
     *,
-    max_length: int | None = None,
+    max_length: MaxLength = "auto",
     on_invalid_input: ErrorMode = "error",
     on_incomplete: ErrorMode = "warning",
     strategy: Literal["top_p"],
@@ -57,7 +63,7 @@ def convert(
     word: str,
     /,
     *,
-    max_length: int | None = None,
+    max_length: MaxLength = "auto",
     strategy: Strategy = "greedy",
     on_invalid_input: ErrorMode = "error",
     on_incomplete: ErrorMode = "warning",
