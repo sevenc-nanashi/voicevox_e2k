@@ -273,7 +273,7 @@ impl S2s {
     fn forward(
         &self,
         source: &ndarray::ArrayView1<usize>,
-        max_length: NonZero<usize>,
+        decoding_max_length: NonZero<usize>,
         options: &ConvertOptions,
     ) -> E2kOutput<usize> {
         let e_emb = self.e_emb.forward(source);
@@ -289,7 +289,7 @@ impl S2s {
         let mut h1: Option<ndarray::Array1<f32>> = None;
         let mut h2: Option<ndarray::Array1<f32>> = None;
 
-        for i in 0..max_length.into() {
+        for i in 0..decoding_max_length.into() {
             let dec = ndarray::Array1::from_elem(1, *result.last().unwrap());
             let dec_emb = self.k_emb.forward(&dec.view());
             let (dec_out, h1_) = self
