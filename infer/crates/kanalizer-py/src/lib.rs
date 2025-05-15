@@ -1,6 +1,5 @@
 mod converter;
-use crate::converter::extract_strategy;
-use converter::ErrorMode;
+use converter::{ErrorMode, extract_max_length, extract_strategy};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
@@ -12,11 +11,11 @@ pyo3::import_exception!(kanalizer._error, InvalidCharsWarning);
 pyo3::import_exception!(kanalizer._error, EmptyInputWarning);
 
 #[pyfunction]
-#[pyo3(signature = (word, /, *, max_length = None, on_invalid_input = ErrorMode::Error, on_incomplete = ErrorMode::Warning, strategy = "greedy", **kwargs))]
+#[pyo3(signature = (word, /, *, max_length = kanalizer::MaxLength::Auto, on_invalid_input = ErrorMode::Error, on_incomplete = ErrorMode::Warning, strategy = "greedy", **kwargs))]
 fn convert(
     py: Python,
     word: &str,
-    max_length: Option<usize>,
+    #[pyo3(from_py_with = extract_max_length)] max_length: kanalizer::MaxLength,
     on_invalid_input: ErrorMode,
     on_incomplete: ErrorMode,
     strategy: &str,
@@ -26,17 +25,7 @@ fn convert(
     // ErrorMode::Warningを指定している場合は、エラーを吐くようにし、Warningを吐いてからErrorMode::Ignoreにして再度呼び出す
     let rust_strategy = extract_strategy(strategy, kwargs)?;
     let result = kanalizer::convert(word)
-        .with_max_length(
-            max_length
-                .map(|l| {
-                    l.try_into().map_err(|_| {
-                        pyo3::exceptions::PyValueError::new_err(
-                            "max_length must be a positive integer or None",
-                        )
-                    })
-                })
-                .transpose()?,
-        )
+        .with_max_length(max_length)
         .with_strategy(&rust_strategy)
         .with_error_on_invalid_input(on_invalid_input != ErrorMode::Ignore)
         .with_error_on_incomplete(on_incomplete != ErrorMode::Ignore)

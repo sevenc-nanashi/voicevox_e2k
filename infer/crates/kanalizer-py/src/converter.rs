@@ -113,3 +113,24 @@ impl pyo3::FromPyObject<'_> for ErrorMode {
         })
     }
 }
+
+pub fn extract_max_length<'py>(ob: &Bound<'py, PyAny>) -> PyResult<kanalizer::MaxLength> {
+    return extract_integer(ob).or_else(|_| extract_auto(ob));
+
+    fn extract_auto(ob: &Bound<'_, PyAny>) -> PyResult<kanalizer::MaxLength> {
+        let value: String = ob.extract()?;
+        if value == "auto" {
+            Ok(kanalizer::MaxLength::Auto)
+        } else {
+            Err(pyo3::exceptions::PyValueError::new_err(
+                "max_length must be 'auto' or a positive integer",
+            ))
+        }
+    }
+    fn extract_integer(ob: &Bound<'_, PyAny>) -> PyResult<kanalizer::MaxLength> {
+        let value: usize = ob.extract()?;
+        value.try_into().map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err("max_length must be a positive integer or None")
+        })
+    }
+}

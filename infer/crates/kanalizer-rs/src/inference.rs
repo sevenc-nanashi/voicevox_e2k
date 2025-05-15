@@ -7,12 +7,35 @@ use educe::Educe;
 use itertools::Itertools;
 use std::{collections::HashMap, hash::Hash, num::NonZero};
 
+#[derive(Clone, Copy, Debug, Default)]
+/// デコードの最大長を指定する列挙型。
+pub enum MaxLength {
+    /// 入力の長さ+2。
+    #[default]
+    Auto,
+    /// 指定された長さ。
+    Fixed(NonZero<usize>),
+}
+
+impl From<NonZero<usize>> for MaxLength {
+    fn from(max_length: NonZero<usize>) -> Self {
+        MaxLength::Fixed(max_length)
+    }
+}
+impl TryFrom<usize> for MaxLength {
+    type Error = std::num::TryFromIntError;
+
+    fn try_from(max_length: usize) -> std::result::Result<Self, Self::Error> {
+        let value = NonZero::<usize>::try_from(max_length)?;
+        Ok(MaxLength::Fixed(value))
+    }
+}
+
 #[derive(Clone, Debug)]
 /// [Kanalizer::convert]のオプション。
 pub struct ConvertOptions {
     /// デコードの最大長。
-    /// Noneの場合、入力の長さ+2になります。
-    pub max_length: Option<NonZero<usize>>,
+    pub max_length: MaxLength,
     /// デコードに使うアルゴリズム。
     pub strategy: Strategy,
     /// 入力に無効な文字が含まれている場合にエラーを返すかどうか。
@@ -25,7 +48,7 @@ pub struct ConvertOptions {
 impl Default for ConvertOptions {
     fn default() -> Self {
         Self {
-            max_length: None,
+            max_length: MaxLength::default(),
             strategy: Strategy::default(),
             error_on_invalid_input: true,
             error_on_incomplete: true,
@@ -367,9 +390,10 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
                 finished: true,
             };
         }
-        let effective_max_length = options
-            .max_length
-            .unwrap_or_else(|| NonZero::new(input.len() + 2).unwrap());
+        let effective_max_length = match options.max_length {
+            MaxLength::Auto => NonZero::new(source.len() + 2).unwrap(),
+            MaxLength::Fixed(max_length) => max_length,
+        };
         let source = [constants::SOS_IDX]
             .into_iter()
             .chain(source)
