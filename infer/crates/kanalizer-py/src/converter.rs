@@ -115,24 +115,33 @@ impl pyo3::FromPyObject<'_> for ErrorMode {
 }
 
 pub fn extract_max_length(ob: &Bound<'_, PyAny>) -> PyResult<kanalizer::MaxLength> {
-    return extract_integer(ob)
-        .or_else(|| extract_auto(ob))
-        .ok_or_else(|| {
-            pyo3::exceptions::PyValueError::new_err(
-                "max_length must be 'auto' or a positive integer",
-            )
-        });
+    return match (extract_auto(ob), extract_integer(ob)) {
+        (Ok(_), Ok(_)) => unreachable!(),
+        (Ok(auto), Err(_)) => Ok(auto),
+        (Err(_), Ok(integer)) => Ok(integer),
+        (Err(e1), Err(e2)) => {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "Failed to extract max_length:\n  as \"auto\": {}\n  as integer: {}",
+                e1, e2
+            )));
+        }
+    };
 
-    fn extract_auto(ob: &Bound<'_, PyAny>) -> Option<kanalizer::MaxLength> {
-        let value: String = ob.extract().ok()?;
+    fn extract_auto(ob: &Bound<'_, PyAny>) -> PyResult<kanalizer::MaxLength> {
+        let value: String = ob.extract()?;
         if value == "auto" {
-            Some(kanalizer::MaxLength::Auto)
+            Ok(kanalizer::MaxLength::Auto)
         } else {
-            None
+            Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "expected \"auto\", got {:?}",
+                value
+            )))
         }
     }
-    fn extract_integer(ob: &Bound<'_, PyAny>) -> Option<kanalizer::MaxLength> {
-        let value: usize = ob.extract().ok()?;
-        value.try_into().ok()
+    fn extract_integer(ob: &Bound<'_, PyAny>) -> PyResult<kanalizer::MaxLength> {
+        let value: usize = ob.extract()?;
+        value.try_into().map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err(format!("failed to convert {} to usize", value))
+        })
     }
 }
