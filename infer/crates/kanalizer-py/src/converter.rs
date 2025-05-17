@@ -121,7 +121,7 @@ pub fn extract_max_length(ob: &Bound<'_, PyAny>) -> PyResult<kanalizer::MaxLengt
         extract_integer(ob)
     } else {
         return Err(pyo3::exceptions::PyTypeError::new_err(format!(
-            "expected int or str, got {}",
+            "expected positive int or \"auto\", got {}",
             ob.get_type().name()?
         )));
     };
