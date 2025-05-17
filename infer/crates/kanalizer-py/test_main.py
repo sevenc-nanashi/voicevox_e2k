@@ -12,6 +12,7 @@ def test_kanalizer():
     "max_length, exception",
     [
         ("hoge", ValueError),
+        (-42, OverflowError),
         (2**64 + 1, OverflowError),
         (dict(), TypeError),
     ],
