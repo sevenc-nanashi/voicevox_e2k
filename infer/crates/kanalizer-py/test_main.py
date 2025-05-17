@@ -9,16 +9,16 @@ def test_kanalizer():
 
 
 @pytest.mark.parametrize(
-    "max_length",
+    "max_length, exception",
     [
-        ("hoge"),
-        (2**64),
-        dict(),
+        ("hoge", ValueError),
+        (2**64 + 1, OverflowError),
+        (dict(), TypeError),
     ],
 )
-def test_invalid_max_length(max_length):
+def test_invalid_max_length(max_length, exception):
     word = "kanalizer"
-    with pytest.raises(ValueError):
+    with pytest.raises(exception):
         kanalizer.convert(word, max_length=max_length)
 
 

@@ -94,10 +94,14 @@ def convert(
 
     Raises
     ------
+    TypeError
+        - 引数に無効な型が指定された場合。
     ValueError
         - error_on_invalid_inputがTrue、かつ`word`が空文字列の場合。
         - error_on_invalid_inputがTrue、かつ`word`にKanalizerの入力に使えない文字が含まれている場合。
         - `max_length`が0以下の場合。
+    OverflowError
+        - `max_length`がusizeの範囲を超える場合。
     IncompleteConversionError
         - `error_on_incomplete`がTrue、かつ変換が終了しなかった場合。
     """
