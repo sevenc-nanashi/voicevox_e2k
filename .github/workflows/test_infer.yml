@@ -28,7 +28,7 @@ jobs:
 
       - name: Run Rust lint
         run: |
-          rustup component add clippy rustfmt
+          rustup component add clippy rustfmt  # TODO: dtolnay/rust-toolchainを使う
           cargo clippy --all-targets --all-features -- -D warnings
           cargo fmt --all -- --check
 
