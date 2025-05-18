@@ -16,7 +16,7 @@ fn test_kanalizer_long() {
         .convert(
             src,
             &kanalizer::ConvertOptions {
-                max_length: 32.try_into().unwrap(),
+                max_length: 100.try_into().unwrap(),
                 ..Default::default()
             },
         )

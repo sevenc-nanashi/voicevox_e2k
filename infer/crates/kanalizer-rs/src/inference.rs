@@ -7,11 +7,35 @@ use educe::Educe;
 use itertools::Itertools;
 use std::{collections::HashMap, hash::Hash, num::NonZero};
 
+#[derive(Clone, Copy, Debug, Default)]
+/// デコードの最大長を指定する列挙型。
+pub enum MaxLength {
+    /// 自動で決定する。現在は入力の長さ+2。
+    #[default]
+    Auto,
+    /// 指定された長さ。
+    Fixed(NonZero<usize>),
+}
+
+impl From<NonZero<usize>> for MaxLength {
+    fn from(max_length: NonZero<usize>) -> Self {
+        MaxLength::Fixed(max_length)
+    }
+}
+impl TryFrom<usize> for MaxLength {
+    type Error = std::num::TryFromIntError;
+
+    fn try_from(max_length: usize) -> std::result::Result<Self, Self::Error> {
+        let value = NonZero::<usize>::try_from(max_length)?;
+        Ok(MaxLength::Fixed(value))
+    }
+}
+
 #[derive(Clone, Debug)]
 /// [Kanalizer::convert]のオプション。
 pub struct ConvertOptions {
     /// デコードの最大長。
-    pub max_length: NonZero<usize>,
+    pub max_length: MaxLength,
     /// デコードに使うアルゴリズム。
     pub strategy: Strategy,
     /// 入力に無効な文字が含まれている場合にエラーを返すかどうか。
@@ -24,7 +48,7 @@ pub struct ConvertOptions {
 impl Default for ConvertOptions {
     fn default() -> Self {
         Self {
-            max_length: 32.try_into().unwrap(),
+            max_length: MaxLength::default(),
             strategy: Strategy::default(),
             error_on_invalid_input: true,
             error_on_incomplete: true,
@@ -272,6 +296,7 @@ impl S2s {
     fn forward(
         &self,
         source: &ndarray::ArrayView1<usize>,
+        decoding_max_length: NonZero<usize>,
         options: &ConvertOptions,
     ) -> E2kOutput<usize> {
         let e_emb = self.e_emb.forward(source);
@@ -286,7 +311,8 @@ impl S2s {
         let mut result = vec![constants::SOS_IDX];
         let mut h1: Option<ndarray::Array1<f32>> = None;
         let mut h2: Option<ndarray::Array1<f32>> = None;
-        for i in 0..options.max_length.into() {
+
+        for i in 0..decoding_max_length.into() {
             let dec = ndarray::Array1::from_elem(1, *result.last().unwrap());
             let dec_emb = self.k_emb.forward(&dec.view());
             let (dec_out, h1_) = self
@@ -364,12 +390,18 @@ impl<I: Hash + Eq, O: Clone> BaseE2k<I, O> {
                 finished: true,
             };
         }
+        let effective_max_length = match options.max_length {
+            MaxLength::Auto => NonZero::new(source.len() + 2).unwrap(),
+            MaxLength::Fixed(max_length) => max_length,
+        };
         let source = [constants::SOS_IDX]
             .into_iter()
             .chain(source)
             .chain([constants::EOS_IDX]);
         let source = ndarray::Array1::from_iter(source);
-        let result = self.s2s.forward(&source.view(), options);
+        let result = self
+            .s2s
+            .forward(&source.view(), effective_max_length, options);
         E2kOutput {
             output: result
                 .output

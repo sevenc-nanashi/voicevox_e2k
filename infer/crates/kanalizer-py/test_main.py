@@ -8,10 +8,20 @@ def test_kanalizer():
     assert kanalizer.convert(word) == "カナライザー"
 
 
-def test_invalid_max_length():
+@pytest.mark.parametrize(
+    "max_length, exception",
+    [
+        ("hoge", ValueError),
+        (0, ValueError),
+        (-42, OverflowError),
+        (2**64 + 1, OverflowError),
+        (dict(), TypeError),
+    ],
+)
+def test_invalid_max_length(max_length, exception):
     word = "kanalizer"
-    with pytest.raises(ValueError):
-        kanalizer.convert(word, max_length=0)
+    with pytest.raises(exception):
+        kanalizer.convert(word, max_length=max_length)
 
 
 def test_empty_word_error():

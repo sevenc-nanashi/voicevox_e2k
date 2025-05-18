@@ -113,3 +113,35 @@ impl pyo3::FromPyObject<'_> for ErrorMode {
         })
     }
 }
+
+pub fn extract_max_length(ob: &Bound<'_, PyAny>) -> PyResult<kanalizer::MaxLength> {
+    return if ob.is_instance_of::<pyo3::types::PyString>() {
+        extract_auto(ob)
+    } else if ob.is_instance_of::<pyo3::types::PyInt>() {
+        extract_integer(ob)
+    } else {
+        return Err(pyo3::exceptions::PyTypeError::new_err(format!(
+            "expected positive int or \"auto\", got {}",
+            ob.get_type().name()?
+        )));
+    };
+
+    fn extract_auto(ob: &Bound<'_, PyAny>) -> PyResult<kanalizer::MaxLength> {
+        let value: String = ob.extract()?;
+        if value == "auto" {
+            Ok(kanalizer::MaxLength::Auto)
+        } else {
+            Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "expected \"auto\", got {value:?}",
+            )))
+        }
+    }
+    fn extract_integer(ob: &Bound<'_, PyAny>) -> PyResult<kanalizer::MaxLength> {
+        let value: usize = ob.extract()?;
+        value.try_into().map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err(
+                format!("expected positive int, got {value:?}",),
+            )
+        })
+    }
+}

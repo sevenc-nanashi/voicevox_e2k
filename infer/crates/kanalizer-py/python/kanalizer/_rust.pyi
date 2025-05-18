@@ -20,12 +20,18 @@ ErrorMode = Literal["error", "warning", "ignore"]
 - "ignore" : エラーを無視する。
 """
 
+MaxLength = int | Literal["auto"]
+"""
+最大の出力長。
+autoの場合は、ライブラリ側で長さを決定する。現在は入力の長さ+2。
+"""
+
 @overload
 def convert(
     word: str,
     /,
     *,
-    max_length: int = 32,
+    max_length: MaxLength = "auto",
     on_invalid_input: ErrorMode = "error",
     on_incomplete: ErrorMode = "warning",
     strategy: Literal["greedy"] = "greedy",
@@ -35,7 +41,7 @@ def convert(
     word: str,
     /,
     *,
-    max_length: int = 32,
+    max_length: MaxLength = "auto",
     on_invalid_input: ErrorMode = "error",
     on_incomplete: ErrorMode = "warning",
     strategy: Literal["top_k"],
@@ -46,7 +52,7 @@ def convert(
     word: str,
     /,
     *,
-    max_length: int = 32,
+    max_length: MaxLength = "auto",
     on_invalid_input: ErrorMode = "error",
     on_incomplete: ErrorMode = "warning",
     strategy: Literal["top_p"],
@@ -57,7 +63,7 @@ def convert(
     word: str,
     /,
     *,
-    max_length: int = 32,
+    max_length: MaxLength = "auto",
     strategy: Strategy = "greedy",
     on_invalid_input: ErrorMode = "error",
     on_incomplete: ErrorMode = "warning",
@@ -88,10 +94,14 @@ def convert(
 
     Raises
     ------
+    TypeError
+        - 引数に無効な型が指定された場合。
     ValueError
         - error_on_invalid_inputがTrue、かつ`word`が空文字列の場合。
         - error_on_invalid_inputがTrue、かつ`word`にKanalizerの入力に使えない文字が含まれている場合。
-        - `max_length`が0以下の場合。
+        - `max_length`が0の場合。
+    OverflowError
+        - `max_length`がusizeの範囲を超える場合。
     IncompleteConversionError
         - `error_on_incomplete`がTrue、かつ変換が終了しなかった場合。
     """

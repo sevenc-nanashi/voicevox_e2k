@@ -28,7 +28,7 @@ mod error;
 mod inference;
 mod layers;
 
-use std::{collections::HashSet, num::NonZero, sync::LazyLock};
+use std::{collections::HashSet, sync::LazyLock};
 
 pub use constants::{ASCII_ENTRIES, KANAS};
 pub use error::*;
@@ -51,7 +51,8 @@ impl ConvertBuilder {
     }
 
     /// デコードの最大長を指定する。
-    pub fn with_max_length(mut self, max_length: NonZero<usize>) -> Self {
+    /// Noneの場合、入力長+2になります。
+    pub fn with_max_length(mut self, max_length: MaxLength) -> Self {
         self.options.max_length = max_length;
         self
     }

@@ -1,10 +1,12 @@
+use std::num::NonZero;
+
 use clap::{Parser, ValueEnum};
 
 #[derive(Parser)]
 struct Args {
     /// 読みの最大長。
-    #[clap(short, long, default_value = "32")]
-    max_length: usize,
+    #[clap(short, long)]
+    max_length: Option<NonZero<usize>>,
 
     /// アルゴリズム。
     #[clap(short, long, default_value = "greedy")]
@@ -61,7 +63,10 @@ fn main() {
             .interact()
             .unwrap();
         match kanalizer::convert(&line)
-            .with_max_length(args.max_length.try_into().unwrap())
+            .with_max_length(match args.max_length {
+                Some(length) => length.into(),
+                None => kanalizer::MaxLength::Auto,
+            })
             .with_strategy(&strategy)
             .perform()
         {
