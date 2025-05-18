@@ -23,7 +23,7 @@ ErrorMode = Literal["error", "warning", "ignore"]
 MaxLength = int | Literal["auto"]
 """
 最大の出力長。
-autoの場合は、ライブラリ側で長さを決定します。（現在は入力の長さ+2）
+autoの場合は、ライブラリ側で長さを決定する。現在は入力の長さ+2。
 """
 
 @overload

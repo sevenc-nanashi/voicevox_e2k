@@ -10,7 +10,7 @@ use std::{collections::HashMap, hash::Hash, num::NonZero};
 #[derive(Clone, Copy, Debug, Default)]
 /// デコードの最大長を指定する列挙型。
 pub enum MaxLength {
-    /// 自動で決定する。（現在は入力の長さ+2）
+    /// 自動で決定する。現在は入力の長さ+2。
     #[default]
     Auto,
     /// 指定された長さ。
