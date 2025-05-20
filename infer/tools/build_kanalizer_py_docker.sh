@@ -25,6 +25,10 @@ dist
 EOF
 rsync -av --exclude-from=/work/copy_excludes.txt /mnt/infer/ /work/infer
 
+# LICENSEがdangling symlinkになっているので、実体をコピーする。
+rm -f /work/infer/crates/kanalizer-py/LICENSE
+cp -v /mnt/LICENSE /work/infer/crates/kanalizer-py/LICENSE
+
 # ビルド
 cd /work/infer/tools
 uv run ./build_kanalizer_py.py --wheel --skip-notice
