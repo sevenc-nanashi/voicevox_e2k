@@ -76,7 +76,7 @@ def convert(
     ----------
     word : str
         英単語。
-    max_length : int, default 32
+    max_length : MaxLength, default "auto"
         最大の出力長。
     on_invalid_input : ErrorMode, default "error"
         入力に無効な文字が含まれていた場合の挙動。
