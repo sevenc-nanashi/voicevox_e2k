@@ -15,7 +15,7 @@ import platform
 import shutil
 from subprocess import check_output, run
 import tempfile
-from common import infer_root, is_windows, is_linux, repo_root
+from common import infer_root, is_windows, is_linux
 
 kanalizer_py_root = infer_root / "crates" / "kanalizer-py"
 wheels_root = infer_root / "target" / "wheels"
@@ -144,8 +144,6 @@ def build_wheel_on_docker():
             "--rm",
             "--mount",
             f"type=bind,source={infer_root},target=/mnt/infer",
-            "--mount",
-            f"type=bind,source={repo_root}/LICENSE,target=/mnt/LICENSE",
             f"messense/manylinux_2_28-cross:{tag}",
             "bash",
             "-c",
